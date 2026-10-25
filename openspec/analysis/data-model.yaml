@@ -1,0 +1,424 @@
+version: 1
+generatedBy: data-modeling
+updatedAt: 2026-10-25T21:00:00+08:00
+relatedChanges: [ai-personality-app]
+store: firestore
+storeNotes: "資料庫為 Firestore（CTX-CON-004）；僅由 Nuxt 伺服器端以 Admin SDK 存取，firestore.rules 全擋 client（CTX-CON-013）。以集合／子集合表達「表」，以決定性文件 ID 取代唯一約束。"
+
+tables:
+  - id: DATA-001
+    name: users
+    path: "users/{userId}"
+    primaryKey: "userId（Firebase Auth uid）"
+    aggregate: AGG-001
+    domainModel: ["ENT-001", "VO-001", "VO-002", "VO-003"]
+    api: ["API-001", "API-002", "API-003", "API-028", "API-029", "API-006"]
+    columns:
+      - { name: "userId", type: "string", constraints: "PK；= Firebase uid" }
+      - { name: "email", type: "string", constraints: "required" }
+      - { name: "birthData", type: "map", constraints: "BirthData 內嵌：birthDate, zodiac, birthTime?, birthPlace?（預設城市清單代碼）；birthDate 與 zodiac 必填（RULE-001）" }
+      - { name: "bloodType", type: "string", constraints: "enum A|B|O|AB|UNKNOWN；預設 UNKNOWN" }
+      - { name: "mbti", type: "string", constraints: "nullable；16 型之一" }
+      - { name: "mbtiExpiresAt", type: "timestamp", constraints: "nullable；MBTI 設定後 3 個月到期，由排程清除 mbti" }
+      - { name: "createdAt", type: "timestamp", constraints: "required" }
+      - { name: "updatedAt", type: "timestamp", constraints: "required" }
+    notes: "帳號的根文件，文件 ID 為 Firebase uid。刪除帳號時整份文件與全部子集合以 recursive delete 移除（RULE-024）；僅保留 DATA-018 贈點紀錄。"
+  - id: DATA-002
+    name: guestSessions
+    path: "guestSessions/{sessionId}"
+    primaryKey: "sessionId（不可猜測的隨機值）"
+    aggregate: AGG-002
+    domainModel: ["ENT-002", "VO-001", "VO-002", "VO-003"]
+    api: ["API-004", "API-005", "API-011", "API-013", "API-006", "API-027"]
+    ttl: { field: "expiresAt", duration: "1 day", rule: "RULE-016" }
+    columns:
+      - { name: "sessionId", type: "string", constraints: "PK" }
+      - { name: "tempProfile", type: "map", constraints: "nullable；暫存的生日、星座、血型、MBTI" }
+      - { name: "tempResults", type: "map", constraints: "nullable；暫存的測驗結果（MBTI 型別、testVersion、可含作答）與人類圖結果" }
+      - { name: "createdAt", type: "timestamp", constraints: "required" }
+      - { name: "expiresAt", type: "timestamp", constraints: "required；= createdAt + 1 天；Firestore TTL 欄位" }
+    notes: "不與任何 userId 關聯；claim 成功後立即刪除該文件。"
+  - id: DATA-003
+    name: tests
+    path: "tests/{testId}"
+    primaryKey: "testId"
+    aggregate: AGG-003
+    domainModel: ["ENT-003"]
+    api: ["API-009", "API-010"]
+    columns:
+      - { name: "testId", type: "string", constraints: "PK" }
+      - { name: "title", type: "string", constraints: "required" }
+      - { name: "currentVersion", type: "string", constraints: "required；指向 versions 子集合" }
+      - { name: "active", type: "boolean", constraints: "required" }
+    notes: "測驗定義的根文件；與 DATA-004 同屬 AGG-003，發布新版本時一起更新。"
+  - id: DATA-004
+    name: testVersions
+    path: "tests/{testId}/versions/{version}"
+    primaryKey: "version"
+    aggregate: AGG-003
+    domainModel: ["ENT-003", "VO-007"]
+    api: ["API-010", "API-011"]
+    columns:
+      - { name: "version", type: "string", constraints: "PK" }
+      - { name: "questions", type: "array<map>", constraints: "Question 內嵌：questionId, text, options[]，及評分用 dimension（不外送）" }
+      - { name: "scoringRule", type: "map", constraints: "評分規則（資料驅動，NFR-012）" }
+      - { name: "publishedAt", type: "timestamp", constraints: "required" }
+    notes: "版本不可變；送出作答以當時 testVersion 計分（RULE-027）。"
+  - id: DATA-005
+    name: testAttempts
+    path: "users/{userId}/testAttempts/{attemptId}"
+    primaryKey: "attemptId（自動產生）"
+    aggregate: AGG-004
+    domainModel: ["ENT-004", "VO-006", "VO-003"]
+    api: ["API-011", "API-012", "API-006", "API-037", "API-028", "API-029"]
+    columns:
+      - { name: "attemptId", type: "string", constraints: "PK" }
+      - { name: "testId", type: "string", constraints: "required；參照 DATA-003" }
+      - { name: "testVersion", type: "string", constraints: "required；參照 DATA-004" }
+      - { name: "answers", type: "array<map>", constraints: "Answer 內嵌：questionId, value, responseTimeMs?（僅在已告知時蒐集）" }
+      - { name: "result", type: "string", constraints: "required；MBTI 16 型之一" }
+      - { name: "completedAt", type: "timestamp", constraints: "required" }
+      - { name: "expiresAt", type: "timestamp", constraints: "required；= completedAt + 3 個月（RULE-014）" }
+    indexes:
+      - { fields: ["expiresAt ASC"], scope: "COLLECTION_GROUP", purpose: "排程清除到期資料（UC-017）" }
+      - { fields: ["completedAt DESC"], scope: "COLLECTION", purpose: "個人中心列表" }
+    notes: "訪客 claim 時將暫存結果寫入此集合；到期由 cron 清除（亦可加 Firestore TTL）。"
+  - id: DATA-006
+    name: fixedContents
+    path: "fixedContents/{contentType}_{key}"
+    primaryKey: "contentType 與 key 組成的決定性 ID，例如 SUMMARY_aries_INTJ_A、ZODIAC_aries"
+    aggregate: AGG-005
+    domainModel: ["ENT-005", "VO-004"]
+    api: ["API-007", "API-008", "API-011", "API-014", "API-016", "API-031", "API-032", "API-033", "API-034", "API-027"]
+    columns:
+      - { name: "contentType", type: "string", constraints: "required；SUMMARY|ZODIAC|BLOOD|MBTI" }
+      - { name: "key", type: "string", constraints: "required；summary 為組合鍵，單項為對應值" }
+      - { name: "combinationKey", type: "map", constraints: "nullable；SUMMARY 才有：zodiac, mbti, bloodType?" }
+      - { name: "body", type: "map", constraints: "title, summary, strengths[], blindSpots[], loveStyle, workStyle, communicationStyle, growthAdvice, disclaimer" }
+      - { name: "contentVersion", type: "string", constraints: "required" }
+      - { name: "status", type: "string", constraints: "required；DRAFT|REVIEWED|PUBLISHED" }
+      - { name: "updatedAt", type: "timestamp", constraints: "required" }
+      - { name: "publishedAt", type: "timestamp", constraints: "nullable" }
+    indexes:
+      - { fields: ["contentType ASC", "status ASC"], scope: "COLLECTION", purpose: "後台列表與覆蓋檢查（960 種 summary）" }
+    notes: "以決定性文件 ID 保證組合唯一（RULE-021，取代 SQL UNIQUE）；僅 PUBLISHED 可供使用者讀取。含 192 + 768 = 960 筆 summary，另含星座、血型、MBTI 單項內容。"
+  - id: DATA-007
+    name: summaries
+    path: "users/{userId}/summaries/{summaryId}"
+    primaryKey: "由組合決定的 ID（如 aries_INTJ_A），同一會員同一組合僅一筆"
+    aggregate: AGG-006
+    domainModel: ["ENT-006", "VO-004"]
+    api: ["API-014", "API-015", "API-016", "API-037", "API-028", "API-029"]
+    columns:
+      - { name: "summaryId", type: "string", constraints: "PK；= 組合鍵；以文件是否存在判斷是否已取得（RULE-005）" }
+      - { name: "combinationKey", type: "map", constraints: "required；zodiac, mbti, bloodType?" }
+      - { name: "contentRef", type: "string", constraints: "required；參照 DATA-006 文件 ID" }
+      - { name: "contentVersion", type: "string", constraints: "required；取得時的內容版本" }
+      - { name: "obtainedAt", type: "timestamp", constraints: "required；保存期限起算點" }
+      - { name: "expiresAt", type: "timestamp", constraints: "required；= obtainedAt + 3 個月" }
+    indexes:
+      - { fields: ["expiresAt ASC"], scope: "COLLECTION_GROUP", purpose: "排程清除到期資料（UC-017）" }
+    notes: "建立此文件與扣點（DATA-010、DATA-011）須在同一個 Firestore transaction 內完成（AGG-006 與 AGG-008 的協調，NFR-017）。內容本體不複製，讀取時依 contentRef 取 DATA-006。"
+  - id: DATA-008
+    name: detailedReports
+    path: "users/{userId}/detailedReports/{reportId}"
+    primaryKey: "reportId（自動產生）"
+    aggregate: AGG-007
+    domainModel: ["ENT-007", "VO-004", "VO-008", "VO-009"]
+    api: ["API-017", "API-018", "API-019", "API-020", "API-028", "API-029", "API-039"]
+    columns:
+      - { name: "reportId", type: "string", constraints: "PK" }
+      - { name: "combinationKey", type: "map", constraints: "required；zodiac, mbti, bloodType?, humanDesignType?" }
+      - { name: "input", type: "map", constraints: "AnalysisInput 內嵌：inputVersion, profile, results, answersDigest（僅保存生成所需的最小快照，NFR-005）" }
+      - { name: "status", type: "string", constraints: "required；GENERATING|COMPLETED|FAILED" }
+      - { name: "sections", type: "array<map>", constraints: "ReportSection 內嵌：title, content, evidence, evidenceKind(OBSERVED|INFERRED)" }
+      - { name: "disclaimer", type: "string", constraints: "nullable" }
+      - { name: "modelName", type: "string", constraints: "nullable；完成時寫入" }
+      - { name: "promptVersion", type: "string", constraints: "nullable" }
+      - { name: "supersedesReportId", type: "string", constraints: "nullable；重新生成時指向舊報告（舊報告保留）" }
+      - { name: "failureReason", type: "string", constraints: "nullable" }
+      - { name: "idempotencyKey", type: "string", constraints: "required；用於防止重複建立（RULE-025）" }
+      - { name: "createdAt", type: "timestamp", constraints: "required" }
+      - { name: "completedAt", type: "timestamp", constraints: "nullable" }
+      - { name: "expiresAt", type: "timestamp", constraints: "nullable；完成時設為 completedAt + 6 個月（RULE-030）" }
+      - { name: "downloadCount", type: "int", constraints: "required；預設 0；每次寄送報告書 +1" }
+      - { name: "lastDownloadedAt", type: "timestamp", constraints: "nullable" }
+    indexes:
+      - { fields: ["createdAt DESC"], scope: "COLLECTION", purpose: "報告列表" }
+      - { fields: ["idempotencyKey ASC"], scope: "COLLECTION", purpose: "以 Idempotency-Key 查既有請求" }
+      - { fields: ["expiresAt ASC"], scope: "COLLECTION_GROUP", purpose: "排程清除到期報告（UC-017）" }
+    notes: "保存 6 個月（RULE-030），到期前可用點數（每次 1 點）將報告書 PDF 寄送 email；每次寄送的扣點異動 ID 為 download_{reportId}_{序號}；每次重新生成新增一份。建立報告與扣 5 點在同一 transaction；失敗時返還點數並寫入 REFUND 異動。"
+  - id: DATA-009
+    name: pointAccount
+    path: "users/{userId}/pointAccount/main"
+    primaryKey: "固定為 main（每會員一份）"
+    aggregate: AGG-008
+    domainModel: ["ENT-008"]
+    api: ["API-001", "API-021", "API-029"]
+    columns:
+      - { name: "userId", type: "string", constraints: "required" }
+      - { name: "welcomeGrantedAt", type: "timestamp", constraints: "nullable；有值代表已發放贈點，確保僅一次（RULE-009）" }
+      - { name: "createdAt", type: "timestamp", constraints: "required" }
+    notes: "不存可用餘額：過期是隨時間發生、不產生寫入，餘額一律由未過期的 DATA-010 批次加總得出。"
+  - id: DATA-010
+    name: pointBatches
+    path: "users/{userId}/pointBatches/{batchId}"
+    primaryKey: "batchId"
+    aggregate: AGG-008
+    domainModel: ["ENT-009"]
+    api: ["API-001", "API-021", "API-014", "API-017", "API-020", "API-026", "API-029"]
+    columns:
+      - { name: "batchId", type: "string", constraints: "PK" }
+      - { name: "source", type: "string", constraints: "required；WELCOME|PURCHASE" }
+      - { name: "sourceRef", type: "string", constraints: "nullable；購買批次指向 paymentId" }
+      - { name: "granted", type: "int", constraints: "required" }
+      - { name: "remaining", type: "int", constraints: "required；>= 0（RULE-007）" }
+      - { name: "expiresAt", type: "timestamp", constraints: "nullable；購買批次為 null（無限期），贈點批次 = 建立後 90 天（RULE-008）" }
+      - { name: "createdAt", type: "timestamp", constraints: "required" }
+    indexes:
+      - { fields: ["remaining ASC", "expiresAt ASC"], scope: "COLLECTION", purpose: "扣點時挑選未過期且有剩餘的批次（先到期先扣，無限期批次最後；已確認）" }
+    notes: "扣點在 transaction 內讀取並更新批次，與 DATA-011 同交易寫入。"
+  - id: DATA-011
+    name: pointTransactions
+    path: "users/{userId}/pointTransactions/{transactionId}"
+    primaryKey: "由操作決定的 ID，例如 welcome、summary_{summaryId}、report_{reportId}、refund_{reportId}、purchase_{paymentId}"
+    aggregate: AGG-008
+    domainModel: ["ENT-010"]
+    api: ["API-001", "API-014", "API-017", "API-020", "API-026", "API-022", "API-029"]
+    columns:
+      - { name: "transactionId", type: "string", constraints: "PK；決定性 ID 作為冪等鍵（RULE-007、RULE-025）" }
+      - { name: "type", type: "string", constraints: "required；GRANT|PURCHASE|DEDUCT|REFUND" }
+      - { name: "amount", type: "int", constraints: "required；正整數，方向由 type 決定" }
+      - { name: "reason", type: "string", constraints: "required；WELCOME|SUMMARY|DETAILED_REPORT|REGENERATE|DOWNLOAD|PURCHASE" }
+      - { name: "batchAllocations", type: "array<map>", constraints: "每筆 {batchId, amount}；扣點可跨批次" }
+      - { name: "reference", type: "string", constraints: "nullable；summaryId／reportId／paymentId" }
+      - { name: "createdAt", type: "timestamp", constraints: "required" }
+    indexes:
+      - { fields: ["createdAt DESC"], scope: "COLLECTION", purpose: "異動紀錄列表" }
+    notes: "追加式、不可修改；以決定性文件 ID 的「建立若不存在」達成冪等，防重複扣點與重複入帳。"
+  - id: DATA-012
+    name: payments
+    path: "users/{userId}/payments/{paymentId}"
+    primaryKey: "paymentId"
+    aggregate: AGG-009
+    domainModel: ["ENT-011", "VO-010"]
+    api: ["API-024", "API-025", "API-026", "API-029"]
+    columns:
+      - { name: "paymentId", type: "string", constraints: "PK" }
+      - { name: "packageId", type: "string", constraints: "required；參照 DATA-013" }
+      - { name: "pointsPurchased", type: "int", constraints: "required" }
+      - { name: "amount", type: "map", constraints: "Money 內嵌：amount, currency" }
+      - { name: "status", type: "string", constraints: "required；PENDING|COMPLETED|FAILED" }
+      - { name: "consentRecordedAt", type: "timestamp", constraints: "required；同意立即提供數位內容、放棄解約的時間" }
+      - { name: "consentTermsVersion", type: "string", constraints: "required；同意條款版本" }
+      - { name: "providerSessionId", type: "string", constraints: "nullable；付款服務的 checkout 識別" }
+      - { name: "processedEventIds", type: "array<string>", constraints: "已處理的付款事件 ID（webhook 冪等，RULE-011）" }
+      - { name: "createdAt", type: "timestamp", constraints: "required" }
+      - { name: "updatedAt", type: "timestamp", constraints: "required" }
+    notes: "帳號存續期間永久保存（RULE-015）；刪除帳號時一併移除（RULE-024）。建立 checkout 時把 userId 與 paymentId 放入付款服務的 metadata，webhook 據此定位文件。"
+  - id: DATA-013
+    name: pointPackages
+    path: "pointPackages/{packageId}"
+    primaryKey: "packageId"
+    aggregate: AGG-008
+    domainModel: ["ENT-009", "VO-010"]
+    api: ["API-023", "API-024"]
+    columns:
+      - { name: "packageId", type: "string", constraints: "PK" }
+      - { name: "points", type: "int", constraints: "required" }
+      - { name: "price", type: "map", constraints: "Money 內嵌；定價待定" }
+      - { name: "validityDays", type: "int", constraints: "nullable；購買點數為無限期，目前一律為 null" }
+      - { name: "active", type: "boolean", constraints: "required" }
+    notes: "設定資料（資料驅動）；點數方案與價格尚未決定。這是為 API-023 推導出的支撐表，不對應獨立的 domain entity。"
+  - id: DATA-014
+    name: aiUsageRecords
+    path: "aiUsageRecords/{recordId}"
+    primaryKey: "recordId（自動產生）"
+    aggregate: AGG-010
+    domainModel: ["ENT-012"]
+    api: ["API-017", "API-020", "API-035", "API-029"]
+    columns:
+      - { name: "recordId", type: "string", constraints: "PK" }
+      - { name: "userId", type: "string", constraints: "nullable；帳號刪除時清除" }
+      - { name: "reportId", type: "string", constraints: "required；參照 DATA-008" }
+      - { name: "modelName", type: "string", constraints: "required" }
+      - { name: "inputTokens", type: "int", constraints: "required" }
+      - { name: "outputTokens", type: "int", constraints: "required" }
+      - { name: "estimatedCost", type: "number", constraints: "required" }
+      - { name: "createdAt", type: "timestamp", constraints: "required" }
+    indexes:
+      - { fields: ["createdAt ASC"], scope: "COLLECTION", purpose: "依期間彙總用量與成本" }
+    notes: "追加式；放在頂層以便營運彙總。帳號刪除時保留成本紀錄但清除 userId（去識別化，待確認）。"
+  - id: DATA-015
+    status: deprecated
+    reason: "改為 metricsDaily（DATA-019）"
+    name: productEvents
+    path: "productEvents/{eventId}"
+    primaryKey: "eventId（自動產生）"
+    aggregate: AGG-011
+    domainModel: ["ENT-013"]
+    api: ["API-030", "API-036", "API-011", "API-029"]
+    columns:
+      - { name: "eventId", type: "string", constraints: "PK" }
+      - { name: "eventType", type: "string", constraints: "required；TEST_STARTED|TEST_COMPLETED|RESULT_VIEWED|SHARED|PURCHASE_STARTED" }
+      - { name: "userId", type: "string", constraints: "nullable；訪客為 null" }
+      - { name: "occurredAt", type: "timestamp", constraints: "required" }
+    indexes:
+      - { fields: ["eventType ASC", "occurredAt ASC"], scope: "COLLECTION", purpose: "指標彙總" }
+    notes: "不得存作答內容或報告（NFR-006）；保留期限未定義，需確認；帳號刪除時清除 userId。"
+  - id: DATA-019
+    name: metricsDaily
+    path: "metricsDaily/{date}"
+    primaryKey: "date（YYYY-MM-DD）"
+    aggregate: AGG-014
+    domainModel: ["ENT-017"]
+    api: ["API-011", "API-010", "API-014", "API-017", "API-026", "API-027", "API-036"]
+    columns:
+      - { name: "date", type: "string", constraints: "PK；YYYY-MM-DD" }
+      - { name: "counters", type: "map", constraints: "計數器：testsCompleted、summariesObtained、reportsCompleted、reportsFailed、paymentsCompleted、shareCardsCreated 等；以 Firestore increment 原子遞增" }
+      - { name: "updatedAt", type: "timestamp", constraints: "required" }
+    notes: "只存計數，不含任何個人資料，因此不受刪帳號與保留期限影響（RULE-034）。"
+  - id: DATA-016
+    name: humanDesign
+    path: "users/{userId}/humanDesign/main"
+    primaryKey: "固定為 main（每會員一份，重新計算時覆寫）"
+    aggregate: AGG-012
+    domainModel: ["ENT-014", "VO-005"]
+    api: ["API-013", "API-038", "API-006", "API-028", "API-029"]
+    columns:
+      - { name: "userId", type: "string", constraints: "required" }
+      - { name: "result", type: "map", constraints: "HumanDesignResult 內嵌：type, centers, profile, authority, strategy, definitionAndChannels, gates" }
+      - { name: "inputDigest", type: "string", constraints: "required；計算所用出生資料（生日、時間、地點）的摘要，不另存原始出生時間與地點" }
+      - { name: "computedAt", type: "timestamp", constraints: "required" }
+      - { name: "expiresAt", type: "timestamp", constraints: "required；= computedAt + 3 個月（RULE-014）" }
+    indexes:
+      - { fields: ["expiresAt ASC"], scope: "COLLECTION_GROUP", purpose: "排程清除到期資料（UC-017）" }
+    notes: "已登入會員的人類圖結果（RULE-028）；保存 3 個月，到期由排程清除（RULE-014）。出生時間與地點的原始值只存在 users.birthData。"
+  - id: DATA-017
+    status: deprecated
+    reason: "刪除帳號改為移除全部紀錄後不再需要 authLinks；userId 回到 Firebase uid"
+    name: authLinks
+    path: "authLinks/{googleUid}"
+    primaryKey: "googleUid（Firebase Auth uid）"
+    aggregate: AGG-001
+    domainModel: ["ENT-015"]
+    api: ["API-001", "API-029"]
+    columns:
+      - { name: "googleUid", type: "string", constraints: "PK" }
+      - { name: "userId", type: "string", constraints: "required；參照 DATA-001" }
+      - { name: "linkedAt", type: "timestamp", constraints: "required" }
+    notes: "Google 身分與內部 userId 的唯一連結。刪除帳號時刪除此文件，使紀錄無法再回溯到 Google 帳號；同一 Google 帳號再登入時建立新的連結與新 userId（RULE-029）。"
+  - id: DATA-018
+    name: welcomeGrants
+    path: "welcomeGrants/{googleUidHash}"
+    primaryKey: "googleUidHash（以伺服器密鑰對 Google uid 做 HMAC-SHA256，不存原始 uid）"
+    aggregate: AGG-013
+    domainModel: ["ENT-016"]
+    api: ["API-001"]
+    ttl: { field: "expiresAt", duration: "3 months", rule: "RULE-031" }
+    columns:
+      - { name: "googleUidHash", type: "string", constraints: "PK" }
+      - { name: "grantedAt", type: "timestamp", constraints: "required" }
+      - { name: "expiresAt", type: "timestamp", constraints: "required；= grantedAt + 3 個月；Firestore TTL 欄位（RULE-031）" }
+    notes: "贈點紀錄獨立於 users，刪除帳號時保留；僅用於避免重複贈點，不作他用。首次登入時於同一 transaction 內檢查是否存在未到期紀錄：存在則不發贈點，不存在則建立帳號、點數帳戶、贈點批次與此紀錄（RULE-031）。"
+
+relationships:
+  - id: REL-001
+    from: DATA-001
+    to: DATA-005
+    type: one-to-many
+    description: "會員擁有多筆測驗結果（子集合，隨帳號刪除）"
+  - id: REL-002
+    from: DATA-001
+    to: DATA-007
+    type: one-to-many
+    description: "會員擁有多筆已取得的簡易 summary，每個組合至多一筆"
+  - id: REL-003
+    from: DATA-001
+    to: DATA-008
+    type: one-to-many
+    description: "會員擁有多份詳細分析"
+  - id: REL-004
+    from: DATA-001
+    to: DATA-009
+    type: one-to-one
+    description: "每位會員一個點數帳戶"
+  - id: REL-005
+    from: DATA-001
+    to: DATA-010
+    type: one-to-many
+    description: "會員擁有多批點數"
+  - id: REL-006
+    from: DATA-001
+    to: DATA-011
+    type: one-to-many
+    description: "會員擁有多筆點數異動"
+  - id: REL-007
+    from: DATA-001
+    to: DATA-012
+    type: one-to-many
+    description: "會員擁有多筆付款紀錄"
+  - id: REL-008
+    from: DATA-003
+    to: DATA-004
+    type: one-to-many
+    description: "一個測驗有多個版本"
+  - id: REL-009
+    from: DATA-004
+    to: DATA-005
+    type: one-to-many
+    description: "一個測驗版本被多次作答（以 testId 與 testVersion 參照）"
+  - id: REL-010
+    from: DATA-006
+    to: DATA-007
+    type: one-to-many
+    description: "一筆固定 summary 內容被多位會員取得（以 contentRef 參照）"
+  - id: REL-011
+    from: DATA-012
+    to: DATA-010
+    type: one-to-one
+    description: "一筆成功付款產生一批購買點數（以 sourceRef 參照）"
+  - id: REL-012
+    from: DATA-010
+    to: DATA-011
+    type: many-to-many
+    description: "一筆扣點可跨多批點數，一批點數被多筆異動使用（以 batchAllocations 表達）"
+  - id: REL-013
+    from: DATA-008
+    to: DATA-014
+    type: one-to-many
+    description: "一份報告可能有多次 AI 呼叫（含重試）"
+  - id: REL-014
+    from: DATA-008
+    to: DATA-008
+    type: one-to-one
+    description: "重新生成的新報告指向被取代的舊報告（舊報告保留）"
+  - id: REL-015
+    from: DATA-013
+    to: DATA-012
+    type: one-to-many
+    description: "一個點數方案對應多筆付款"
+  - id: REL-016
+    from: DATA-001
+    to: DATA-014
+    type: one-to-many
+    description: "會員產生的 AI 用量"
+  - id: REL-017
+    status: deprecated
+    reason: "隨 DATA-015 一併廢止"
+    from: DATA-001
+    to: DATA-015
+    type: one-to-many
+    description: "會員產生的產品事件（訪客為 null）"
+  - id: REL-018
+    from: DATA-001
+    to: DATA-016
+    type: one-to-one
+    description: "每位會員至多一份已儲存的人類圖結果"
+  - id: REL-019
+    status: deprecated
+    reason: "隨 DATA-017 一併廢止"
+    from: DATA-017
+    to: DATA-001
+    type: one-to-one
+    description: "一個 Google 身分連結一個內部使用者；刪除帳號時連結移除"

@@ -1,0 +1,622 @@
+version: 1
+generatedBy: domain-modeling
+updatedAt: 2026-10-25T19:00:00+08:00
+relatedChanges: [ai-personality-app]
+
+entities:
+  - id: ENT-001
+    name: User
+    nameZh: "使用者帳號"
+    description: "以 Google 帳號登入建立的會員，持有個人資料"
+    useCases: ["UC-001", "UC-002", "UC-003", "UC-015", "UC-016"]
+    attributes:
+      - { name: userId, type: "string", description: "Firebase Auth uid" }
+      - { name: email, type: "string", description: "Google 帳號 email" }
+      - { name: birthData, type: "VO-001", description: "生日、星座、選填出生時間與地點" }
+      - { name: bloodType, type: "VO-002", description: "選填，可為未知" }
+      - { name: mbti, type: "VO-003", description: "選填" }
+      - { name: mbtiExpiresAt, type: "timestamp | null", description: "MBTI 設定後 3 個月到期" }
+      - { name: createdAt, type: "timestamp", description: "" }
+  - id: ENT-002
+    name: GuestSession
+    nameZh: "訪客暫存"
+    description: "未登入訪客當次結果的暫存，以 session id 識別"
+    useCases: ["UC-003", "UC-005", "UC-006"]
+    attributes:
+      - { name: sessionId, type: "string", description: "訪客 session 識別碼" }
+      - { name: tempProfile, type: "object", description: "暫存的生日、星座、血型、MBTI" }
+      - { name: tempResults, type: "object", description: "暫存的測驗結果與人類圖" }
+      - { name: expiresAt, type: "timestamp", description: "建立後 1 天，供 Firestore TTL 清除" }
+  - id: ENT-003
+    name: Test
+    nameZh: "測驗定義"
+    description: "測驗及其版本、題目與評分規則（資料驅動）"
+    useCases: ["UC-005"]
+    attributes:
+      - { name: testId, type: "string", description: "" }
+      - { name: version, type: "string", description: "測驗版本" }
+      - { name: questions, type: "VO-007[]", description: "題目與選項" }
+      - { name: scoringRule, type: "object", description: "評分規則" }
+  - id: ENT-004
+    name: TestAttempt
+    nameZh: "測驗作答紀錄"
+    description: "會員一次測驗的作答與計算結果"
+    useCases: ["UC-005", "UC-006", "UC-015", "UC-017"]
+    attributes:
+      - { name: attemptId, type: "string", description: "" }
+      - { name: userId, type: "string", description: "" }
+      - { name: testId, type: "string", description: "" }
+      - { name: testVersion, type: "string", description: "送出當下所用版本" }
+      - { name: answers, type: "VO-006[]", description: "每題作答" }
+      - { name: result, type: "VO-003", description: "MBTI 結果" }
+      - { name: completedAt, type: "timestamp", description: "" }
+      - { name: expiresAt, type: "timestamp", description: "產生後 3 個月" }
+  - id: ENT-005
+    name: FixedContent
+    nameZh: "固定內容"
+    description: "事先算好的固定結果內容：單項（星座／血型／MBTI）與簡易 summary"
+    useCases: ["UC-004", "UC-005", "UC-007", "UC-019"]
+    attributes:
+      - { name: contentType, type: "enum", description: "SUMMARY｜ZODIAC｜BLOOD｜MBTI" }
+      - { name: key, type: "VO-004 | string", description: "summary 用組合鍵，單項用對應值" }
+      - { name: body, type: "object", description: "標題、摘要、優勢、盲點等" }
+      - { name: contentVersion, type: "string", description: "" }
+      - { name: status, type: "enum", description: "DRAFT｜REVIEWED｜PUBLISHED" }
+  - id: ENT-006
+    name: MemberSummary
+    nameZh: "會員簡易 summary"
+    description: "會員已取得的某組簡易 summary 紀錄（用於避免重複扣點）"
+    useCases: ["UC-007", "UC-015", "UC-017"]
+    attributes:
+      - { name: userId, type: "string", description: "" }
+      - { name: combinationKey, type: "VO-004", description: "星座+MBTI 或 星座+MBTI+血型" }
+      - { name: contentVersion, type: "string", description: "取得時的內容版本" }
+      - { name: obtainedAt, type: "timestamp", description: "保存期限起算點" }
+      - { name: expiresAt, type: "timestamp", description: "obtainedAt + 3 個月" }
+  - id: ENT-007
+    name: DetailedReport
+    nameZh: "詳細分析報告"
+    description: "AI 生成的詳細分析，保存 6 個月；重新生成會新增一份並保留舊報告"
+    useCases: ["UC-009", "UC-012", "UC-013", "UC-015"]
+    attributes:
+      - { name: reportId, type: "string", description: "" }
+      - { name: userId, type: "string", description: "" }
+      - { name: combinationKey, type: "VO-004", description: "含人類圖類型" }
+      - { name: input, type: "VO-009", description: "正規化輸入與資料版本" }
+      - { name: status, type: "enum", description: "GENERATING｜COMPLETED｜FAILED" }
+      - { name: sections, type: "VO-008[]", description: "八個章節" }
+      - { name: modelName, type: "string", description: "" }
+      - { name: promptVersion, type: "string", description: "" }
+      - { name: createdAt, type: "timestamp", description: "" }
+      - { name: expiresAt, type: "timestamp", description: "完成後 6 個月" }
+      - { name: downloadCount, type: "int", description: "報告書已寄送次數" }
+      - { name: lastDownloadedAt, type: "timestamp | null", description: "" }
+  - id: ENT-008
+    name: PointAccount
+    nameZh: "點數帳戶"
+    description: "會員的點數帳戶，管理批次與異動"
+    useCases: ["UC-002", "UC-007", "UC-009", "UC-011", "UC-013", "UC-014"]
+    attributes:
+      - { name: userId, type: "string", description: "" }
+      - { name: availableBalance, type: "int", description: "未過期批次剩餘點數合計" }
+  - id: ENT-009
+    name: PointBatch
+    nameZh: "點數批次"
+    description: "一批同來源、同效期的點數"
+    useCases: ["UC-002", "UC-011", "UC-014"]
+    attributes:
+      - { name: batchId, type: "string", description: "" }
+      - { name: source, type: "enum", description: "WELCOME｜PURCHASE" }
+      - { name: granted, type: "int", description: "" }
+      - { name: remaining, type: "int", description: "" }
+      - { name: expiresAt, type: "timestamp | null", description: "null 代表無限期" }
+  - id: ENT-010
+    name: PointTransaction
+    nameZh: "點數異動"
+    description: "點數發放、購買、扣除與返還的不可變紀錄"
+    useCases: ["UC-002", "UC-007", "UC-009", "UC-011", "UC-013", "UC-014"]
+    attributes:
+      - { name: transactionId, type: "string", description: "" }
+      - { name: type, type: "enum", description: "GRANT｜PURCHASE｜DEDUCT｜REFUND" }
+      - { name: amount, type: "int", description: "" }
+      - { name: reason, type: "enum", description: "WELCOME｜SUMMARY｜DETAILED_REPORT｜REGENERATE｜DOWNLOAD｜PURCHASE" }
+      - { name: idempotencyKey, type: "string", description: "防止重複扣點／入帳" }
+      - { name: reference, type: "string", description: "對應 summary 組合、報告或付款" }
+      - { name: createdAt, type: "timestamp", description: "" }
+  - id: ENT-011
+    name: Payment
+    nameZh: "付款紀錄"
+    description: "點數購買的付款紀錄，依 webhook 事件更新"
+    useCases: ["UC-010", "UC-011", "UC-016"]
+    attributes:
+      - { name: paymentId, type: "string", description: "" }
+      - { name: userId, type: "string", description: "" }
+      - { name: providerEventIds, type: "string[]", description: "已處理的付款事件 ID（冪等）" }
+      - { name: amount, type: "VO-010", description: "" }
+      - { name: pointsPurchased, type: "int", description: "" }
+      - { name: status, type: "enum", description: "PENDING｜COMPLETED｜FAILED" }
+      - { name: consentRecordedAt, type: "timestamp", description: "同意立即提供數位內容、放棄解約的時間" }
+      - { name: consentTermsVersion, type: "string", description: "同意條款版本" }
+      - { name: createdAt, type: "timestamp", description: "" }
+  - id: ENT-012
+    name: AiUsageRecord
+    nameZh: "AI 用量紀錄"
+    description: "每次 AI 呼叫的用量與成本"
+    useCases: ["UC-009", "UC-013", "UC-020"]
+    attributes:
+      - { name: recordId, type: "string", description: "" }
+      - { name: userId, type: "string", description: "" }
+      - { name: reportId, type: "string", description: "" }
+      - { name: modelName, type: "string", description: "" }
+      - { name: inputTokens, type: "int", description: "" }
+      - { name: outputTokens, type: "int", description: "" }
+      - { name: estimatedCost, type: "number", description: "" }
+      - { name: createdAt, type: "timestamp", description: "" }
+  - id: ENT-013
+    status: deprecated
+    reason: "改為伺服器端每日計數（ENT-017），不再逐筆記錄事件"
+    status: deprecated
+    reason: "改為伺服器端每日計數（ENT-017），不再逐筆記錄事件"
+    name: ProductEvent
+    nameZh: "產品事件"
+    description: "測驗開始/完成、分享、轉換等指標事件"
+    useCases: ["UC-020"]
+    attributes:
+      - { name: eventType, type: "string", description: "" }
+      - { name: userId, type: "string | null", description: "" }
+      - { name: occurredAt, type: "timestamp", description: "" }
+  - id: ENT-014
+    name: HumanDesignChart
+    nameZh: "人類圖結果"
+    description: "會員已計算並儲存的人類圖固定結果"
+    useCases: ["UC-008", "UC-015"]
+    attributes:
+      - { name: userId, type: "string", description: "" }
+      - { name: result, type: "VO-005", description: "人類圖結果" }
+      - { name: inputDigest, type: "string", description: "計算所用出生資料的摘要，用於判斷結果是否過時" }
+      - { name: computedAt, type: "timestamp", description: "" }
+      - { name: expiresAt, type: "timestamp", description: "計算後 3 個月" }
+  - id: ENT-015
+    status: deprecated
+    reason: "刪除帳號改為移除全部紀錄後，不再需要 Google uid 與內部 userId 的分離"
+    status: deprecated
+    reason: "刪除帳號改為移除全部紀錄後，不再需要 Google uid 與內部 userId 的分離"
+    name: AuthIdentity
+    nameZh: "登入身分連結"
+    description: "Google uid 與內部 userId 的連結；刪除帳號時移除"
+    useCases: ["UC-001", "UC-002", "UC-016"]
+    attributes:
+      - { name: googleUid, type: "string", description: "Firebase Auth uid" }
+      - { name: userId, type: "string", description: "內部 userId" }
+      - { name: linkedAt, type: "timestamp", description: "" }
+  - id: ENT-016
+    name: WelcomeGrantRecord
+    nameZh: "贈點紀錄"
+    description: "記錄某 Google 帳號何時領過註冊贈點，僅用於防止刪帳號後短期內重新註冊再領，不作他用"
+    useCases: ["UC-002"]
+    attributes:
+      - { name: googleUidHash, type: "string", description: "Google uid 的雜湊（不存原始 uid）" }
+      - { name: grantedAt, type: "timestamp", description: "" }
+      - { name: expiresAt, type: "timestamp", description: "grantedAt + 3 個月，到期後可再領" }
+  - id: ENT-017
+    name: DailyMetric
+    nameZh: "每日指標"
+    description: "伺服器端每日計數彙總，不含個人資料"
+    useCases: ["UC-020"]
+    attributes:
+      - { name: date, type: "date", description: "指標日期" }
+      - { name: counters, type: "map", description: "測驗完成、summary 取得、報告成功／失敗、付款完成、分享卡產生等計數" }
+
+valueObjects:
+  - id: VO-001
+    name: BirthData
+    nameZh: "生日與出生資料"
+    useCases: ["UC-003", "UC-008"]
+    attributes:
+      - { name: birthDate, type: "date", description: "必填" }
+      - { name: zodiac, type: "enum", description: "12 星座，必填" }
+      - { name: birthTime, type: "time | null", description: "選填" }
+      - { name: birthPlace, type: "string | null", description: "選填，預設城市清單代碼" }
+  - id: VO-002
+    name: BloodType
+    nameZh: "血型"
+    useCases: ["UC-003", "UC-004", "UC-007"]
+    attributes:
+      - { name: value, type: "enum", description: "A｜B｜O｜AB｜UNKNOWN" }
+  - id: VO-003
+    name: MbtiType
+    nameZh: "MBTI 類型"
+    useCases: ["UC-005", "UC-007"]
+    attributes:
+      - { name: value, type: "enum", description: "16 型" }
+  - id: VO-004
+    name: CombinationKey
+    nameZh: "組合鍵"
+    useCases: ["UC-007", "UC-009", "UC-013", "UC-019"]
+    attributes:
+      - { name: zodiac, type: "enum", description: "" }
+      - { name: mbti, type: "enum", description: "" }
+      - { name: bloodType, type: "enum | null", description: "未知則為 null" }
+      - { name: humanDesignType, type: "enum | null", description: "僅詳細分析使用，5 種能量類型" }
+  - id: VO-005
+    name: HumanDesignResult
+    nameZh: "人類圖結果"
+    useCases: ["UC-008", "UC-009"]
+    attributes:
+      - { name: type, type: "enum", description: "5 種能量類型" }
+      - { name: centers, type: "object", description: "9 大能量中心" }
+      - { name: profile, type: "string", description: "12 種人生角色之一" }
+      - { name: authority, type: "string", description: "" }
+      - { name: strategy, type: "string", description: "" }
+      - { name: definitionAndChannels, type: "object", description: "" }
+      - { name: gates, type: "int[]", description: "64 個閘門中被啟動者" }
+  - id: VO-006
+    name: Answer
+    nameZh: "作答"
+    useCases: ["UC-005"]
+    attributes:
+      - { name: questionId, type: "string", description: "" }
+      - { name: value, type: "string | number", description: "" }
+      - { name: responseTimeMs, type: "int | null", description: "僅在已告知時蒐集" }
+  - id: VO-007
+    name: Question
+    nameZh: "題目"
+    useCases: ["UC-005"]
+    attributes:
+      - { name: questionId, type: "string", description: "" }
+      - { name: text, type: "string", description: "" }
+      - { name: options, type: "object[]", description: "" }
+      - { name: dimension, type: "string", description: "評分維度" }
+  - id: VO-008
+    name: ReportSection
+    nameZh: "報告章節"
+    useCases: ["UC-009", "UC-012"]
+    attributes:
+      - { name: title, type: "string", description: "八章節之一" }
+      - { name: content, type: "string", description: "" }
+      - { name: evidence, type: "string", description: "資料依據" }
+      - { name: evidenceKind, type: "enum", description: "OBSERVED｜INFERRED" }
+  - id: VO-009
+    name: AnalysisInput
+    nameZh: "分析輸入"
+    useCases: ["UC-009", "UC-013"]
+    attributes:
+      - { name: inputVersion, type: "string", description: "資料版本" }
+      - { name: profile, type: "object", description: "星座、血型、MBTI" }
+      - { name: results, type: "object", description: "測驗結果與人類圖" }
+      - { name: answersDigest, type: "object", description: "可追溯的作答特徵" }
+  - id: VO-010
+    name: Money
+    nameZh: "金額"
+    useCases: ["UC-010", "UC-011"]
+    attributes:
+      - { name: amount, type: "number", description: "" }
+      - { name: currency, type: "string", description: "" }
+  - id: VO-011
+    name: ShareCard
+    nameZh: "分享結果卡"
+    useCases: ["UC-018"]
+    attributes:
+      - { name: title, type: "string", description: "" }
+      - { name: summaryText, type: "string", description: "不含不必要個資" }
+      - { name: imageRef, type: "string | null", description: "" }
+
+aggregates:
+  - id: AGG-001
+    name: UserAccount
+    root: ENT-001
+    members: ["VO-001", "VO-002", "VO-003"]
+    useCases: ["UC-001", "UC-002", "UC-003", "UC-015", "UC-016"]
+    rationale: "帳號與個人資料需一致更新，且刪除帳號時整體處理"
+  - id: AGG-002
+    name: GuestSession
+    root: ENT-002
+    members: ["VO-001", "VO-002", "VO-003"]
+    useCases: ["UC-003", "UC-005", "UC-006"]
+    rationale: "訪客暫存資料以 session 為界，TTL 到期整體清除，登入時整體轉入帳號"
+  - id: AGG-003
+    name: TestDefinition
+    root: ENT-003
+    members: ["VO-007"]
+    useCases: ["UC-005"]
+    rationale: "測驗版本、題目與評分規則須一起版本化"
+  - id: AGG-004
+    name: TestAttemptRecord
+    root: ENT-004
+    members: ["VO-006"]
+    useCases: ["UC-005", "UC-006", "UC-017"]
+    rationale: "一次作答與其結果須一致，且以相同期限一起到期"
+  - id: AGG-005
+    name: FixedContentItem
+    root: ENT-005
+    members: ["VO-004"]
+    useCases: ["UC-004", "UC-007", "UC-019"]
+    rationale: "單筆固定內容的版本與審核狀態須一致；組合唯一"
+  - id: AGG-006
+    name: MemberSummaryRecord
+    root: ENT-006
+    members: ["VO-004"]
+    useCases: ["UC-007", "UC-017"]
+    rationale: "每位會員每個組合只有一筆，作為避免重複扣點的判斷依據"
+  - id: AGG-007
+    name: DetailedReportRecord
+    root: ENT-007
+    members: ["VO-008", "VO-009", "VO-005"]
+    useCases: ["UC-009", "UC-012", "UC-013"]
+    rationale: "單份報告的狀態、章節與輸入快照須一致；每次重新生成為新的聚合，舊報告保留"
+  - id: AGG-008
+    name: PointLedger
+    root: ENT-008
+    members: ["ENT-009", "ENT-010"]
+    useCases: ["UC-002", "UC-007", "UC-009", "UC-011", "UC-013", "UC-014"]
+    rationale: "餘額、批次與異動必須同一交易內更新，防止超扣與重複入帳"
+  - id: AGG-009
+    name: PaymentRecord
+    root: ENT-011
+    members: ["VO-010"]
+    useCases: ["UC-010", "UC-011", "UC-016"]
+    rationale: "付款狀態與已處理事件 ID 須一致，確保 webhook 冪等"
+  - id: AGG-010
+    name: AiUsage
+    root: ENT-012
+    members: []
+    useCases: ["UC-009", "UC-013", "UC-020"]
+    rationale: "追加式用量紀錄，單筆即一致性邊界"
+  - id: AGG-011
+    status: deprecated
+    reason: "隨 ENT-013 一併廢止"
+    status: deprecated
+    reason: "隨 ENT-013 一併廢止"
+    name: ProductEventRecord
+    root: ENT-013
+    members: []
+    useCases: ["UC-020"]
+    rationale: "追加式事件紀錄，單筆即一致性邊界"
+  - id: AGG-012
+    name: HumanDesignRecord
+    root: ENT-014
+    members: ["VO-005"]
+    useCases: ["UC-008", "UC-015"]
+    rationale: "每位會員一份人類圖結果，重新計算時整份替換"
+  - id: AGG-013
+    name: WelcomeGrantLedger
+    root: ENT-016
+    members: []
+    useCases: ["UC-002"]
+    rationale: "贈點紀錄獨立於使用者帳號，刪除帳號時保留；與建立帳號、發放贈點在同一交易內判斷"
+  - id: AGG-014
+    name: DailyMetricsRecord
+    root: ENT-017
+    members: []
+    useCases: ["UC-020"]
+    rationale: "每日指標以日期為單位，計數原子遞增"
+
+domainEvents:
+  - id: EVT-001
+    name: UserRegistered
+    triggeredBy: AGG-001
+    description: "首次登入建立帳號"
+    useCases: ["UC-002"]
+  - id: EVT-002
+    name: WelcomePointsGranted
+    triggeredBy: AGG-008
+    description: "註冊贈點（3 點）發放"
+    useCases: ["UC-002"]
+  - id: EVT-003
+    name: GuestResultsClaimed
+    triggeredBy: AGG-002
+    description: "訪客登入後暫存結果被存入帳號"
+    useCases: ["UC-006"]
+  - id: EVT-004
+    name: TestAttemptCompleted
+    triggeredBy: AGG-004
+    description: "測驗完成並算出結果"
+    useCases: ["UC-005"]
+  - id: EVT-005
+    name: SummaryObtained
+    triggeredBy: AGG-006
+    description: "會員首次取得某組簡易 summary"
+    useCases: ["UC-007"]
+  - id: EVT-006
+    name: PointsDeducted
+    triggeredBy: AGG-008
+    description: "點數被扣除"
+    useCases: ["UC-007", "UC-009", "UC-013"]
+  - id: EVT-007
+    name: PointsRefunded
+    triggeredBy: AGG-008
+    description: "生成失敗後點數返還"
+    useCases: ["UC-009", "UC-013"]
+  - id: EVT-008
+    name: DetailedReportGenerated
+    triggeredBy: AGG-007
+    description: "詳細分析生成完成"
+    useCases: ["UC-009", "UC-013"]
+  - id: EVT-009
+    name: DetailedReportFailed
+    triggeredBy: AGG-007
+    description: "詳細分析生成失敗"
+    useCases: ["UC-009", "UC-013"]
+  - id: EVT-010
+    name: PaymentCompleted
+    triggeredBy: AGG-009
+    description: "付款成功"
+    useCases: ["UC-010", "UC-011"]
+  - id: EVT-011
+    name: PaymentFailed
+    triggeredBy: AGG-009
+    description: "付款失敗"
+    useCases: ["UC-010", "UC-011"]
+  - id: EVT-012
+    name: PointsPurchased
+    triggeredBy: AGG-008
+    description: "購買的點數入帳"
+    useCases: ["UC-011"]
+  - id: EVT-013
+    name: FixedContentPublished
+    triggeredBy: AGG-005
+    description: "固定內容審核後發布"
+    useCases: ["UC-019"]
+  - id: EVT-014
+    name: DataExpired
+    triggeredBy: AGG-004
+    description: "測驗結果、summary、MBTI、人類圖（3 個月）或詳細分析（6 個月）到期被清除（亦由 AGG-006、AGG-007 觸發）"
+    useCases: ["UC-017"]
+  - id: EVT-015
+    name: UserAccountDeleted
+    triggeredBy: AGG-001
+    description: "帳號與其全部紀錄被刪除（僅保留贈點紀錄）"
+    useCases: ["UC-016"]
+  - id: EVT-016
+    name: AiUsageRecorded
+    triggeredBy: AGG-010
+    description: "AI 呼叫用量被記錄"
+    useCases: ["UC-009", "UC-013", "UC-020"]
+  - id: EVT-017
+    name: HumanDesignCalculated
+    triggeredBy: AGG-012
+    description: "會員的人類圖結果被計算並儲存"
+    useCases: ["UC-008"]
+  - id: EVT-018
+    name: ReportDownloaded
+    triggeredBy: AGG-007
+    description: "詳細分析報告書 PDF 已寄送至使用者 email（已扣點）"
+    useCases: ["UC-021"]
+
+businessRules:
+  - id: RULE-001
+    description: "生日與星座為必填；血型、MBTI、出生時間與地點為選填"
+    appliesTo: ["AGG-001"]
+    useCases: ["UC-003"]
+  - id: RULE-002
+    description: "血型為未知時不計入組合鍵與分析"
+    appliesTo: ["VO-004"]
+    useCases: ["UC-004", "UC-007"]
+  - id: RULE-003
+    description: "簡易 summary 的組合鍵只有「星座+MBTI」與「星座+MBTI+血型」兩種，缺 MBTI 不可取得；共 960 種"
+    appliesTo: ["VO-004"]
+    useCases: ["UC-007", "UC-019"]
+  - id: RULE-004
+    description: "訪客不可取得簡易 summary 與詳細分析，使用點數前必須已登入"
+    appliesTo: ["AGG-001"]
+    useCases: ["UC-007", "UC-009"]
+  - id: RULE-005
+    description: "會員首次取得某組簡易 summary 扣 1 點；同會員同組合已取得則不再扣點"
+    appliesTo: ["AGG-006"]
+    useCases: ["UC-007"]
+  - id: RULE-006
+    description: "生成詳細分析扣 5 點；已生成過的組合重新生成同樣扣 5 點；舊報告保留"
+    appliesTo: ["AGG-007"]
+    useCases: ["UC-009", "UC-013"]
+  - id: RULE-007
+    description: "點數僅能從未過期批次扣抵，順序為先到期先扣、無限期批次最後，餘額不得為負，扣抵須原子且冪等"
+    appliesTo: ["AGG-008"]
+    useCases: ["UC-007", "UC-009", "UC-013"]
+  - id: RULE-008
+    description: "購買的點數為無限期，贈點有效期 90 天；過期點數不可用"
+    appliesTo: ["ENT-009"]
+    useCases: ["UC-014"]
+  - id: RULE-009
+    description: "註冊贈點每帳號僅發放一次，共 3 點"
+    appliesTo: ["AGG-008"]
+    useCases: ["UC-002"]
+  - id: RULE-010
+    description: "詳細分析生成失敗時，已扣點數須返還"
+    appliesTo: ["AGG-008"]
+    useCases: ["UC-009", "UC-013"]
+  - id: RULE-011
+    description: "付款 webhook 須驗簽，並以事件 ID 冪等處理"
+    appliesTo: ["AGG-009"]
+    useCases: ["UC-011"]
+  - id: RULE-012
+    description: "付款後不提供退款；付款前須明確告知，並須使用者勾選同意立即提供數位內容、放棄解約，且記錄同意時間與條款版本"
+    appliesTo: ["AGG-009"]
+    useCases: ["UC-010"]
+  - id: RULE-013
+    description: "人類圖須同時有出生時間與出生地點才可計算"
+    appliesTo: ["VO-005"]
+    useCases: ["UC-008", "UC-009"]
+  - id: RULE-014
+    description: "會員的測驗結果、簡易 summary、MBTI 欄位與人類圖結果保存 3 個月，以各筆產生時間起算"
+    appliesTo: ["ENT-004"]
+    useCases: ["UC-005", "UC-007", "UC-017"]
+  - id: RULE-015
+    description: "付款紀錄於帳號存續期間永久保存，刪除帳號時一併移除"
+    appliesTo: ["ENT-007"]
+    useCases: ["UC-009", "UC-016"]
+  - id: RULE-016
+    description: "訪客暫存以 session id 識別，TTL 1 天，不與帳號關聯"
+    appliesTo: ["ENT-002"]
+    useCases: ["UC-003", "UC-005", "UC-006"]
+  - id: RULE-017
+    description: "固定結果（單項、summary、人類圖）不呼叫 AI"
+    appliesTo: ["AGG-005"]
+    useCases: ["UC-004", "UC-007", "UC-008"]
+  - id: RULE-018
+    description: "單項免費結果不儲存，每次重新取得"
+    appliesTo: ["AGG-005"]
+    useCases: ["UC-004"]
+  - id: RULE-019
+    description: "報告僅擁有者可存取"
+    appliesTo: ["AGG-007"]
+    useCases: ["UC-012"]
+  - id: RULE-020
+    description: "AI 報告須含八章節與資料依據，區分直接觀察與 AI 推測，不得含診斷式內容"
+    appliesTo: ["ENT-007"]
+    useCases: ["UC-009"]
+  - id: RULE-021
+    description: "固定內容組合須唯一，經審核才可發布"
+    appliesTo: ["AGG-005"]
+    useCases: ["UC-019"]
+  - id: RULE-022
+    description: "AI 生成須受 Token、頻率、額度與逾時限制"
+    appliesTo: ["AGG-007"]
+    useCases: ["UC-009", "UC-013", "UC-020"]
+  - id: RULE-023
+    description: "所有結果與報告須附娛樂／自我探索性質的免責說明"
+    appliesTo: ["ENT-005"]
+    useCases: ["UC-004", "UC-005", "UC-007", "UC-008", "UC-012"]
+  - id: RULE-024
+    description: "刪除帳號時移除該使用者的全部紀錄（個人資料、測驗結果、summary、詳細分析、人類圖、點數、付款），僅保留贈點紀錄；AI 用量紀錄保留但清除 userId"
+    appliesTo: ["AGG-001"]
+    useCases: ["UC-016"]
+  - id: RULE-025
+    description: "同一組合的並行生成或扣點請求只處理一次"
+    appliesTo: ["AGG-007"]
+    useCases: ["UC-009", "UC-013"]
+  - id: RULE-026
+    description: "分享卡不得包含不必要的個人資料"
+    appliesTo: ["VO-011"]
+    useCases: ["UC-018"]
+  - id: RULE-027
+    description: "測驗以送出當下的版本評分，並記錄所用版本"
+    appliesTo: ["ENT-004"]
+    useCases: ["UC-005"]
+  - id: RULE-028
+    description: "已登入會員計算出的人類圖結果須儲存；訪客僅暫存於 session（TTL 1 天）"
+    appliesTo: ["AGG-012"]
+    useCases: ["UC-008"]
+  - id: RULE-029
+    description: "同一 Google 帳號於刪除後再次登入視為全新帳號，不繼承任何歷史紀錄"
+    appliesTo: ["AGG-001"]
+    useCases: ["UC-001", "UC-002", "UC-016"]
+  - id: RULE-030
+    description: "詳細分析保存 6 個月，以生成完成時間起算；到期前可使用點數下載報告書"
+    appliesTo: ["ENT-007"]
+    useCases: ["UC-009", "UC-017", "UC-021"]
+  - id: RULE-031
+    description: "同一 Google 帳號於上次領取贈點後 3 個月內刪除帳號再註冊，不再發放贈點；贈點紀錄 3 個月後到期，且僅用於避免重複贈點、不作他用"
+    appliesTo: ["AGG-013"]
+    useCases: ["UC-002"]
+  - id: RULE-033
+    description: "生成詳細分析至少需有星座與 MBTI 結果；血型與人類圖為選填"
+    appliesTo: ["AGG-007"]
+    useCases: ["UC-009"]
+  - id: RULE-034
+    description: "每日指標只存計數，不含任何個人資料"
+    appliesTo: ["ENT-017"]
+    useCases: ["UC-020"]
+  - id: RULE-032
+    description: "下載詳細分析報告書每次扣 1 點，以 PDF 寄送至使用者 email；僅限報告擁有者且報告未到期；已下載過者須提醒並經確認才可重複下載"
+    appliesTo: ["AGG-007"]
+    useCases: ["UC-021"]

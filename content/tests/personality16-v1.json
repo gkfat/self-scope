@@ -1,0 +1,933 @@
+{
+  "testId": "personality16",
+  "title": "16 型人格測驗",
+  "version": "1",
+  "questions": [
+    {
+      "questionId": "q01",
+      "text": "我在人多的聚會中會覺得精力充沛。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "EI",
+      "direction": "first"
+    },
+    {
+      "questionId": "q02",
+      "text": "結束一整天的社交後，我需要獨處才能恢復精神。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "EI",
+      "direction": "second"
+    },
+    {
+      "questionId": "q03",
+      "text": "我常主動認識新朋友、開啟話題。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "EI",
+      "direction": "first"
+    },
+    {
+      "questionId": "q04",
+      "text": "比起熱鬧的團體活動，我更喜歡一對一的深談。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "EI",
+      "direction": "second"
+    },
+    {
+      "questionId": "q05",
+      "text": "我習慣邊說邊想，想法在討論中才會變清楚。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "EI",
+      "direction": "first"
+    },
+    {
+      "questionId": "q06",
+      "text": "我通常先在心裡想清楚，才會開口表達。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "EI",
+      "direction": "second"
+    },
+    {
+      "questionId": "q07",
+      "text": "面對臨時的邀約，我多半會答應並享受當下。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "EI",
+      "direction": "first"
+    },
+    {
+      "questionId": "q08",
+      "text": "我會刻意保留不被打擾的時間給自己。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "EI",
+      "direction": "second"
+    },
+    {
+      "questionId": "q09",
+      "text": "我比較相信親眼所見、實際驗證過的資訊。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "SN",
+      "direction": "first"
+    },
+    {
+      "questionId": "q10",
+      "text": "我常被「可能性」與「未來的各種樣貌」吸引。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "SN",
+      "direction": "second"
+    },
+    {
+      "questionId": "q11",
+      "text": "做事時我偏好按部就班，參考過去有效的做法。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "SN",
+      "direction": "first"
+    },
+    {
+      "questionId": "q12",
+      "text": "我常想到事物之間意想不到的連結。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "SN",
+      "direction": "second"
+    },
+    {
+      "questionId": "q13",
+      "text": "我對細節很敏銳，容易注意到哪裡不對勁。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "SN",
+      "direction": "first"
+    },
+    {
+      "questionId": "q14",
+      "text": "比起事實本身，我更在意事情背後的意義或模式。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "SN",
+      "direction": "second"
+    },
+    {
+      "questionId": "q15",
+      "text": "我喜歡具體、可以直接照做的說明，勝過抽象的概念。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "SN",
+      "direction": "first"
+    },
+    {
+      "questionId": "q16",
+      "text": "我喜歡嘗試新方法，即使還沒有人驗證過。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "SN",
+      "direction": "second"
+    },
+    {
+      "questionId": "q17",
+      "text": "做決定時，我會優先考慮邏輯與客觀標準。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "TF",
+      "direction": "first"
+    },
+    {
+      "questionId": "q18",
+      "text": "做決定時，我很在意這個決定會不會影響身邊人的感受。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "TF",
+      "direction": "second"
+    },
+    {
+      "questionId": "q19",
+      "text": "我認為把問題講清楚，比維持表面的和諧更重要。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "TF",
+      "direction": "first"
+    },
+    {
+      "questionId": "q20",
+      "text": "別人難過時，我通常也會跟著受到影響。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "TF",
+      "direction": "second"
+    },
+    {
+      "questionId": "q21",
+      "text": "我習慣用利弊分析來評估各種選擇。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "TF",
+      "direction": "first"
+    },
+    {
+      "questionId": "q22",
+      "text": "我會為了維護關係，在小事上讓步。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "TF",
+      "direction": "second"
+    },
+    {
+      "questionId": "q23",
+      "text": "討論時，我能把個人情緒與論點分開。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "TF",
+      "direction": "first"
+    },
+    {
+      "questionId": "q24",
+      "text": "我做事的動力常來自對人或價值的認同。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "TF",
+      "direction": "second"
+    },
+    {
+      "questionId": "q25",
+      "text": "我喜歡事先安排好計畫，並照著進行。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "JP",
+      "direction": "first"
+    },
+    {
+      "questionId": "q26",
+      "text": "我偏好保持彈性，臨時改變計畫對我不是問題。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "JP",
+      "direction": "second"
+    },
+    {
+      "questionId": "q27",
+      "text": "事情決定下來、完成之後，我會覺得很踏實。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "JP",
+      "direction": "first"
+    },
+    {
+      "questionId": "q28",
+      "text": "我常在最後一刻才全力衝刺。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "JP",
+      "direction": "second"
+    },
+    {
+      "questionId": "q29",
+      "text": "我的桌面與行程通常整理得井然有序。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "JP",
+      "direction": "first"
+    },
+    {
+      "questionId": "q30",
+      "text": "我喜歡先保留選項，多看看再決定。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "JP",
+      "direction": "second"
+    },
+    {
+      "questionId": "q31",
+      "text": "我會替任務設定明確的期限，並盡量提早完成。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "JP",
+      "direction": "first"
+    },
+    {
+      "questionId": "q32",
+      "text": "我覺得生活中的驚喜比事先的計畫更有趣。",
+      "options": [
+        {
+          "value": 1,
+          "label": "非常不同意"
+        },
+        {
+          "value": 2,
+          "label": "不同意"
+        },
+        {
+          "value": 3,
+          "label": "普通"
+        },
+        {
+          "value": 4,
+          "label": "同意"
+        },
+        {
+          "value": 5,
+          "label": "非常同意"
+        }
+      ],
+      "dimension": "JP",
+      "direction": "second"
+    }
+  ],
+  "scoringRule": {
+    "type": "likert-dichotomies",
+    "neutralValue": 3,
+    "dimensions": [
+      {
+        "id": "EI",
+        "first": "E",
+        "second": "I",
+        "tieBreak": "I"
+      },
+      {
+        "id": "SN",
+        "first": "S",
+        "second": "N",
+        "tieBreak": "N"
+      },
+      {
+        "id": "TF",
+        "first": "T",
+        "second": "F",
+        "tieBreak": "F"
+      },
+      {
+        "id": "JP",
+        "first": "J",
+        "second": "P",
+        "tieBreak": "P"
+      }
+    ]
+  }
+}

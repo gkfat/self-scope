@@ -1,0 +1,150 @@
+import {
+    beforeEach, describe, expect, it, vi,
+} from 'vitest';
+import { FakeFirestore } from '../test-utils/fakeFirestore';
+import {
+    ShareCardService, excerpt,
+} from './shareCard.service';
+import { SummaryService } from './summary.service';
+import {
+    AuthError, NotFoundError,
+} from '../../shared/types/errors';
+import { addMonths } from '../../shared/utils/time';
+
+const holder = vi.hoisted(() => ({ db: undefined as unknown }));
+
+vi.mock('../utils/firebaseAdmin', () => ({ getAdminFirestore: () => holder.db }));
+
+const NOW = Date.UTC(2026, 0, 15);
+const longText = '這是一段很長的摘要。'.repeat(20);
+
+const content = (type: string, key: string, summary: string) => ({
+    contentType: type,
+    key,
+    body: {
+        title: `${key} 的標題`,
+        summary,
+        strengths: [],
+        blindSpots: [],
+        loveStyle: '',
+        workStyle: '',
+        communicationStyle: '',
+        growthAdvice: '',
+        disclaimer: '僅供娛樂與自我探索',
+    },
+    contentVersion: '1',
+    status: 'PUBLISHED',
+    updatedAt: NOW,
+    publishedAt: NOW,
+});
+
+describe('excerpt', () => {
+    it('keeps short text and cuts long text with an ellipsis', () => {
+        expect(excerpt('短文')).toBe('短文');
+        expect(excerpt('字'.repeat(100), 10)).toBe(`${'字'.repeat(10)}…`);
+    });
+
+    it('does not split characters outside the basic plane', () => {
+        expect(excerpt('😀'.repeat(5), 3)).toBe('😀😀😀…');
+    });
+});
+
+describe('ShareCardService', () => {
+    let db: FakeFirestore;
+    let service: ShareCardService;
+
+    beforeEach(async () => {
+        db = new FakeFirestore();
+        holder.db = db;
+        service = new ShareCardService({ summaries: new SummaryService({ clock: () => NOW }) });
+
+        await db.doc('fixedContents/ZODIAC_aries').set(content('ZODIAC', 'aries', longText));
+        await db.doc('fixedContents/SUMMARY_aries_INTJ').set(content('SUMMARY', 'aries_INTJ', '摘要'));
+    });
+
+    it('builds a card for a single result without needing sign-in', async () => {
+        const card = await service.create({
+            source: 'SINGLE_RESULT', referenceId: 'ZODIAC:aries',
+        }, null);
+
+        expect(card.title).toBe('aries 的標題');
+        expect(card.summaryText.endsWith('…')).toBe(true);
+        expect([...card.summaryText].length).toBeLessThanOrEqual(81);
+        expect(card.imageUrl).toBeNull();
+    });
+
+    it('reports an unknown, malformed or unpublished result as not found', async () => {
+        for (const referenceId of [
+            'ZODIAC:nope',
+            'BLOOD:UNKNOWN',
+            'garbage',
+            'ZODIAC:leo',
+        ]) {
+            await expect(service.create({
+                source: 'SINGLE_RESULT', referenceId,
+            }, null)).rejects.toBeInstanceOf(NotFoundError);
+        }
+    });
+
+    it('shares a summary only for its owner', async () => {
+        await db.doc('users/u1/summaries/aries_INTJ').set({
+            combinationKey: {
+                zodiac: 'aries', mbti: 'INTJ', bloodType: null,
+            },
+            contentRef: 'SUMMARY_aries_INTJ',
+            contentVersion: '1',
+            obtainedAt: NOW,
+            expiresAt: addMonths(NOW, 3),
+        });
+
+        const card = await service.create({
+            source: 'SUMMARY', referenceId: 'aries_INTJ',
+        }, 'u1');
+        expect(card.title).toBe('aries_INTJ 的標題');
+
+        await expect(service.create({
+            source: 'SUMMARY', referenceId: 'aries_INTJ',
+        }, 'u2')).rejects.toBeInstanceOf(NotFoundError);
+        await expect(service.create({
+            source: 'SUMMARY', referenceId: 'aries_INTJ',
+        }, null)).rejects.toBeInstanceOf(AuthError);
+    });
+
+    it('never puts personal data on a card', async () => {
+        await db.doc('users/u1').set({
+            email: 'secret@example.com',
+            birthData: {
+                birthDate: '1995-03-25', zodiac: 'aries', birthTime: '08:30', birthPlace: 'tw-taipei',
+            },
+        });
+        await db.doc('users/u1/summaries/aries_INTJ').set({
+            combinationKey: {
+                zodiac: 'aries', mbti: 'INTJ', bloodType: null,
+            },
+            contentRef: 'SUMMARY_aries_INTJ',
+            contentVersion: '1',
+            obtainedAt: NOW,
+            expiresAt: addMonths(NOW, 3),
+        });
+
+        const text = JSON.stringify(await service.create({
+            source: 'SUMMARY', referenceId: 'aries_INTJ',
+        }, 'u1'));
+
+        for (const secret of [
+            'secret@example.com',
+            '1995-03-25',
+            '08:30',
+            'tw-taipei',
+            'u1',
+        ]) {
+            expect(text).not.toContain(secret);
+        }
+    });
+
+    it('has nothing to share for a human design yet', async () => {
+        await expect(service.create({
+            source: 'HUMAN_DESIGN', referenceId: 'main',
+        }, 'u1')).rejects.toBeInstanceOf(NotFoundError);
+    });
+});

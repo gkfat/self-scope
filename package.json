@@ -1,0 +1,37 @@
+{
+  "name": "self-scope",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "lint": "eslint . --ext .ts,.js,.vue --fix",
+    "test": "vitest run",
+    "content:import": "node scripts/import-fixed-content.ts",
+    "content:check": "node scripts/check-fixed-content.ts",
+    "content:import-test": "node scripts/import-test.ts",
+    "content:import-packages": "node scripts/import-point-packages.ts",
+    "check:bundle": "node scripts/check-client-bundle.ts",
+    "firebase:provision": "node scripts/provision-firebase.ts"
+  },
+  "dependencies": {
+    "@mdi/font": "^7.4.47",
+    "firebase": "^12.8.0",
+    "firebase-admin": "^13.6.0",
+    "nuxt": "^4.2.2",
+    "vue": "^3.5.26",
+    "vuetify": "^3.11.6",
+    "zod": "^4.3.5"
+  },
+  "packageManager": "pnpm@9.15.2",
+  "devDependencies": {
+    "@nuxt/eslint": "^1.12.1",
+    "globals": "^17.0.0",
+    "sass-embedded": "^1.97.3",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

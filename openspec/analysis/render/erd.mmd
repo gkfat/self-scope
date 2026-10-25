@@ -1,0 +1,162 @@
+erDiagram
+    users ||--o{ testAttempts : "會員擁有多筆測驗結果"
+    users ||--o{ summaries : "會員擁有多筆已取得的簡易 summary，每個組合至多一筆"
+    users ||--o{ detailedReports : "會員擁有多份詳細分析"
+    users ||--|| pointAccount : "每位會員一個點數帳戶"
+    users ||--o{ pointBatches : "會員擁有多批點數"
+    users ||--o{ pointTransactions : "會員擁有多筆點數異動"
+    users ||--o{ payments : "會員擁有多筆付款紀錄"
+    tests ||--o{ testVersions : "一個測驗有多個版本"
+    testVersions ||--o{ testAttempts : "一個測驗版本被多次作答"
+    fixedContents ||--o{ summaries : "一筆固定 summary 內容被多位會員取得"
+    payments ||--|| pointBatches : "一筆成功付款產生一批購買點數"
+    pointBatches }o--o{ pointTransactions : "一筆扣點可跨多批點數，一批點數被多筆異動使用"
+    detailedReports ||--o{ aiUsageRecords : "一份報告可能有多次 AI 呼叫"
+    detailedReports ||--|| detailedReports : "重新生成的新報告指向被取代的舊報告"
+    pointPackages ||--o{ payments : "一個點數方案對應多筆付款"
+    users ||--o{ aiUsageRecords : "會員產生的 AI 用量"
+    users ||--|| humanDesign : "每位會員至多一份已儲存的人類圖結果"
+    users {
+        string userId PK
+        string email
+        map birthData
+        string bloodType
+        string mbti
+        timestamp mbtiExpiresAt
+        timestamp createdAt
+        timestamp updatedAt
+    }
+    guestSessions {
+        string sessionId PK
+        map tempProfile
+        map tempResults
+        timestamp createdAt
+        timestamp expiresAt
+    }
+    tests {
+        string testId PK
+        string title
+        string currentVersion
+        boolean active
+    }
+    testVersions {
+        string version PK
+        array_map_ questions
+        map scoringRule
+        timestamp publishedAt
+    }
+    testAttempts {
+        string attemptId PK
+        string testId
+        string testVersion
+        array_map_ answers
+        string result
+        timestamp completedAt
+        timestamp expiresAt
+    }
+    fixedContents {
+        string contentType
+        string key
+        map combinationKey
+        map body
+        string contentVersion
+        string status
+        timestamp updatedAt
+        timestamp publishedAt
+    }
+    summaries {
+        string summaryId PK
+        map combinationKey
+        string contentRef
+        string contentVersion
+        timestamp obtainedAt
+        timestamp expiresAt
+    }
+    detailedReports {
+        string reportId PK
+        map combinationKey
+        map input
+        string status
+        array_map_ sections
+        string disclaimer
+        string modelName
+        string promptVersion
+        string supersedesReportId
+        string failureReason
+        string idempotencyKey
+        timestamp createdAt
+        timestamp completedAt
+        timestamp expiresAt
+        int downloadCount
+        timestamp lastDownloadedAt
+    }
+    pointAccount {
+        string userId
+        timestamp welcomeGrantedAt
+        timestamp createdAt
+    }
+    pointBatches {
+        string batchId PK
+        string source
+        string sourceRef
+        int granted
+        int remaining
+        timestamp expiresAt
+        timestamp createdAt
+    }
+    pointTransactions {
+        string transactionId PK
+        string type
+        int amount
+        string reason
+        array_map_ batchAllocations
+        string reference
+        timestamp createdAt
+    }
+    payments {
+        string paymentId PK
+        string packageId
+        int pointsPurchased
+        map amount
+        string status
+        timestamp consentRecordedAt
+        string consentTermsVersion
+        string providerSessionId
+        array_string_ processedEventIds
+        timestamp createdAt
+        timestamp updatedAt
+    }
+    pointPackages {
+        string packageId PK
+        int points
+        map price
+        int validityDays
+        boolean active
+    }
+    aiUsageRecords {
+        string recordId PK
+        string userId
+        string reportId
+        string modelName
+        int inputTokens
+        int outputTokens
+        number estimatedCost
+        timestamp createdAt
+    }
+    metricsDaily {
+        string date PK
+        map counters
+        timestamp updatedAt
+    }
+    humanDesign {
+        string userId
+        map result
+        string inputDigest
+        timestamp computedAt
+        timestamp expiresAt
+    }
+    welcomeGrants {
+        string googleUidHash PK
+        timestamp grantedAt
+        timestamp expiresAt
+    }

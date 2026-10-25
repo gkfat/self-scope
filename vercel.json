@@ -1,0 +1,23 @@
+{
+  "buildCommand": "pnpm build",
+  "framework": "nuxtjs",
+  "installCommand": "pnpm install",
+  "devCommand": "pnpm dev",
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, must-revalidate"
+        }
+      ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/data-expiry",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}

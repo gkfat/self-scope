@@ -1,0 +1,189 @@
+version: 1
+generatedBy: system-analysis
+updatedAt: 2026-10-25T17:00:00+08:00
+relatedChanges: [ai-personality-app]
+source: ai_personality_app_plan.md
+
+actors:
+  - id: CTX-ACTOR-001
+    name: 免費使用者
+    type: human
+    description: 填寫星座/血型、完成測驗、查看固定報告與分享結果卡，未付費
+    source: "plan §2.1, §3.2, §4"
+  - id: CTX-ACTOR-002
+    name: 付費使用者
+    type: human
+    description: 已購買點數的使用者，以點數取得 summary 與 AI 詳細分析（日後可能訂閱）
+    source: "plan §3.3, §4, §9；user 補充（點數制）"
+  - id: CTX-ACTOR-003
+    name: 內容編輯/審核者
+    type: human
+    description: 產製、審核並更新 768 種固定報告內容與版本
+    source: "plan §5, §11 Phase 2, §13.4"
+    note: "計畫書僅提到內容產製與審核流程，未明確指定角色，屬推導，需確認"
+  - id: CTX-ACTOR-004
+    name: 營運/維運人員
+    type: human
+    description: 監控 AI 用量與成本、處理付款異常、退款與客服
+    source: "plan §9.4, §12"
+    note: "計畫書未明確指定角色，屬推導，需確認"
+
+externalSystems:
+  - id: CTX-EXT-001
+    name: 付款服務供應商
+    description: 處理 checkout 與付款，透過 webhook 回傳付款事件（供應商未選定）
+    source: "plan §8, §11 Phase 4, §14.6"
+  - id: CTX-EXT-002
+    name: AI 模型供應商 API
+    description: 根據整理後的測驗資料生成 AI 深度報告（供應商未選定）
+    source: "plan §6, §14.5"
+  - id: CTX-EXT-003
+    name: 社群/分享平台
+    description: 結果分享卡的分享目的地
+    source: "plan §3.2, §10"
+    note: "計畫書只提及分享卡，未指定平台，屬推導，需確認"
+  - id: CTX-EXT-004
+    name: Vercel 部署平台
+    description: 應用程式的部署與執行環境
+    source: "user 補充（對話）"
+  - id: CTX-EXT-005
+    name: Firebase
+    description: 資料儲存（固定報告、測驗紀錄、AI 報告、權限等）
+    source: "user 補充（對話）"
+    note: "使用 Firestore（user 已確認）"
+  - id: CTX-EXT-006
+    name: Google 登入（身分驗證）
+    description: 使用者以 Google 帳號登入，以儲存自己的資料
+    source: "user 補充（對話）"
+  - id: CTX-EXT-007
+    name: Email 寄送服務
+    description: "寄送詳細分析報告書 PDF 與到期通知 email；供應商待選（選與 Vercel 搭配簡單者），失敗重試 2 到 3 次"
+    source: "user 補充（報告書寄送到 email）"
+
+constraints:
+  - id: CTX-CON-001
+    category: business
+    description: 星座、血型為娛樂性標籤；MBTI 為自我探索參考，不可當臨床診斷；結果須標示免責說明
+    source: "plan §1.3, §10.1, §13.1"
+  - id: CTX-CON-002
+    category: business
+    description: 未經標準化與驗證的智力測驗不得宣稱測得正式 IQ，不可由少量題目推算 IQ
+    source: "plan §1.3, §6.2, §13.1"
+  - id: CTX-CON-003
+    category: technical
+    description: 後端保管 AI API 金鑰、付款密鑰，前端不得持有；付費權限須由後端驗證
+    source: "plan §6.4, §8.1"
+  - id: CTX-CON-004
+    category: technical
+    description: 資料庫改用 Firebase（原計畫書建議 PostgreSQL，已被 user 指示取代）；§7 的關聯式資料表設計需改以 Firebase 資料模型表達，且唯一鍵等約束須以 Firebase 方式達成
+    source: "plan §7；user 補充（對話）覆寫"
+  - id: CTX-CON-005
+    category: technical
+    description: 768 種固定報告須資料驅動管理，不可硬編碼於程式，內容更新不需重新部署後端
+    source: "plan §11 Phase 2, §13.4"
+  - id: CTX-CON-006
+    category: regulatory
+    description: 資料最小化；須提供資料刪除、帳號刪除與隱私政策；日誌不得寫入不必要的敏感答案或完整報告；適用的個資/消費者保護法規依目標市場而定
+    source: "plan §1.3, §3.1, §8.1, §13.3"
+    note: "user 決定刪除帳號時移除全部使用者紀錄（CTX-CON-012），符合資料刪除要求；唯一保留的贈點紀錄（Google 帳號雜湊，3 個月）須於隱私政策載明並依目標市場確認"
+  - id: CTX-CON-007
+    category: business
+    description: AI 成本須受控：固定摘要不呼叫 AI、報告生成後快取、設定 Token/次數/重試上限
+    source: "plan §6.4, §9.4"
+  - id: CTX-CON-008
+    category: business
+    description: 第一版範圍限定 Web App、星座/（選填）血型/MBTI、人類圖、固定結果與分享、Google 登入與紀錄、點數制（註冊贈點 + 購點）取得 summary 與 AI 詳細分析；智力測驗、訂閱、歷史趨勢、AI 對話延後
+    source: "plan §15；user 補充（點數制、人類圖）"
+  - id: CTX-CON-010
+    category: technical
+    description: "前端技術棧為 Nuxt + Vue + Vuetify（Vite 建置），部署於 Vercel Pro 方案（Hobby 限個人非商業使用，須依官方條款確認）；首發為 Web App；函式執行時間受 Vercel 限制（Pro 上限 800 秒）"
+    source: "user 補充（對話）"
+  - id: CTX-CON-011
+    category: business
+    description: "不提供退款機制（user 已確認）；付款前須明確告知，並須使用者勾選「同意立即提供數位內容、放棄解約」且留存同意紀錄（是否足以排除解約權須法務確認）"
+    source: "user 補充（對話）"
+  - id: CTX-CON-012
+    category: regulatory
+    description: 會員的測驗作答與結果、簡易 summary、MBTI、人類圖結果保存 3 個月；詳細分析保存 6 個月，到期前可用點數下載報告書；付款紀錄於帳號存續期間永久保存；使用者刪除帳號時移除全部紀錄（含付款），僅保留贈點紀錄 3 個月（user 已確認）。到期前通知使用者（通知系統後續實作）
+    source: "user 補充（對話）"
+    note: "贈點紀錄僅用於避免重複贈點，不作他用；含 Google 帳號識別（雜湊），隱私政策須載明"
+  - id: CTX-CON-013
+    category: technical
+    description: Firestore 只由 Nuxt 伺服器端（Nitro + firebase-admin）存取，client 不直接讀寫；Firebase client SDK 僅用於 Google 登入取得 ID token，伺服器驗證 token；實作方式參考 gkbot-adventure-run 專案（Nuxt 4 SPA、Zod schema、api/services/repositories 分層、firestore.rules 全擋）
+    source: "user 補充（對話）；參考專案 gkbot-adventure-run 的 CLAUDE.md、nuxt.config.ts、firestore.rules"
+  - id: CTX-CON-014
+    category: business
+    description: "點數規則（user 已確認）：每帳號註冊僅贈送一次 3 點，同一 Google 帳號於贈點後 3 個月內刪帳號再註冊不再贈點；取得簡易 summary 1 點；詳細分析 5 點；已生成過的詳細分析重新生成須扣點；每次下載詳細分析報告書扣 1 點（PDF 寄送 email，重複下載再扣點）；贈點有效期 90 天，購買的點數無限期；訪客不可取得 summary；定價規則：5 點售價 ≥ 單份 AI 報告成本約 3 倍加付款手續費，提供 3 個方案、大包有折扣，價格存於 pointPackages 可調整"
+    source: "user 補充（對話）"
+    note: "實際價格待上線前量測單份 AI 報告成本後決定"
+  - id: CTX-CON-015
+    category: regulatory
+    description: MBTI 為註冊商標；對外名稱用「16 型人格」，題目自行撰寫，避免使用官方商標與測驗內容
+    source: "user 採納建議"
+    note: "商標與題庫授權須由法務確認"
+  - id: CTX-CON-009
+    category: business
+    description: AI 報告的價值須建立在個人化與實際作答依據，且須區分「直接觀察」與「AI 推測」
+    source: "plan §4, §6.2"
+
+assumptions:
+  - id: CTX-ASM-001
+    description: 首發平台為 Web App（計畫書 §14.1 列為待決，§15 建議 Web；user 已指定 Nuxt/Vercel，視為已確認）
+    impact: 影響付款方式、分享機制與前端技術棧
+    status: confirmed
+    confirmedBy: CTX-CON-010
+  - id: CTX-ASM-002
+    description: 以點數制取代原「單次購買」；訂閱制延後（user 已確認點數制）
+    impact: 影響付款商品（購買點數）、額度與扣點邏輯，取代 subscriptions 與單次購買設計
+    status: confirmed
+    confirmedBy: CTX-CON-014
+  - id: CTX-ASM-003
+    description: AI 報告由使用者點擊後生成，非自動生成（§14.3 待決）
+    impact: 影響成本與權限檢查時機
+    status: pending-confirmation
+  - id: CTX-ASM-004
+    description: 使用者可不登入完成測驗並查看結果；欲保存資料時才需 Google 登入（user 已確認）。購買 AI 報告必須先登入（推導，需確認）
+    impact: 影響免費流程的進入門檻與資料歸屬
+    status: partially-confirmed
+    confirmedBy: CTX-EXT-006
+  - id: CTX-ASM-005
+    description: 血型選「不知道」時不計入分析。簡易 summary 以「星座+MBTI」或「星座+MBTI+血型」為組合，因此取得 summary 至少需提供 MBTI；未提供 MBTI 者僅能取得單項免費結果（user 已確認）
+    impact: 影響固定 summary 組合範圍（見 FR-009）與結果頁分支
+    status: confirmed
+    confirmedBy: user 補充（對話）
+    note: "缺 MBTI 時不提供 summary（user 已確認）"
+  - id: CTX-ASM-006
+    description: "生日與星座為必填；出生時間與出生地點為選填，未填則無法產生人類圖（user 已確認）；出生地點從預設城市清單選擇（含經緯度與 IANA 時區），不串外部地理編碼。因此會儲存出生日期（及選填的時間與地點）"
+    impact: 影響個資範圍（資料最小化）、輸入表單與人類圖可用性
+    status: confirmed
+    confirmedBy: user 補充（對話）
+  - id: CTX-ASM-007
+    description: 目標市場與語系未指定，暫假設為繁體中文市場
+    impact: 影響適用法規、付款服務與內容語言
+    status: pending-confirmation
+  - id: CTX-ASM-008
+    description: 測驗結果與綜合評估 summary 為事先算好的固定結果，由後端計算（不消耗 AI token）（user 已更正前一版「前端計算」）。已登入使用者的結果會保留；未登入者不保留（訪客當次結果以 session id 暫存於 Firestore，TTL 1 天，供當次登入時存入帳號），app 內須明確提示
+    impact: 影響測驗評分位置（後端）、紀錄歸屬、FR-004/FR-005/FR-032
+    status: confirmed
+    confirmedBy: user 補充（對話）
+    note: "訪客登入前已完成的當次結果，若其當次選擇登入，則存入帳號（user 已確認）"
+  - id: CTX-ASM-009
+    description: Firebase 使用 Firestore 與 Firebase Auth（Google provider）；Firestore 僅由 Nuxt 伺服器端以 Admin SDK 存取（user 已確認，見 CTX-CON-013）
+    impact: 影響權限規則、查詢能力與資料模型
+    status: confirmed
+  - id: CTX-ASM-010
+    description: 簡易 summary 是事先算好的固定內容（無 AI 成本），取得時扣 1 點；未扣點時使用者可做單項測驗（星座、血型分析、MBTI），皆為固定結果（user 已確認）。同一會員已生成過的簡易 summary 組合不重複扣點；已生成過的詳細分析重新生成須扣點
+    impact: 影響結果頁分層、FR-006/FR-038/FR-040/FR-041 與資料模型
+    status: partially-confirmed
+    confirmedBy: user 補充（對話）
+    note: "summary 組合數已確認為 960（星座×MBTI 192 + 星座×MBTI×血型 768）、含人類圖組合不預存；summary 內容待確認；單項免費結果為固定內容、不儲存（user 已確認）"
+  - id: CTX-ASM-011
+    description: 刪除帳號後，同一 Google 帳號再次登入視為全新帳號；若上次贈點未滿 3 個月則不再贈點（user 已確認）。以獨立的贈點紀錄表達，紀錄 3 個月後到期
+    impact: 影響 FR-037 贈點規則、FR-023 刪除範圍、資料模型（welcomeGrants）
+    status: confirmed
+    confirmedBy: user 補充（對話）
+  - id: CTX-ASM-012
+    description: 固定內容（簡易 summary 等）MVP 以匯入腳本維護，審核用 Git，免後台 API；editor 與 operator 角色以 Firebase custom claims 手動指派
+    impact: 後台 API（API-031 至 API-036）延後至 MVP 之後；UC-019、UC-020 的操作介面延後
+    status: confirmed
+    confirmedBy: user 採納建議

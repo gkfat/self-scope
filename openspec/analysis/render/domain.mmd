@@ -1,0 +1,329 @@
+classDiagram
+    direction LR
+    class BirthData {
+      <<ValueObject>>
+      +birthDate date
+      +zodiac enum
+      +birthTime time_or_null
+      +birthPlace string_or_null
+    }
+    class BloodType {
+      <<ValueObject>>
+      +value enum
+    }
+    class MbtiType {
+      <<ValueObject>>
+      +value enum
+    }
+    class CombinationKey {
+      <<ValueObject>>
+      +zodiac enum
+      +mbti enum
+      +bloodType enum_or_null
+      +humanDesignType enum_or_null
+    }
+    class HumanDesignResult {
+      <<ValueObject>>
+      +type enum
+      +centers object
+      +profile string
+      +authority string
+      +strategy string
+      +definitionAndChannels object
+      +gates int[]
+    }
+    class Answer {
+      <<ValueObject>>
+      +questionId string
+      +value string_or_number
+      +responseTimeMs int_or_null
+    }
+    class Question {
+      <<ValueObject>>
+      +questionId string
+      +text string
+      +options object[]
+      +dimension string
+    }
+    class ReportSection {
+      <<ValueObject>>
+      +title string
+      +content string
+      +evidence string
+      +evidenceKind enum
+    }
+    class AnalysisInput {
+      <<ValueObject>>
+      +inputVersion string
+      +profile object
+      +results object
+      +answersDigest object
+    }
+    class Money {
+      <<ValueObject>>
+      +amount number
+      +currency string
+    }
+    class ShareCard {
+      <<ValueObject>>
+      +title string
+      +summaryText string
+      +imageRef string_or_null
+    }
+    namespace AGG_001_UserAccount {
+      class User {
+        +userId string
+        +email string
+        +birthData BirthData
+        +bloodType BloodType
+        +mbti MbtiType
+        +mbtiExpiresAt timestamp_or_null
+        +createdAt timestamp
+      }
+    }
+    namespace AGG_002_GuestSession {
+      class GuestSession {
+        +sessionId string
+        +tempProfile object
+        +tempResults object
+        +expiresAt timestamp
+      }
+    }
+    namespace AGG_003_TestDefinition {
+      class Test {
+        +testId string
+        +version string
+        +questions Question[]
+        +scoringRule object
+      }
+    }
+    namespace AGG_004_TestAttemptRecord {
+      class TestAttempt {
+        +attemptId string
+        +userId string
+        +testId string
+        +testVersion string
+        +answers Answer[]
+        +result MbtiType
+        +completedAt timestamp
+        +expiresAt timestamp
+      }
+    }
+    namespace AGG_005_FixedContentItem {
+      class FixedContent {
+        +contentType enum
+        +key CombinationKey_or_string
+        +body object
+        +contentVersion string
+        +status enum
+      }
+    }
+    namespace AGG_006_MemberSummaryRecord {
+      class MemberSummary {
+        +userId string
+        +combinationKey CombinationKey
+        +contentVersion string
+        +obtainedAt timestamp
+        +expiresAt timestamp
+      }
+    }
+    namespace AGG_007_DetailedReportRecord {
+      class DetailedReport {
+        +reportId string
+        +userId string
+        +combinationKey CombinationKey
+        +input AnalysisInput
+        +status enum
+        +sections ReportSection[]
+        +modelName string
+        +promptVersion string
+        +createdAt timestamp
+        +expiresAt timestamp
+        +downloadCount int
+        +lastDownloadedAt timestamp_or_null
+      }
+    }
+    namespace AGG_008_PointLedger {
+      class PointAccount {
+        +userId string
+        +availableBalance int
+      }
+      class PointBatch {
+        +batchId string
+        +source enum
+        +granted int
+        +remaining int
+        +expiresAt timestamp_or_null
+      }
+      class PointTransaction {
+        +transactionId string
+        +type enum
+        +amount int
+        +reason enum
+        +idempotencyKey string
+        +reference string
+        +createdAt timestamp
+      }
+    }
+    namespace AGG_009_PaymentRecord {
+      class Payment {
+        +paymentId string
+        +userId string
+        +providerEventIds string[]
+        +amount Money
+        +pointsPurchased int
+        +status enum
+        +consentRecordedAt timestamp
+        +consentTermsVersion string
+        +createdAt timestamp
+      }
+    }
+    namespace AGG_010_AiUsage {
+      class AiUsageRecord {
+        +recordId string
+        +userId string
+        +reportId string
+        +modelName string
+        +inputTokens int
+        +outputTokens int
+        +estimatedCost number
+        +createdAt timestamp
+      }
+    }
+    namespace AGG_012_HumanDesignRecord {
+      class HumanDesignChart {
+        +userId string
+        +result HumanDesignResult
+        +inputDigest string
+        +computedAt timestamp
+        +expiresAt timestamp
+      }
+    }
+    namespace AGG_013_WelcomeGrantLedger {
+      class WelcomeGrantRecord {
+        +googleUidHash string
+        +grantedAt timestamp
+        +expiresAt timestamp
+      }
+    }
+    namespace AGG_014_DailyMetricsRecord {
+      class DailyMetric {
+        +date date
+        +counters map
+      }
+    }
+    class UserRegistered {
+      <<Event>>
+    }
+    User ..> UserRegistered : EVT-001
+    class WelcomePointsGranted {
+      <<Event>>
+    }
+    PointAccount ..> WelcomePointsGranted : EVT-002
+    class GuestResultsClaimed {
+      <<Event>>
+    }
+    GuestSession ..> GuestResultsClaimed : EVT-003
+    class TestAttemptCompleted {
+      <<Event>>
+    }
+    TestAttempt ..> TestAttemptCompleted : EVT-004
+    class SummaryObtained {
+      <<Event>>
+    }
+    MemberSummary ..> SummaryObtained : EVT-005
+    class PointsDeducted {
+      <<Event>>
+    }
+    PointAccount ..> PointsDeducted : EVT-006
+    class PointsRefunded {
+      <<Event>>
+    }
+    PointAccount ..> PointsRefunded : EVT-007
+    class DetailedReportGenerated {
+      <<Event>>
+    }
+    DetailedReport ..> DetailedReportGenerated : EVT-008
+    class DetailedReportFailed {
+      <<Event>>
+    }
+    DetailedReport ..> DetailedReportFailed : EVT-009
+    class PaymentCompleted {
+      <<Event>>
+    }
+    Payment ..> PaymentCompleted : EVT-010
+    class PaymentFailed {
+      <<Event>>
+    }
+    Payment ..> PaymentFailed : EVT-011
+    class PointsPurchased {
+      <<Event>>
+    }
+    PointAccount ..> PointsPurchased : EVT-012
+    class FixedContentPublished {
+      <<Event>>
+    }
+    FixedContent ..> FixedContentPublished : EVT-013
+    class DataExpired {
+      <<Event>>
+    }
+    TestAttempt ..> DataExpired : EVT-014
+    class UserAccountDeleted {
+      <<Event>>
+    }
+    User ..> UserAccountDeleted : EVT-015
+    class AiUsageRecorded {
+      <<Event>>
+    }
+    AiUsageRecord ..> AiUsageRecorded : EVT-016
+    class HumanDesignCalculated {
+      <<Event>>
+    }
+    HumanDesignChart ..> HumanDesignCalculated : EVT-017
+    class ReportDownloaded {
+      <<Event>>
+    }
+    DetailedReport ..> ReportDownloaded : EVT-018
+    User o-- BirthData
+    User o-- BloodType
+    User o-- MbtiType
+    GuestSession o-- BirthData
+    GuestSession o-- BloodType
+    GuestSession o-- MbtiType
+    Test o-- Question
+    TestAttempt o-- Answer
+    FixedContent o-- CombinationKey
+    MemberSummary o-- CombinationKey
+    DetailedReport o-- ReportSection
+    DetailedReport o-- AnalysisInput
+    DetailedReport o-- HumanDesignResult
+    PointAccount *-- PointBatch
+    PointAccount *-- PointTransaction
+    Payment o-- Money
+    HumanDesignChart o-- HumanDesignResult
+    TestAttempt --> Test : testId
+    MemberSummary --> User : userId
+    DetailedReport --> User : userId
+    PointAccount --> User : userId
+    HumanDesignChart --> User : userId
+    Payment --> User : userId
+    AiUsageRecord --> DetailedReport : reportId
+    MemberSummary --> CombinationKey
+    DetailedReport --> CombinationKey
+    FixedContent --> CombinationKey
+    FixedContent ..> MemberSummary : 提供 summary 內容
+    note for User "RULE-001 生日與星座為必填；血型、MBTI、出生時間與地點為選填<br/>RULE-004 訪客不可取得簡易 summary 與詳細分析，使用點數前必須已登入<br/>RULE-024 刪除帳號時移除該使用者的全部紀錄（個人資料、測驗結果、summary、詳細分析、人類圖、點數、付款），僅保留贈點紀錄；AI 用量紀錄保留但清除 userId<br/>RULE-029 同一 Google 帳號於刪除後再次登入視為全新帳號，不繼承任何歷史紀錄"
+    note for CombinationKey "RULE-002 血型為未知時不計入組合鍵與分析<br/>RULE-003 簡易 summary 的組合鍵只有「星座+MBTI」與「星座+MBTI+血型」兩種，缺 MBTI 不可取得；共 960 種"
+    note for MemberSummary "RULE-005 會員首次取得某組簡易 summary 扣 1 點；同會員同組合已取得則不再扣點"
+    note for DetailedReport "RULE-006 生成詳細分析扣 5 點；已生成過的組合重新生成同樣扣 5 點；舊報告保留<br/>RULE-015 付款紀錄於帳號存續期間永久保存，刪除帳號時一併移除<br/>RULE-019 報告僅擁有者可存取<br/>RULE-020 AI 報告須含八章節與資料依據，區分直接觀察與 AI 推測，不得含診斷式內容<br/>RULE-022 AI 生成須受 Token、頻率、額度與逾時限制<br/>RULE-025 同一組合的並行生成或扣點請求只處理一次<br/>RULE-030 詳細分析保存 6 個月，以生成完成時間起算；到期前可使用點數下載報告書<br/>RULE-033 生成詳細分析至少需有星座與 MBTI 結果；血型與人類圖為選填<br/>RULE-032 下載詳細分析報告書每次扣 1 點，以 PDF 寄送至使用者 email；僅限報告擁有者且報告未到期；已下載過者須提醒並經確認才可重複下載"
+    note for PointAccount "RULE-007 點數僅能從未過期批次扣抵，順序為先到期先扣、無限期批次最後，餘額不得為負，扣抵須原子且冪等<br/>RULE-009 註冊贈點每帳號僅發放一次，共 3 點<br/>RULE-010 詳細分析生成失敗時，已扣點數須返還"
+    note for PointBatch "RULE-008 購買的點數為無限期，贈點有效期 90 天；過期點數不可用"
+    note for Payment "RULE-011 付款 webhook 須驗簽，並以事件 ID 冪等處理<br/>RULE-012 付款後不提供退款；付款前須明確告知，並須使用者勾選同意立即提供數位內容、放棄解約，且記錄同意時間與條款版本"
+    note for HumanDesignResult "RULE-013 人類圖須同時有出生時間與出生地點才可計算"
+    note for TestAttempt "RULE-014 會員的測驗結果、簡易 summary、MBTI 欄位與人類圖結果保存 3 個月，以各筆產生時間起算<br/>RULE-027 測驗以送出當下的版本評分，並記錄所用版本"
+    note for GuestSession "RULE-016 訪客暫存以 session id 識別，TTL 1 天，不與帳號關聯"
+    note for FixedContent "RULE-017 固定結果（單項、summary、人類圖）不呼叫 AI<br/>RULE-018 單項免費結果不儲存，每次重新取得<br/>RULE-021 固定內容組合須唯一，經審核才可發布<br/>RULE-023 所有結果與報告須附娛樂／自我探索性質的免責說明"
+    note for ShareCard "RULE-026 分享卡不得包含不必要的個人資料"
+    note for HumanDesignChart "RULE-028 已登入會員計算出的人類圖結果須儲存；訪客僅暫存於 session（TTL 1 天）"
+    note for WelcomeGrantRecord "RULE-031 同一 Google 帳號於上次領取贈點後 3 個月內刪除帳號再註冊，不再發放贈點；贈點紀錄 3 個月後到期，且僅用於避免重複贈點、不作他用"
+    note for DailyMetric "RULE-034 每日指標只存計數，不含任何個人資料"

@@ -1,0 +1,521 @@
+version: 1
+generatedBy: system-analysis
+updatedAt: 2026-10-25T17:00:00+08:00
+relatedChanges: [ai-personality-app]
+source: ai_personality_app_plan.md
+
+# phase: 對應計畫書 §11 Phase 1-5；mvp 表示屬 §15 第一版範圍
+
+functional:
+  - id: FR-001
+    title: Google 登入
+    description: 系統 SHALL 允許使用者以 Google 帳號登入，使儲存的測驗紀錄與報告歸屬於該帳號；MUST NOT 要求登入才能完成測驗與查看固定報告。
+    priority: must
+    phase: 1
+    mvp: true
+    context: [CTX-ACTOR-001, CTX-EXT-006, CTX-ASM-004]
+    source: "plan §11 Phase 1, §15；user 補充（Google login）"
+  - id: FR-032
+    title: 訪客使用與登入後儲存
+    description: 系統 SHALL 允許未登入訪客完成測驗並查看結果；訪客當次結果 SHALL 以 session id 暫存於 Firestore，TTL 為 1 天，且 MUST NOT 與任何帳號關聯或永久保存；訪客當次選擇登入時，SHALL 依 session id 將暫存結果存入其帳號；app 內 MUST 明確提示「未登入將不保留結果」並引導 Google 登入。已登入使用者的結果 SHALL 保留。使用點數（取得 summary 或詳細分析）前 MUST 已登入。
+    priority: must
+    phase: 1
+    mvp: true
+    context: [CTX-ACTOR-001, CTX-EXT-006, CTX-EXT-005, CTX-ASM-004, CTX-ASM-008]
+    source: "user 補充（Google login 以儲存資料；訪客結果以 session id 暫存 Firestore，TTL 1 天）"
+  - id: FR-002
+    title: 生日、星座與選填血型／MBTI／出生時間地點
+    description: 系統 SHALL 要求使用者提供生日與星座（皆必填，星座可由生日帶入）；血型（A/B/O/AB/不知道）、MBTI、出生時間與出生地點為選填（出生地點從預設城市清單選擇，含經緯度與時區）。血型選「不知道」時 MUST 不計入分析。
+    priority: must
+    phase: 1
+    mvp: true
+    context: [CTX-ACTOR-001, CTX-ASM-005, CTX-ASM-006, CTX-CON-006]
+    source: "plan §3.1；user 補充"
+    note: "生日需儲存，影響資料最小化；未填出生時間或地點則無法產生人類圖（FR-036）"
+  - id: FR-003
+    title: 測驗清單與題目取得
+    description: 系統 SHALL 提供可用測驗清單，並依測驗 ID 回傳含版本的題目與選項。
+    priority: must
+    phase: 1
+    mvp: true
+    context: [CTX-ACTOR-001]
+    source: "plan §8, §10"
+  - id: FR-004
+    title: 16 型人格（MBTI）測驗作答與評分（選填）
+    description: 系統 SHALL 允許使用者（含未登入訪客）選擇完成 16 型人格（MBTI）測驗（對外名稱用「16 型人格」、題目自行撰寫，見 CTX-CON-015），並 MUST 由後端依評分規則計算 16 型結果；此計算與 summary 內容皆為事先定義，MUST NOT 呼叫 AI、不消耗 token。
+    priority: must
+    phase: 1
+    mvp: true
+    context: [CTX-ACTOR-001, CTX-CON-001, CTX-CON-007, CTX-ASM-008]
+    source: "plan §3.1, §8, §11 Phase 1；user 補充"
+  - id: FR-005
+    title: 測驗紀錄保存
+    description: 系統 SHALL 在使用者已登入時，將每次測驗的版本、起訖時間、分數、結果與每題作答保存至 Firebase，並允許使用者查看自己的測驗歷史；測驗結果保存 3 個月（見 FR-033）。
+    priority: must
+    phase: 2
+    mvp: true
+    context: [CTX-ACTOR-001, CTX-ACTOR-002, CTX-CON-006, CTX-EXT-005, CTX-EXT-006]
+    source: "plan §7, §11 Phase 2, §15；user 補充"
+    note: "保存每題作答（AI 引用依據所需）；作答時間僅在已告知時蒐集；詳細分析的輸入快照只存摘要（user 採納建議）"
+  - id: FR-006
+    title: 簡易 summary 查詢
+    description: 系統 SHALL 在已登入使用者扣點後，依「星座+MBTI」或「星座+MBTI+血型」組合從 Firestore 查詢對應的事先算好的簡易 summary；血型「不知道」時 MUST 使用星座+MBTI 組合。查詢 MUST NOT 呼叫 AI API。
+    priority: must
+    phase: 1
+    mvp: true
+    context: [CTX-ACTOR-001, CTX-CON-005, CTX-CON-007, CTX-EXT-005, CTX-ASM-005, CTX-ASM-010, CTX-CON-014]
+    source: "plan §3.2, §5.1, §6.4；user 補充"
+    note: "扣點規則見 FR-038、FR-041；訪客不可取得（FR-032）"
+  - id: FR-007
+    title: 固定報告內容呈現
+    description: 系統 SHALL 在結果頁顯示類型名稱、摘要、優勢、盲點、感情/工作/溝通風格、成長建議與娛樂性免責說明。
+    priority: must
+    phase: 1
+    mvp: true
+    context: [CTX-ACTOR-001, CTX-CON-001]
+    source: "plan §5.2, §10.1"
+  - id: FR-008
+    title: 固定報告內容版本管理
+    description: 系統 SHALL 為每份固定報告記錄 content_version，並 SHALL 支援在不重新部署後端的情況下更新內容；組合 (zodiac, blood_type, mbti_type) MUST 唯一。
+    priority: must
+    phase: 2
+    mvp: true
+    context: [CTX-ACTOR-003, CTX-CON-005, CTX-CON-004, CTX-EXT-005]
+    source: "plan §5.2, §7.1, §11 Phase 2"
+    note: "組合唯一性原以 SQL UNIQUE 約束表達，改用 Firestore 後以組合作為文件 ID。MVP 以匯入腳本（JSON／CSV）寫入 Firestore、審核用 Git，免重新部署；後台 API 延後（user 已確認）"
+  - id: FR-009
+    title: 簡易 summary 組合覆蓋完整性
+    description: 系統 SHALL 使所有合法組合都有可查詢的簡易 summary：星座×MBTI 192 種，以及星座×MBTI×血型 768 種（共 960 種），且組合與內容 MUST 存放於 Firestore。
+    priority: must
+    phase: 2
+    mvp: true
+    context: [CTX-ACTOR-003, CTX-ASM-005, CTX-EXT-005, CTX-CON-005]
+    source: "plan §5.1, §11 Phase 2 完成標準；user 補充"
+    note: "簡易 summary 共 960 種（user 已確認）；含人類圖的組合屬詳細分析（FR-036）。產製方式：星座 12、MBTI 16、血型 4 各寫基礎描述，再補每組合的交叉洞察；先做約 20 個代表組合試讀再擴到 960；草稿可於上線前離線以 AI 產生並經人審，執行期不呼叫 AI"
+  - id: FR-010
+    title: 結果分享卡
+    description: 系統 SHALL 依固定結果產生可分享的結果卡，並提供分享入口。
+    priority: should
+    phase: 2
+    mvp: true
+    context: [CTX-ACTOR-001, CTX-EXT-003]
+    source: "plan §3.2, §11 Phase 2"
+  - id: FR-011
+    title: 點數購買流程
+    description: 系統 SHALL 在點數不足時引導使用者購買點數，說明點數用途、價格與不退款，要求使用者勾選「同意立即提供數位內容、放棄解約」並記錄同意時間與條款版本，之後 SHALL 建立付款流程。
+    priority: must
+    phase: 4
+    mvp: true
+    context: [CTX-ACTOR-001, CTX-EXT-001, CTX-ASM-002, CTX-CON-014, CTX-CON-011]
+    source: "plan §8, §9.2, §10, §11 Phase 4；user 補充（點數制）；user 採納建議（同意勾選）"
+    note: "價格規則：5 點售價 ≥ 單份 AI 報告成本約 3 倍加手續費，3 個方案、大包折扣，價格存於 pointPackages；實際數字待上線前量測成本後決定"
+  - id: FR-012
+    title: 付款事件處理
+    description: 系統 SHALL 接收付款服務 webhook，MUST 驗證簽章，並 MUST 以冪等方式處理重複事件後為使用者加點。
+    priority: must
+    phase: 4
+    mvp: true
+    context: [CTX-EXT-001, CTX-CON-003, CTX-CON-014]
+    source: "plan §8.1；user 補充"
+  - id: FR-013
+    title: 付款失敗處理與無退款告知
+    description: 系統 SHALL 處理付款失敗狀態並據此更新使用者權限；系統不提供退款機制，付款前 SHALL 明確告知，並 SHALL 要求使用者勾選「同意立即提供數位內容、放棄解約」且記錄同意時間與條款版本。
+    priority: should
+    phase: 4
+    mvp: true
+    context: [CTX-EXT-001, CTX-ACTOR-004, CTX-CON-011]
+    source: "plan §11 Phase 4；user 補充（無退款）"
+  - id: FR-014
+    title: 後端點數與權限驗證
+    description: 系統 SHALL 在後端驗證使用者已登入且點數餘額足夠後才允許取得 summary 或生成／重新生成詳細分析，並 SHALL 提供查詢目前點數餘額的介面。
+    priority: must
+    phase: 4
+    mvp: true
+    context: [CTX-ACTOR-002, CTX-CON-003, CTX-CON-014]
+    source: "plan §8, §8.1, §11 Phase 4；user 補充"
+  - id: FR-015
+    title: 測驗資料正規化
+    description: 系統 SHALL 將使用者的標籤、測驗分數、實際答案與作答紀錄整理為可供 AI 使用的正規化分析資料，並保留資料版本。
+    priority: must
+    phase: 3
+    mvp: true
+    context: [CTX-ACTOR-002, CTX-CON-009]
+    source: "plan §6.1, §11 Phase 3"
+  - id: FR-016
+    title: AI 深度報告生成
+    description: 系統 SHALL 在已具備星座與 MBTI 結果（血型、人類圖選填）、點數餘額足夠（5 點）並扣點後呼叫 AI 供應商，依正規化資料生成包含八個建議章節（概況、行為模式、交叉觀察、優勢與盲點、感情與溝通、工作與決策、成長行動、依據與限制）的報告。
+    priority: must
+    phase: 3
+    mvp: true
+    context: [CTX-ACTOR-002, CTX-EXT-002, CTX-CON-009]
+    source: "plan §3.3, §6.3"
+  - id: FR-017
+    title: AI 報告依據與不確定性標示
+    description: 系統 SHALL 使 AI 報告對重要結論附上資料依據、區分「測驗直接觀察」與「AI 推測」，在測驗結果衝突時指出差異與可能解釋，並對證據不足處使用不確定語氣。
+    priority: must
+    phase: 3
+    mvp: true
+    context: [CTX-CON-001, CTX-CON-009, CTX-EXT-002]
+    source: "plan §1.3, §3.3, §6.2"
+  - id: FR-018
+    title: AI 報告保存與重複查看
+    description: 系統 SHALL 保存已生成報告及其模型名稱、提示詞版本、輸入資料版本與生成時間；再次查看時 MUST 讀取已保存內容，MUST NOT 重新呼叫 AI。
+    priority: must
+    phase: 3
+    mvp: true
+    context: [CTX-ACTOR-002, CTX-CON-007]
+    source: "plan §6.4, §7.2, §11 Phase 3 完成標準"
+  - id: FR-019
+    title: 生成狀態與失敗處理
+    description: 系統 SHALL 記錄報告生成狀態，並在逾時或失敗時依重試策略處理且向使用者回報明確錯誤；生成失敗 MUST NOT 造成點數被扣除（已扣者須返還），也不得無故重複扣點。
+    priority: must
+    phase: 3
+    mvp: true
+    context: [CTX-ACTOR-002, CTX-EXT-002, CTX-CON-007, CTX-CON-014]
+    source: "plan §6.4, §7.2, §11 Phase 3；user 補充"
+    note: "失敗返點為推導，需確認"
+  - id: FR-020
+    title: 詳細分析重新生成
+    description: 系統 SHALL 在使用者要求重新分析或新增資料時重新生成詳細分析；若該會員已生成過該組合的詳細分析，重新生成 MUST 扣 5 點，且 MUST 保留舊報告。
+    priority: should
+    phase: 4
+    mvp: true
+    context: [CTX-ACTOR-002, CTX-CON-007, CTX-CON-014, CTX-CON-011]
+    source: "plan §6.4, §8, §9.2；user 補充（重新生成同為 5 點、納入 MVP）"
+    note: "僅適用 AI 詳細分析；簡易 summary 已生成者不重複扣點（FR-041）"
+  - id: FR-021
+    title: AI 報告存取控制
+    description: 系統 SHALL 在每個報告 API 驗證請求者為該報告的擁有者，否則 MUST 拒絕存取。
+    priority: must
+    phase: 3
+    mvp: true
+    context: [CTX-ACTOR-002, CTX-CON-003, CTX-CON-006]
+    source: "plan §8.1"
+  - id: FR-022
+    title: AI 用量記錄與限制
+    description: 系統 SHALL 記錄每次 AI 呼叫的模型、輸入/輸出 Token 與預估成本，並 SHALL 限制生成頻率、單次 Token 上限與使用額度。
+    priority: must
+    phase: 3
+    mvp: true
+    context: [CTX-ACTOR-004, CTX-CON-007]
+    source: "plan §6.4, §7, §8.1, §9.4"
+  - id: FR-023
+    title: 資料刪除與帳號刪除
+    description: 系統 SHALL 允許使用者刪除自己的測驗資料與 AI 報告，並 SHALL 允許使用者刪除帳號；刪除帳號時 MUST 移除該使用者的全部紀錄（個人資料、測驗結果、summary、詳細分析、人類圖、點數、付款），僅保留贈點紀錄；同一 Google 帳號再次登入 MUST 視為全新帳號，不繼承任何歷史紀錄；隱私政策 MUST 載明保留的贈點紀錄。
+    priority: must
+    phase: 1
+    mvp: true
+    context: [CTX-ACTOR-001, CTX-ACTOR-002, CTX-CON-006, CTX-CON-012, CTX-EXT-005, CTX-EXT-006, CTX-ASM-011]
+    source: "plan §8.1, §13.3；user 補充（刪帳號時移除付款與所有測驗紀錄；再登入視為全新帳號）"
+    note: "刪除資料須明列範圍（測驗結果、summary、報告、人類圖），不影響點數與付款；AI 用量紀錄刪帳號時保留但清除 userId（user 已確認）"
+  - id: FR-024
+    title: 作答時間蒐集告知
+    description: 系統 SHALL 僅在已告知使用者的前提下蒐集每題作答時間（response_time_ms）。
+    priority: should
+    phase: 3
+    mvp: false
+    context: [CTX-ACTOR-001, CTX-CON-006]
+    source: "plan §7.2"
+  - id: FR-025
+    title: 個人中心
+    description: 系統 SHALL 提供個人中心，顯示測驗歷史、報告歷史、付費狀態與資料管理入口。
+    priority: should
+    phase: 2
+    mvp: true
+    context: [CTX-ACTOR-001, CTX-ACTOR-002]
+    source: "plan §10"
+  - id: FR-026
+    title: 產品指標每日計數
+    description: 系統 SHALL 在伺服器端以每日計數彙總測驗完成、summary 取得、報告生成成功／失敗、付款完成與分享卡產生，計數 MUST NOT 含個人資料。
+    priority: should
+    phase: 3
+    mvp: false
+    context: [CTX-ACTOR-004]
+    source: "plan §12；user 採納建議（改為每日計數，不做逐筆事件）"
+    note: "取代原逐筆事件上報；MVP 不做後台 API，檢視方式延後"
+  - id: FR-027
+    title: 智力／認知測驗
+    description: 系統 SHALL 提供智力／認知測驗，獨立呈現正確率、題型表現、作答時間與題目難度，且 MUST NOT 宣稱為正式 IQ。
+    priority: could
+    phase: 5
+    mvp: false
+    context: [CTX-ACTOR-001, CTX-CON-002, CTX-CON-008]
+    source: "plan §3.1, §6.2, §11 Phase 5"
+  - id: FR-028
+    title: 延伸專題測驗
+    description: 系統 SHALL 以既有測驗框架新增感情、職涯、溝通等專題測驗，並可納入 AI 報告。
+    priority: could
+    phase: 5
+    mvp: false
+    context: [CTX-ACTOR-001, CTX-CON-008]
+    source: "plan §3.1, §11 Phase 5"
+  - id: FR-029
+    title: 會員訂閱
+    description: 系統 SHALL 提供月/年訂閱方案，含每期 AI 報告額度與更多測驗類型。
+    priority: could
+    phase: 5
+    mvp: false
+    context: [CTX-ACTOR-002, CTX-EXT-001, CTX-ASM-002, CTX-CON-008]
+    source: "plan §9.3, §11 Phase 5"
+  - id: FR-030
+    title: 歷史結果比較
+    description: 系統 SHALL 讓付費使用者比較不同時間的測驗結果與報告。
+    priority: could
+    phase: 5
+    mvp: false
+    context: [CTX-ACTOR-002, CTX-CON-008]
+    source: "plan §4, §9.3, §11 Phase 5"
+  - id: FR-031
+    title: AI 對話式人格探索
+    description: 系統 MAY 提供 AI 對話式人格探索作為會員功能（是否推出待評估）。
+    priority: could
+    phase: 5
+    mvp: false
+    context: [CTX-ACTOR-002, CTX-EXT-002, CTX-CON-008]
+    source: "plan §3.3, §4, §11 Phase 5"
+    note: "計畫書僅稱評估是否推出，需求未定義"
+
+  - id: FR-036
+    title: 人類圖計算
+    description: 系統 SHALL 在使用者提供出生時間與出生地點時計算人類圖（固定結果，MUST NOT 呼叫 AI），結果包含 5 種能量類型之一、9 大能量中心、12 種人生角色組合之一、內在權威、策略、定義與通道、64 個閘門；未提供出生時間與地點時 MUST NOT 產生人類圖；已登入使用者計算出的人類圖結果 SHALL 儲存於其帳號（訪客僅暫存於 session，TTL 1 天），且 SHALL 可單獨檢視且不扣點，不需先生成詳細分析。人類圖納入詳細分析的輸入，不屬簡易 summary 的組合。
+    priority: must
+    phase: 3
+    mvp: true
+    context: [CTX-ACTOR-001, CTX-ASM-006, CTX-CON-007]
+    source: "user 補充（人類圖為固定結果；加上人類圖即算詳細分析；結果欄位依 user 提供截圖）"
+    note: "人類圖結果保存 3 個月、單獨檢視免費（user 已確認）；含人類圖的組合共 5,040 種（5 種類型），不需預存內容。出生地點採預設城市清單（含經緯度與 IANA 時區），不串外部地理編碼。天文曆計算庫須確認支援月交點與授權、欄位定義須對照官方教材；建議排在 Phase 3 早期做技術驗證；須有娛樂/自我探索免責說明"
+  - id: FR-037
+    title: 點數帳戶與註冊贈點
+    description: 系統 SHALL 為每個新建立的帳號建立點數帳戶，並 SHALL 贈送 3 點；贈點 MUST 每帳號僅發放一次；同一 Google 帳號於上次贈點後 3 個月內刪帳號再註冊 MUST NOT 再次發放（以贈點紀錄判斷）；贈點紀錄僅用於避免重複贈點，不作他用。
+    priority: must
+    phase: 3
+    mvp: true
+    context: [CTX-ACTOR-001, CTX-CON-014, CTX-EXT-006, CTX-EXT-005]
+    source: "user 補充（每帳號僅送一次 3 點）"
+    note: "贈點紀錄獨立保存並於 3 個月後到期（RULE-031），以伺服器密鑰 HMAC 雜湊儲存、僅用於避免重複贈點；贈點效期 90 天（FR-042）"
+  - id: FR-038
+    title: 點數扣抵
+    description: 系統 SHALL 於會員首次取得某組簡易 summary 時扣 1 點、生成詳細分析時扣 5 點、下載報告書時每次扣 1 點（重複下載再扣）；餘額不足時 MUST 拒絕並引導購點；扣點與結果交付 MUST 一致；訪客 MUST NOT 可取得 summary。
+    priority: must
+    phase: 3
+    mvp: true
+    context: [CTX-ACTOR-001, CTX-ACTOR-002, CTX-CON-014, CTX-ASM-010]
+    source: "user 補充（1 點 summary、5 點詳細分析）"
+  - id: FR-039
+    title: 點數異動紀錄
+    description: 系統 SHALL 記錄每次點數發放、購買、扣除與返還，使用者可查看自己的點數紀錄。
+    priority: must
+    phase: 3
+    mvp: true
+    context: [CTX-ACTOR-002, CTX-CON-014]
+    source: "user 確認保留（由點數制推導）"
+    note: "點數異動紀錄為防重複扣點與對帳所需，使用者可唯讀查看（user 已確認）"
+  - id: FR-040
+    title: 單項免費結果
+    description: 系統 SHALL 允許使用者（含訪客）不扣點取得單項結果：依生日取得星座結果、依血型取得血型分析、完成 MBTI 測驗取得 MBTI 結果；結果皆為固定內容，MUST NOT 呼叫 AI，且 MUST NOT 儲存（每次重新取得）。
+    priority: must
+    phase: 1
+    mvp: true
+    context: [CTX-ACTOR-001, CTX-CON-007, CTX-CON-014, CTX-EXT-005, CTX-ASM-010]
+    source: "user 補充（沒扣點時可做單一測驗）"
+    note: "單項免費結果為固定內容，不儲存、每次重新取得（user 已確認）；MBTI 測驗作答與結果屬測驗結果，登入時儲存 3 個月（FR-005、FR-033）；保存每題作答供 AI 引用依據（FR-005）"
+  - id: FR-041
+    title: 避免重複扣點
+    description: 系統 SHALL 對同一會員已生成過的簡易 summary 組合直接回傳已存結果且 MUST NOT 再次扣點；重複點擊或並行請求 MUST NOT 造成重複扣點。
+    priority: must
+    phase: 3
+    mvp: true
+    context: [CTX-ACTOR-002, CTX-CON-014, CTX-EXT-005]
+    source: "user 補充（需避免重複 input 計算以避免讓使用者浪費錢）"
+  - id: FR-042
+    title: 點數有效期
+    description: 系統 SHALL 為點數設定有效期：購買的點數為無限期，贈點有效期 90 天；過期點數 MUST NOT 可用於扣抵；扣抵順序為先到期先扣、無限期批次最後。
+    priority: must
+    phase: 3
+    mvp: true
+    context: [CTX-ACTOR-001, CTX-ACTOR-002, CTX-CON-014]
+    source: "user 補充（點數需有效期）；user 採納建議（購買點數無限期、贈點 90 天）"
+  - id: FR-033
+    title: 資料到期刪除
+    description: 系統 SHALL 在會員的測驗作答與結果、簡易 summary、MBTI 欄位與人類圖結果滿 3 個月後、詳細分析滿 6 個月後（各以產生時間點起算）自動刪除；付款紀錄 MUST NOT 因保留期限被刪除。
+    priority: must
+    phase: 2
+    mvp: true
+    context: [CTX-CON-012, CTX-CON-006, CTX-EXT-005, CTX-ACTOR-001, CTX-ACTOR-002]
+    source: "user 補充（測驗結果、summary、MBTI 3 個月；詳細分析 6 個月）"
+    note: "各項保存期限已全部確認"
+  - id: FR-035
+    title: 資料到期前通知
+    description: 系統 SHALL 以 email 在會員的測驗結果、簡易 summary、人類圖與詳細分析到期前 14 天與 3 天各通知一次；同一使用者同時有多筆到期時合併為一封。
+    priority: should
+    phase: 5
+    mvp: false
+    context: [CTX-ACTOR-001, CTX-CON-012, CTX-EXT-007]
+    source: "user 補充（到期前會通知，通知系統放後面實作）；user 採納建議"
+    note: "延後至 Phase 5"
+  - id: FR-043
+    title: 付款紀錄保存
+    description: 系統 SHALL 在帳號存續期間永久保存付款紀錄，不受測驗結果保留期限影響；使用者刪除帳號時 SHALL 一併移除付款紀錄。
+    priority: must
+    phase: 4
+    mvp: true
+    context: [CTX-CON-012, CTX-EXT-001, CTX-ACTOR-004]
+    source: "user 補充（付款紀錄永久保存；刪帳號時移除付款紀錄）"
+    note: "若目標市場有交易／稅務保存義務，需另行確認"
+  - id: FR-034
+    title: 詳細分析報告書下載（寄送 email）
+    description: 系統 SHALL 讓使用者在報告到期前消耗 1 點，將詳細分析報告書以 PDF 寄送至其 email；若該報告已下載過，系統 MUST 提醒並經使用者確認後才重複扣點與寄送。
+    priority: should
+    phase: 4
+    mvp: false
+    context: [CTX-ACTOR-002, CTX-CON-012, CTX-CON-014, CTX-EXT-007]
+    source: "user 補充（下載報告書 1 點、PDF、寄送 email、重複下載再扣點並提醒）"
+    note: "PDF 以輕量純 JS 庫產生（避免在 Vercel 跑無頭瀏覽器）；寄送失敗重試 2 到 3 次，仍失敗返還 1 點；email 供應商待選；新增套件前先經使用者同意"
+
+nonFunctional:
+  - id: NFR-001
+    category: security
+    title: 外部輸入驗證
+    description: 所有外部輸入（request、query、params、body、headers、cookies）MUST 於後端做 runtime 驗證，不得信任前端驗證。
+    metric: "所有 API 皆有 schema 驗證；未通過者回傳明確錯誤"
+    priority: must
+    context: [CTX-CON-003]
+    source: "plan §8.1；全域 security 規則"
+    note: "計畫書未明述，來自專案全域規範，需確認"
+  - id: NFR-002
+    category: security
+    title: 秘密與金鑰保護
+    description: AI API 金鑰、付款密鑰與敏感設定 MUST NOT 出現在前端程式碼，且 MUST 僅由後端保管。
+    metric: "前端 bundle 中 0 個秘密金鑰"
+    priority: must
+    context: [CTX-CON-003, CTX-EXT-001, CTX-EXT-002]
+    source: "plan §6.4, §8.1"
+  - id: NFR-003
+    category: security
+    title: 授權與存取控制
+    description: 付費功能與報告存取 MUST 由後端授權；使用者僅能存取自己的資料。
+    metric: "未授權存取一律被拒絕（需以測試驗證）"
+    priority: must
+    context: [CTX-CON-003, CTX-ACTOR-002, CTX-EXT-005, CTX-EXT-006]
+    source: "plan §8.1"
+    note: "Firestore 僅由 Nuxt 伺服器端存取，client 直連一律拒絕（rules 全擋）；API 預設需驗證 ID token，訪客可用端點須明列為公開（CTX-CON-013）"
+  - id: NFR-004
+    category: security
+    title: Webhook 可靠性
+    description: 付款 webhook MUST 驗證簽章且重複事件不得造成重複授權或重複記錄。
+    metric: "同一事件重送 N 次，最終狀態與送一次相同"
+    priority: must
+    context: [CTX-EXT-001]
+    source: "plan §8.1"
+  - id: NFR-005
+    category: privacy
+    title: 資料最小化與保留
+    description: 系統只蒐集功能所需資料，並依保留政策決定測驗答案、輸入快照的保存期限，不無限期保留不必要個資。
+    metric: "測驗結果、簡易 summary、MBTI、人類圖保留 3 個月；詳細分析保留 6 個月；付款紀錄於帳號存續期間永久保存；刪除帳號時移除全部紀錄（贈點紀錄保留 3 個月）；訪客暫存結果 TTL 1 天"
+    priority: must
+    context: [CTX-CON-006, CTX-CON-012]
+    source: "plan §3.1, §7.2, §13.3；user 補充"
+  - id: NFR-006
+    category: privacy
+    title: 日誌敏感資料
+    description: 日誌 MUST NOT 寫入不必要的敏感答案或完整個人報告。
+    metric: "日誌抽樣檢查 0 筆完整答案/報告內容"
+    priority: must
+    context: [CTX-CON-006]
+    source: "plan §13.3"
+  - id: NFR-007
+    category: compliance
+    title: 結果免責與內容合規
+    description: 所有固定與 AI 結果 MUST 標示娛樂/自我探索性質；AI 對心理健康、診斷或危機內容須限制並引導。
+    metric: "100% 結果頁含免責說明；固定測試案例中 0 筆診斷式輸出"
+    priority: must
+    context: [CTX-CON-001, CTX-CON-002]
+    source: "plan §1.3, §13.1, §13.2"
+  - id: NFR-008
+    category: cost
+    title: AI 成本控管
+    description: 每份報告的 Token、重試與生成次數 MUST 設有上限，並監控每份報告平均成本。
+    metric: "未量化，需與相關人確認（單份報告成本上限、Token 上限）"
+    priority: must
+    context: [CTX-CON-007, CTX-ACTOR-004]
+    source: "plan §6.4, §9.4"
+    note: "上線前須量測單份 AI 報告成本，作為點數定價依據（FR-011）"
+  - id: NFR-009
+    category: performance
+    title: AI 報告生成時間
+    description: AI 報告生成 MUST 設定逾時，並向使用者呈現等待與失敗狀態。
+    metric: "單次生成逾時 120 秒（Vercel 函式 maxDuration），逾時視為失敗並返還點數；p95 等待時間待上線量測"
+    priority: must
+    context: [CTX-EXT-002, CTX-ACTOR-002, CTX-CON-010, CTX-EXT-004]
+    source: "plan §6.4, §12；user 補充（Vercel）"
+    note: "Vercel 函式（fluid compute）預設 300 秒；Hobby 上限 300 秒，Pro 上限 800 秒（依 Vercel 文件 2026-08）。採非同步生成加輪詢；營運使用 Pro 方案"
+  - id: NFR-010
+    category: performance
+    title: 固定報告查詢效能
+    description: 固定報告查詢走 Firebase 以組合鍵直接讀取，不依賴 AI 等其他外部服務。
+    metric: "未量化，需與相關人確認（例如 p95 延遲）"
+    priority: should
+    context: [CTX-CON-004, CTX-CON-007]
+    source: "plan §5, §7.1"
+    note: "計畫書未給數字，屬推導"
+  - id: NFR-011
+    category: reliability
+    title: AI 供應商故障容忍
+    description: AI 或付款服務失敗時，系統 MUST 回報明確錯誤，不得靜默吞掉錯誤，且已付費權限不得因失敗而遺失。
+    metric: "未量化，需與相關人確認（可用性目標 SLA）"
+    priority: must
+    context: [CTX-EXT-001, CTX-EXT-002]
+    source: "plan §6.4, §11 Phase 3；全域錯誤處理規則"
+  - id: NFR-012
+    category: maintainability
+    title: 內容與測驗資料驅動
+    description: 固定報告與測驗定義 MUST 以資料驅動管理；新測驗 MUST 能沿用既有測驗框架並安全納入 AI 報告。
+    metric: "新增一份報告內容或一種測驗無需修改核心程式碼"
+    priority: must
+    context: [CTX-CON-005, CTX-CON-008, CTX-CON-010]
+    source: "plan §11 Phase 2/5, §13.4"
+  - id: NFR-013
+    category: quality
+    title: AI 報告品質驗證
+    description: 系統 SHALL 建立固定測試案例，檢查報告是否矛盾、重複、刻板化或過度自信。
+    metric: "未量化，需與相關人確認（通過準則）"
+    priority: should
+    context: [CTX-CON-009, CTX-EXT-002]
+    source: "plan §11 Phase 3, §13.2"
+    note: "以固定測試案例作為 proposal 的驗收任務（檢查矛盾、重複、刻板化、過度自信），不影響資料模型"
+  - id: NFR-014
+    category: content-quality
+    title: 固定報告文案差異度
+    description: 768 份固定報告 SHALL 避免僅替換標籤名稱而內容空泛重複，並經審核流程。
+    metric: "未量化，需與相關人確認（重複度門檻、審核通過率）"
+    priority: should
+    context: [CTX-ACTOR-003, CTX-CON-005]
+    source: "plan §13.4"
+  - id: NFR-017
+    category: reliability
+    title: 點數一致性與防重複
+    description: 點數的發放、購買入帳與扣除 MUST 為原子且冪等，餘額不得為負；並行請求或重送 MUST NOT 造成重複扣點、重複贈點或超額使用。
+    metric: "並行 N 次扣點請求，餘額變動與成功次數一致；贈點每帳號 1 次"
+    priority: must
+    context: [CTX-CON-014, CTX-EXT-005, CTX-EXT-001]
+    source: "推導自點數制需求；plan §8.1"
+    note: "屬推導，需確認"
+  - id: NFR-016
+    category: security
+    status: deprecated
+    reason: "user 更正為後端計算固定結果，前端計算結果不可信的前提不再成立"
+    title: 前端計算結果不可信
+    description: 前端計算並提交保存的測驗結果對後端而言屬不可信輸入；後端 MUST 驗證其格式與合法範圍，且用於 AI 報告與付費分析時 SHOULD 依原始作答重新計算或驗證結果。
+    metric: "未量化，需與相關人確認（驗證/重算範圍）"
+    priority: must
+    context: [CTX-CON-003, CTX-ASM-008, CTX-EXT-005]
+    source: "user 補充（結果前端 render）；全域 security 規則"
+    note: "推導需求：計畫書原為後端計分，改前端後此風險新增，需確認"
+  - id: NFR-015
+    category: observability
+    title: 指標與可追蹤性
+    description: 系統 SHALL 保存模型名稱、提示詞版本、輸入資料版本供除錯與品質追蹤，並支援追蹤成功率、成本與轉換率。
+    metric: "每份 AI 報告 100% 記錄上述三項欄位"
+    priority: should
+    context: [CTX-ACTOR-004, CTX-EXT-002]
+    source: "plan §6.4, §12"

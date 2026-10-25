@@ -1,0 +1,302 @@
+version: 1
+generatedBy: analysis-validator
+updatedAt: 2026-10-25T22:00:00+08:00
+relatedChanges: [ai-personality-app]
+
+links:
+  - requirement: FR-001
+    context: ["CTX-ACTOR-001", "CTX-EXT-006", "CTX-ASM-004"]
+    useCases: ["UC-001", "UC-002", "UC-006"]
+    domainModel: ["AGG-001", "AGG-002", "AGG-004", "AGG-008", "AGG-013", "ENT-001", "ENT-002", "ENT-004", "ENT-008", "ENT-009", "ENT-010", "ENT-016"]
+    api: ["API-001", "API-006"]
+    data: ["DATA-001", "DATA-002", "DATA-005", "DATA-009", "DATA-010", "DATA-011", "DATA-013", "DATA-016", "DATA-018"]
+  - requirement: FR-032
+    context: ["CTX-ACTOR-001", "CTX-EXT-006", "CTX-EXT-005", "CTX-ASM-004", "CTX-ASM-008"]
+    useCases: ["UC-001", "UC-006", "UC-007"]
+    domainModel: ["AGG-001", "AGG-002", "AGG-004", "AGG-005", "AGG-006", "AGG-008", "ENT-001", "ENT-002", "ENT-004", "ENT-005", "ENT-006", "ENT-008", "ENT-010", "VO-002", "VO-003", "VO-004"]
+    api: ["API-001", "API-006", "API-014", "API-015", "API-016"]
+    data: ["DATA-001", "DATA-002", "DATA-005", "DATA-006", "DATA-007", "DATA-008", "DATA-009", "DATA-010", "DATA-011", "DATA-016", "DATA-018", "DATA-019"]
+  - requirement: FR-002
+    context: ["CTX-ACTOR-001", "CTX-ASM-005", "CTX-ASM-006", "CTX-CON-006"]
+    useCases: ["UC-003", "UC-004", "UC-008"]
+    domainModel: ["AGG-001", "AGG-002", "AGG-005", "AGG-012", "ENT-001", "ENT-002", "ENT-005", "ENT-014", "VO-001", "VO-002", "VO-005"]
+    api: ["API-002", "API-003", "API-004", "API-005", "API-007", "API-008", "API-013", "API-038"]
+    data: ["DATA-001", "DATA-002", "DATA-006", "DATA-016"]
+  - requirement: FR-003
+    context: ["CTX-ACTOR-001"]
+    useCases: ["UC-005"]
+    domainModel: ["AGG-002", "AGG-003", "AGG-004", "ENT-002", "ENT-003", "ENT-004", "ENT-005", "VO-003", "VO-006", "VO-007"]
+    api: ["API-004", "API-009", "API-010", "API-011"]
+    data: ["DATA-001", "DATA-002", "DATA-003", "DATA-004", "DATA-005", "DATA-006", "DATA-019"]
+  - requirement: FR-004
+    context: ["CTX-ACTOR-001", "CTX-CON-001", "CTX-CON-007", "CTX-ASM-008"]
+    useCases: ["UC-005"]
+    domainModel: ["AGG-002", "AGG-003", "AGG-004", "ENT-002", "ENT-003", "ENT-004", "ENT-005", "VO-003", "VO-006", "VO-007"]
+    api: ["API-004", "API-009", "API-010", "API-011"]
+    data: ["DATA-001", "DATA-002", "DATA-003", "DATA-004", "DATA-005", "DATA-006", "DATA-019"]
+  - requirement: FR-005
+    context: ["CTX-ACTOR-001", "CTX-ACTOR-002", "CTX-CON-006", "CTX-EXT-005", "CTX-EXT-006"]
+    useCases: ["UC-006", "UC-015"]
+    domainModel: ["AGG-001", "AGG-002", "AGG-004", "AGG-012", "ENT-001", "ENT-002", "ENT-004", "ENT-006", "ENT-007", "ENT-014"]
+    api: ["API-002", "API-006", "API-012", "API-015", "API-016", "API-018", "API-025", "API-038"]
+    data: ["DATA-001", "DATA-002", "DATA-005", "DATA-006", "DATA-007", "DATA-008", "DATA-012", "DATA-016"]
+  - requirement: FR-006
+    context: ["CTX-ACTOR-001", "CTX-CON-005", "CTX-CON-007", "CTX-EXT-005", "CTX-ASM-005", "CTX-ASM-010", "CTX-CON-014"]
+    useCases: ["UC-007"]
+    domainModel: ["AGG-005", "AGG-006", "AGG-008", "ENT-005", "ENT-006", "ENT-008", "ENT-010", "VO-002", "VO-003", "VO-004"]
+    api: ["API-014", "API-015", "API-016"]
+    data: ["DATA-001", "DATA-002", "DATA-005", "DATA-006", "DATA-007", "DATA-008", "DATA-009", "DATA-010", "DATA-011", "DATA-019"]
+  - requirement: FR-007
+    context: ["CTX-ACTOR-001", "CTX-CON-001"]
+    useCases: ["UC-004", "UC-005", "UC-007", "UC-012"]
+    domainModel: ["AGG-002", "AGG-003", "AGG-004", "AGG-005", "AGG-006", "AGG-007", "AGG-008", "ENT-002", "ENT-003", "ENT-004", "ENT-005", "ENT-006", "ENT-007", "ENT-008", "ENT-010", "VO-002", "VO-003", "VO-004", "VO-006", "VO-007", "VO-008"]
+    api: ["API-004", "API-007", "API-008", "API-009", "API-010", "API-011", "API-014", "API-015", "API-016", "API-018", "API-019"]
+    data: ["DATA-001", "DATA-002", "DATA-003", "DATA-004", "DATA-005", "DATA-006", "DATA-007", "DATA-008", "DATA-009", "DATA-010", "DATA-011", "DATA-019"]
+  - requirement: FR-008
+    context: ["CTX-ACTOR-003", "CTX-CON-005", "CTX-CON-004", "CTX-EXT-005"]
+    useCases: ["UC-019"]
+    domainModel: ["AGG-005", "ENT-005", "VO-004"]
+    api: ["API-031", "API-032", "API-033", "API-034"]
+    data: ["DATA-006", "DATA-007", "DATA-008"]
+  - requirement: FR-009
+    context: ["CTX-ACTOR-003", "CTX-ASM-005", "CTX-EXT-005", "CTX-CON-005"]
+    useCases: ["UC-019"]
+    domainModel: ["AGG-005", "ENT-005", "VO-004"]
+    api: ["API-031", "API-032", "API-033", "API-034"]
+    data: ["DATA-006", "DATA-007", "DATA-008"]
+  - requirement: FR-010
+    context: ["CTX-ACTOR-001", "CTX-EXT-003"]
+    useCases: ["UC-018"]
+    domainModel: ["VO-011"]
+    api: ["API-027"]
+    data: ["DATA-002", "DATA-006", "DATA-019"]
+  - requirement: FR-011
+    context: ["CTX-ACTOR-001", "CTX-EXT-001", "CTX-ASM-002", "CTX-CON-014", "CTX-CON-011"]
+    useCases: ["UC-010"]
+    domainModel: ["AGG-009", "ENT-011", "VO-010"]
+    api: ["API-023", "API-024", "API-025"]
+    data: ["DATA-012", "DATA-013"]
+  - requirement: FR-012
+    context: ["CTX-EXT-001", "CTX-CON-003", "CTX-CON-014"]
+    useCases: ["UC-011"]
+    domainModel: ["AGG-008", "AGG-009", "ENT-008", "ENT-009", "ENT-010", "ENT-011", "VO-010"]
+    api: ["API-026"]
+    data: ["DATA-009", "DATA-010", "DATA-011", "DATA-012", "DATA-013", "DATA-019"]
+  - requirement: FR-013
+    context: ["CTX-EXT-001", "CTX-ACTOR-004", "CTX-CON-011"]
+    useCases: ["UC-010", "UC-011"]
+    domainModel: ["AGG-008", "AGG-009", "ENT-008", "ENT-009", "ENT-010", "ENT-011", "VO-010"]
+    api: ["API-023", "API-024", "API-025", "API-026"]
+    data: ["DATA-009", "DATA-010", "DATA-011", "DATA-012", "DATA-013", "DATA-019"]
+  - requirement: FR-014
+    context: ["CTX-ACTOR-002", "CTX-CON-003", "CTX-CON-014"]
+    useCases: ["UC-007", "UC-009", "UC-013", "UC-014", "UC-021"]
+    domainModel: ["AGG-005", "AGG-006", "AGG-007", "AGG-008", "AGG-010", "ENT-005", "ENT-006", "ENT-007", "ENT-008", "ENT-009", "ENT-010", "ENT-012", "VO-002", "VO-003", "VO-004", "VO-005", "VO-008", "VO-009"]
+    api: ["API-014", "API-015", "API-016", "API-017", "API-019", "API-020", "API-021", "API-022", "API-039"]
+    data: ["DATA-001", "DATA-002", "DATA-005", "DATA-006", "DATA-007", "DATA-008", "DATA-009", "DATA-010", "DATA-011", "DATA-013", "DATA-014", "DATA-016", "DATA-019"]
+  - requirement: FR-015
+    context: ["CTX-ACTOR-002", "CTX-CON-009"]
+    useCases: ["UC-009"]
+    domainModel: ["AGG-007", "AGG-008", "AGG-010", "ENT-007", "ENT-008", "ENT-010", "ENT-012", "VO-004", "VO-005", "VO-008", "VO-009"]
+    api: ["API-017", "API-019"]
+    data: ["DATA-006", "DATA-007", "DATA-008", "DATA-009", "DATA-010", "DATA-011", "DATA-014", "DATA-016", "DATA-019"]
+  - requirement: FR-016
+    context: ["CTX-ACTOR-002", "CTX-EXT-002", "CTX-CON-009"]
+    useCases: ["UC-009"]
+    domainModel: ["AGG-007", "AGG-008", "AGG-010", "ENT-007", "ENT-008", "ENT-010", "ENT-012", "VO-004", "VO-005", "VO-008", "VO-009"]
+    api: ["API-017", "API-019"]
+    data: ["DATA-006", "DATA-007", "DATA-008", "DATA-009", "DATA-010", "DATA-011", "DATA-014", "DATA-016", "DATA-019"]
+  - requirement: FR-017
+    context: ["CTX-CON-001", "CTX-CON-009", "CTX-EXT-002"]
+    useCases: ["UC-009"]
+    domainModel: ["AGG-007", "AGG-008", "AGG-010", "ENT-007", "ENT-008", "ENT-010", "ENT-012", "VO-004", "VO-005", "VO-008", "VO-009"]
+    api: ["API-017", "API-019"]
+    data: ["DATA-006", "DATA-007", "DATA-008", "DATA-009", "DATA-010", "DATA-011", "DATA-014", "DATA-016", "DATA-019"]
+  - requirement: FR-018
+    context: ["CTX-ACTOR-002", "CTX-CON-007"]
+    useCases: ["UC-009", "UC-012"]
+    domainModel: ["AGG-007", "AGG-008", "AGG-010", "ENT-007", "ENT-008", "ENT-010", "ENT-012", "VO-004", "VO-005", "VO-008", "VO-009"]
+    api: ["API-017", "API-018", "API-019"]
+    data: ["DATA-006", "DATA-007", "DATA-008", "DATA-009", "DATA-010", "DATA-011", "DATA-014", "DATA-016", "DATA-019"]
+  - requirement: FR-019
+    context: ["CTX-ACTOR-002", "CTX-EXT-002", "CTX-CON-007", "CTX-CON-014"]
+    useCases: ["UC-009", "UC-013"]
+    domainModel: ["AGG-007", "AGG-008", "AGG-010", "ENT-007", "ENT-008", "ENT-010", "ENT-012", "VO-004", "VO-005", "VO-008", "VO-009"]
+    api: ["API-017", "API-019", "API-020"]
+    data: ["DATA-006", "DATA-007", "DATA-008", "DATA-009", "DATA-010", "DATA-011", "DATA-014", "DATA-016", "DATA-019"]
+  - requirement: FR-020
+    context: ["CTX-ACTOR-002", "CTX-CON-007", "CTX-CON-014", "CTX-CON-011"]
+    useCases: ["UC-013"]
+    domainModel: ["AGG-007", "AGG-008", "AGG-010", "ENT-007", "ENT-008", "ENT-010", "ENT-012", "VO-004", "VO-009"]
+    api: ["API-020"]
+    data: ["DATA-006", "DATA-007", "DATA-008", "DATA-009", "DATA-010", "DATA-011", "DATA-014"]
+  - requirement: FR-021
+    context: ["CTX-ACTOR-002", "CTX-CON-003", "CTX-CON-006"]
+    useCases: ["UC-012"]
+    domainModel: ["AGG-007", "ENT-007", "VO-008"]
+    api: ["API-018", "API-019"]
+    data: ["DATA-008"]
+  - requirement: FR-022
+    context: ["CTX-ACTOR-004", "CTX-CON-007"]
+    useCases: ["UC-009", "UC-020"]
+    domainModel: ["AGG-007", "AGG-008", "AGG-010", "AGG-014", "ENT-007", "ENT-008", "ENT-010", "ENT-012", "ENT-017", "VO-004", "VO-005", "VO-008", "VO-009"]
+    api: ["API-017", "API-019", "API-035", "API-036"]
+    data: ["DATA-006", "DATA-007", "DATA-008", "DATA-009", "DATA-010", "DATA-011", "DATA-014", "DATA-016", "DATA-019"]
+  - requirement: FR-023
+    context: ["CTX-ACTOR-001", "CTX-ACTOR-002", "CTX-CON-006", "CTX-CON-012", "CTX-EXT-005", "CTX-EXT-006", "CTX-ASM-011"]
+    useCases: ["UC-016"]
+    domainModel: ["AGG-001", "AGG-009", "ENT-001", "ENT-011"]
+    api: ["API-028", "API-029"]
+    data: ["DATA-001", "DATA-005", "DATA-007", "DATA-008", "DATA-009", "DATA-010", "DATA-011", "DATA-012", "DATA-014", "DATA-016"]
+  - requirement: FR-024
+    context: ["CTX-ACTOR-001", "CTX-CON-006"]
+    useCases: ["UC-005"]
+    domainModel: ["AGG-002", "AGG-003", "AGG-004", "ENT-002", "ENT-003", "ENT-004", "ENT-005", "VO-003", "VO-006", "VO-007"]
+    api: ["API-004", "API-009", "API-010", "API-011"]
+    data: ["DATA-001", "DATA-002", "DATA-003", "DATA-004", "DATA-005", "DATA-006", "DATA-019"]
+  - requirement: FR-025
+    context: ["CTX-ACTOR-001", "CTX-ACTOR-002"]
+    useCases: ["UC-015"]
+    domainModel: ["AGG-001", "AGG-012", "ENT-001", "ENT-004", "ENT-006", "ENT-007", "ENT-014"]
+    api: ["API-002", "API-012", "API-015", "API-016", "API-018", "API-025", "API-038"]
+    data: ["DATA-001", "DATA-005", "DATA-006", "DATA-007", "DATA-008", "DATA-012", "DATA-016"]
+  - requirement: FR-026
+    context: ["CTX-ACTOR-004"]
+    useCases: ["UC-020"]
+    domainModel: ["AGG-010", "AGG-014", "ENT-012", "ENT-017"]
+    api: ["API-035", "API-036"]
+    data: ["DATA-014", "DATA-019"]
+  - requirement: FR-027
+    context: ["CTX-ACTOR-001", "CTX-CON-002", "CTX-CON-008"]
+    useCases: []
+    domainModel: []
+    api: []
+    data: []
+  - requirement: FR-028
+    context: ["CTX-ACTOR-001", "CTX-CON-008"]
+    useCases: []
+    domainModel: []
+    api: []
+    data: []
+  - requirement: FR-029
+    context: ["CTX-ACTOR-002", "CTX-EXT-001", "CTX-ASM-002", "CTX-CON-008"]
+    useCases: []
+    domainModel: []
+    api: []
+    data: []
+  - requirement: FR-030
+    context: ["CTX-ACTOR-002", "CTX-CON-008"]
+    useCases: []
+    domainModel: []
+    api: []
+    data: []
+  - requirement: FR-031
+    context: ["CTX-ACTOR-002", "CTX-EXT-002", "CTX-CON-008"]
+    useCases: []
+    domainModel: []
+    api: []
+    data: []
+  - requirement: FR-036
+    context: ["CTX-ACTOR-001", "CTX-ASM-006", "CTX-CON-007"]
+    useCases: ["UC-008", "UC-009"]
+    domainModel: ["AGG-007", "AGG-008", "AGG-010", "AGG-012", "ENT-007", "ENT-008", "ENT-010", "ENT-012", "ENT-014", "VO-001", "VO-004", "VO-005", "VO-008", "VO-009"]
+    api: ["API-013", "API-017", "API-019", "API-038"]
+    data: ["DATA-001", "DATA-002", "DATA-006", "DATA-007", "DATA-008", "DATA-009", "DATA-010", "DATA-011", "DATA-014", "DATA-016", "DATA-019"]
+  - requirement: FR-037
+    context: ["CTX-ACTOR-001", "CTX-CON-014", "CTX-EXT-006", "CTX-EXT-005"]
+    useCases: ["UC-002"]
+    domainModel: ["AGG-001", "AGG-008", "AGG-013", "ENT-001", "ENT-008", "ENT-009", "ENT-010", "ENT-016"]
+    api: ["API-001"]
+    data: ["DATA-001", "DATA-009", "DATA-010", "DATA-011", "DATA-013", "DATA-018"]
+  - requirement: FR-038
+    context: ["CTX-ACTOR-001", "CTX-ACTOR-002", "CTX-CON-014", "CTX-ASM-010"]
+    useCases: ["UC-007", "UC-009", "UC-013", "UC-021"]
+    domainModel: ["AGG-005", "AGG-006", "AGG-007", "AGG-008", "AGG-010", "ENT-005", "ENT-006", "ENT-007", "ENT-008", "ENT-010", "ENT-012", "VO-002", "VO-003", "VO-004", "VO-005", "VO-008", "VO-009"]
+    api: ["API-014", "API-015", "API-016", "API-017", "API-019", "API-020", "API-039"]
+    data: ["DATA-001", "DATA-002", "DATA-005", "DATA-006", "DATA-007", "DATA-008", "DATA-009", "DATA-010", "DATA-011", "DATA-014", "DATA-016", "DATA-019"]
+  - requirement: FR-039
+    context: ["CTX-ACTOR-002", "CTX-CON-014"]
+    useCases: ["UC-014"]
+    domainModel: ["AGG-008", "ENT-008", "ENT-009", "ENT-010"]
+    api: ["API-021", "API-022"]
+    data: ["DATA-009", "DATA-010", "DATA-011", "DATA-013"]
+  - requirement: FR-040
+    context: ["CTX-ACTOR-001", "CTX-CON-007", "CTX-CON-014", "CTX-EXT-005", "CTX-ASM-010"]
+    useCases: ["UC-004", "UC-005", "UC-007"]
+    domainModel: ["AGG-002", "AGG-003", "AGG-004", "AGG-005", "AGG-006", "AGG-008", "ENT-002", "ENT-003", "ENT-004", "ENT-005", "ENT-006", "ENT-008", "ENT-010", "VO-002", "VO-003", "VO-004", "VO-006", "VO-007"]
+    api: ["API-004", "API-007", "API-008", "API-009", "API-010", "API-011", "API-014", "API-015", "API-016"]
+    data: ["DATA-001", "DATA-002", "DATA-003", "DATA-004", "DATA-005", "DATA-006", "DATA-007", "DATA-008", "DATA-009", "DATA-010", "DATA-011", "DATA-019"]
+  - requirement: FR-041
+    context: ["CTX-ACTOR-002", "CTX-CON-014", "CTX-EXT-005"]
+    useCases: ["UC-007"]
+    domainModel: ["AGG-005", "AGG-006", "AGG-008", "ENT-005", "ENT-006", "ENT-008", "ENT-010", "VO-002", "VO-003", "VO-004"]
+    api: ["API-014", "API-015", "API-016"]
+    data: ["DATA-001", "DATA-002", "DATA-005", "DATA-006", "DATA-007", "DATA-008", "DATA-009", "DATA-010", "DATA-011", "DATA-019"]
+  - requirement: FR-042
+    context: ["CTX-ACTOR-001", "CTX-ACTOR-002", "CTX-CON-014"]
+    useCases: ["UC-007", "UC-014", "UC-021"]
+    domainModel: ["AGG-005", "AGG-006", "AGG-008", "ENT-005", "ENT-006", "ENT-008", "ENT-009", "ENT-010", "VO-002", "VO-003", "VO-004"]
+    api: ["API-014", "API-015", "API-016", "API-021", "API-022", "API-039"]
+    data: ["DATA-001", "DATA-002", "DATA-005", "DATA-006", "DATA-007", "DATA-008", "DATA-009", "DATA-010", "DATA-011", "DATA-013", "DATA-019"]
+  - requirement: FR-033
+    context: ["CTX-CON-012", "CTX-CON-006", "CTX-EXT-005", "CTX-ACTOR-001", "CTX-ACTOR-002"]
+    useCases: ["UC-017"]
+    domainModel: ["AGG-004", "AGG-006", "ENT-004", "ENT-006"]
+    api: ["API-037"]
+    data: ["DATA-005", "DATA-007"]
+  - requirement: FR-035
+    context: ["CTX-ACTOR-001", "CTX-CON-012", "CTX-EXT-007"]
+    useCases: []
+    domainModel: []
+    api: []
+    data: []
+  - requirement: FR-043
+    context: ["CTX-CON-012", "CTX-EXT-001", "CTX-ACTOR-004"]
+    useCases: ["UC-011", "UC-016"]
+    domainModel: ["AGG-001", "AGG-008", "AGG-009", "ENT-001", "ENT-008", "ENT-009", "ENT-010", "ENT-011", "VO-010"]
+    api: ["API-026", "API-028", "API-029"]
+    data: ["DATA-001", "DATA-005", "DATA-007", "DATA-008", "DATA-009", "DATA-010", "DATA-011", "DATA-012", "DATA-013", "DATA-014", "DATA-016", "DATA-019"]
+  - requirement: FR-034
+    context: ["CTX-ACTOR-002", "CTX-CON-012", "CTX-CON-014", "CTX-EXT-007"]
+    useCases: ["UC-021"]
+    domainModel: []
+    api: ["API-039"]
+    data: ["DATA-008"]
+
+gaps:
+  - type: deferred-to-post-mvp
+    id: UC-019
+    description: "此 use case 的 API 已排除於 MVP（後台 API 延後），MVP 以匯入腳本或手動方式處理"
+    severity: low
+  - type: deferred-to-post-mvp
+    id: UC-020
+    description: "此 use case 的 API 已排除於 MVP（後台 API 延後），MVP 以匯入腳本或手動方式處理"
+    severity: low
+  - type: orphan-requirement
+    id: FR-027
+    description: "FR 沒有任何 use case（智力／認知測驗；priority=could、phase=5、mvp=False）"
+    severity: low
+  - type: orphan-requirement
+    id: FR-028
+    description: "FR 沒有任何 use case（延伸專題測驗；priority=could、phase=5、mvp=False）"
+    severity: low
+  - type: orphan-requirement
+    id: FR-029
+    description: "FR 沒有任何 use case（會員訂閱；priority=could、phase=5、mvp=False）"
+    severity: low
+  - type: orphan-requirement
+    id: FR-030
+    description: "FR 沒有任何 use case（歷史結果比較；priority=could、phase=5、mvp=False）"
+    severity: low
+  - type: orphan-requirement
+    id: FR-031
+    description: "FR 沒有任何 use case（AI 對話式人格探索；priority=could、phase=5、mvp=False）"
+    severity: low
+  - type: orphan-requirement
+    id: FR-035
+    description: "FR 沒有任何 use case（資料到期前通知；priority=should、phase=5、mvp=False）"
+    severity: low
+  - type: vo-unused
+    id: VO-011
+    description: "Value Object ShareCard 未被任何聚合或資料表使用"
+    severity: low

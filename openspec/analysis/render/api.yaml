@@ -1,0 +1,1675 @@
+openapi: "3.0.3"
+info:
+  title: "AI 多維度人格探索 App API"
+  version: "0.1.0"
+  description: "由 domain-model 與 use-cases 推導的 API 草案。Nuxt/Nitro server routes，Firestore 僅由伺服器端存取。"
+servers:
+  - url: "/api"
+tags:
+  - name: Auth
+  - name: Profile
+  - name: Guest
+  - name: FixedResults
+  - name: Tests
+  - name: HumanDesign
+  - name: Summaries
+  - name: DetailedReports
+  - name: Points
+  - name: Payments
+  - name: Share
+  - name: Account
+  - name: Operations
+  - name: Admin
+security:
+  - bearerAuth: []
+paths:
+  "/auth/login":
+    post:
+      operationId: loginWithGoogle
+      summary: "以 Google ID token 登入"
+      description: "驗證 Firebase ID token；首次登入時建立帳號與點數帳戶，並一次性發放 3 點贈點（RULE-009）。已刪除帳號的 Google 帳號再次登入視為全新帳號（RULE-029）；若該 Google 帳號 3 個月內領過贈點則不再發放（RULE-031）。"
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: "登入成功"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/LoginResponse"
+        "400":
+          "$ref": "#/components/responses/ValidationError"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+  "/profile":
+    get:
+      operationId: getProfile
+      summary: "取得我的個人資料"
+      description: "回傳生日、星座、血型、MBTI 與選填的出生時間地點。"
+      tags: [Profile]
+      responses:
+        "200":
+          description: "個人資料"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Profile"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+    put:
+      operationId: updateProfile
+      summary: "更新我的個人資料"
+      description: "生日與星座必填（RULE-001）；血型、MBTI、出生時間與地點選填；血型可為 UNKNOWN。MBTI 於設定後 3 個月到期並被清除（RULE-014）。"
+      tags: [Profile]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/ProfileInput"
+      responses:
+        "200":
+          description: "更新後的個人資料"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Profile"
+        "400":
+          "$ref": "#/components/responses/ValidationError"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+  "/guest-sessions":
+    post:
+      operationId: createGuestSession
+      summary: "建立訪客暫存 session"
+      description: "為未登入訪客建立不可猜測的 session id；暫存資料 TTL 1 天，不與帳號關聯（RULE-016）。"
+      tags: [Guest]
+      security: []
+      responses:
+        "201":
+          description: "已建立"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/GuestSession"
+        "429":
+          "$ref": "#/components/responses/RateLimited"
+  "/guest-sessions/{sessionId}/profile":
+    put:
+      operationId: saveGuestProfile
+      summary: "暫存訪客個人資料"
+      description: "僅供當次結果顯示；session 逾時後自動清除。"
+      tags: [Guest]
+      security: []
+      parameters:
+        - "$ref": "#/components/parameters/SessionIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/ProfileInput"
+      responses:
+        "200":
+          description: "已暫存"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ProfileInput"
+        "400":
+          "$ref": "#/components/responses/ValidationError"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+  "/guest-sessions/{sessionId}/claim":
+    post:
+      operationId: claimGuestSession
+      summary: "登入後將訪客暫存結果存入帳號"
+      description: "以 session id 取出暫存結果並寫入目前登入帳號，完成後清除暫存。session 已過期時回傳 410。"
+      tags: [Guest]
+      parameters:
+        - "$ref": "#/components/parameters/SessionIdPath"
+        - "$ref": "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: "已存入帳號"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ClaimResult"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+        "410":
+          description: "暫存結果已過期"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/fixed-results/zodiac":
+    get:
+      operationId: getZodiacResult
+      summary: "取得星座單項結果"
+      description: "依生日換算星座並回傳固定內容，不呼叫 AI、不扣點、不儲存（RULE-017、RULE-018）。"
+      tags: [FixedResults]
+      security: []
+      parameters:
+        - name: birthDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: "星座固定結果"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/FixedResultContent"
+        "400":
+          "$ref": "#/components/responses/ValidationError"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+  "/fixed-results/blood-types/{bloodType}":
+    get:
+      operationId: getBloodTypeResult
+      summary: "取得血型單項分析"
+      description: "UNKNOWN 不提供分析（RULE-002），回傳 404。"
+      tags: [FixedResults]
+      security: []
+      parameters:
+        - name: bloodType
+          in: path
+          required: true
+          schema:
+            "$ref": "#/components/schemas/BloodType"
+      responses:
+        "200":
+          description: "血型固定結果"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/FixedResultContent"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+  "/tests":
+    get:
+      operationId: listTests
+      summary: "取得可用測驗清單"
+      description: ""
+      tags: [Tests]
+      security: []
+      responses:
+        "200":
+          description: "測驗清單"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/TestSummary"
+  "/tests/{testId}":
+    get:
+      operationId: getTest
+      summary: "取得測驗題目"
+      description: "回傳含版本的題目與選項，不含評分規則。"
+      tags: [Tests]
+      security: []
+      parameters:
+        - name: testId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "測驗內容"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Test"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+  "/tests/{testId}/submissions":
+    post:
+      operationId: submitTest
+      summary: "送出測驗作答並取得結果"
+      description: "後端依評分規則計算結果並回傳固定內容；已登入者保存作答與結果（保存 3 個月，RULE-014），訪客需帶 X-Guest-Session-Id 暫存（TTL 1 天）。作答時間僅在使用者已告知時蒐集。"
+      tags: [Tests]
+      security:
+        - bearerAuth: []
+        - guestSession: []
+        - {}
+      parameters:
+        - name: testId
+          in: path
+          required: true
+          schema:
+            type: string
+        - "$ref": "#/components/parameters/GuestSessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/TestSubmissionRequest"
+      responses:
+        "200":
+          description: "測驗結果"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/TestSubmissionResponse"
+        "400":
+          "$ref": "#/components/responses/ValidationError"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+  "/test-attempts":
+    get:
+      operationId: listTestAttempts
+      summary: "列出我的測驗結果"
+      description: "僅回傳未到期的紀錄。"
+      tags: [Tests]
+      responses:
+        "200":
+          description: "測驗結果清單"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/TestAttempt"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+  "/human-design/calculations":
+    post:
+      operationId: calculateHumanDesign
+      summary: "計算人類圖"
+      description: "固定計算結果，不呼叫 AI；須同時提供生日、出生時間與出生地點（RULE-013）。已登入者的結果儲存於帳號（RULE-028），訪客需帶 X-Guest-Session-Id 暫存 1 天。以 POST 避免出生資料出現在 URL／日誌。"
+      tags: [HumanDesign]
+      security:
+        - bearerAuth: []
+        - guestSession: []
+        - {}
+      parameters:
+        - "$ref": "#/components/parameters/GuestSessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/HumanDesignRequest"
+      responses:
+        "200":
+          description: "人類圖結果"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HumanDesignResult"
+        "400":
+          "$ref": "#/components/responses/ValidationError"
+  "/summaries":
+    post:
+      operationId: obtainSummary
+      summary: "取得簡易 summary"
+      description: "依我的個人資料決定組合鍵（星座+MBTI，或加血型）。首次取得扣 1 點；已取得過的組合直接回傳不再扣點。需帶 Idempotency-Key 防止重複扣點。"
+      tags: [Summaries]
+      parameters:
+        - "$ref": "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/SummaryRequest"
+      responses:
+        "201":
+          description: "首次取得（已扣 1 點）"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SummaryObtained"
+        "200":
+          description: "已取得過，不重複扣點"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SummaryObtained"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "402":
+          "$ref": "#/components/responses/InsufficientPoints"
+        "422":
+          description: "缺少 MBTI，無法取得 summary"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+    get:
+      operationId: listSummaries
+      summary: "列出我已取得的 summary"
+      description: "僅回傳未到期的紀錄，不扣點。"
+      tags: [Summaries]
+      responses:
+        "200":
+          description: "summary 清單"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/MemberSummary"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+  "/summaries/{summaryId}":
+    get:
+      operationId: getSummary
+      summary: "查看已取得的 summary"
+      description: "讀取已保存內容，不扣點。"
+      tags: [Summaries]
+      parameters:
+        - name: summaryId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: summary
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/MemberSummary"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+  "/detailed-reports":
+    post:
+      operationId: createDetailedReport
+      summary: "生成詳細分析"
+      description: "至少需有星座與 MBTI 結果（RULE-033）；扣 5 點後非同步生成 AI 報告（逾時 120 秒視為失敗），回傳 202 與 reportId，以 GET 輪詢狀態（因函式執行時間上限）。失敗時返還點數。需 Idempotency-Key。"
+      tags: [DetailedReports]
+      parameters:
+        - "$ref": "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/DetailedReportRequest"
+      responses:
+        "202":
+          description: "已受理，生成中"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ReportAccepted"
+        "400":
+          "$ref": "#/components/responses/ValidationError"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "402":
+          "$ref": "#/components/responses/InsufficientPoints"
+        "422":
+          description: "缺少 MBTI 結果，無法生成"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "429":
+          "$ref": "#/components/responses/RateLimited"
+    get:
+      operationId: listDetailedReports
+      summary: "列出我的詳細分析"
+      description: ""
+      tags: [DetailedReports]
+      responses:
+        "200":
+          description: "報告清單"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/DetailedReport"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+  "/detailed-reports/{reportId}":
+    get:
+      operationId: getDetailedReport
+      summary: "查看詳細分析"
+      description: "僅擁有者可存取；讀取已保存內容，不呼叫 AI、不扣點。生成中時回傳狀態。"
+      tags: [DetailedReports]
+      parameters:
+        - "$ref": "#/components/parameters/ReportIdPath"
+      responses:
+        "200":
+          description: "報告"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/DetailedReport"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "403":
+          "$ref": "#/components/responses/Forbidden"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+  "/detailed-reports/{reportId}/regenerations":
+    post:
+      operationId: regenerateDetailedReport
+      summary: "重新生成詳細分析"
+      description: "扣 5 點並產生新報告，舊報告保留（RULE-006）。需 Idempotency-Key。"
+      tags: [DetailedReports]
+      parameters:
+        - "$ref": "#/components/parameters/ReportIdPath"
+        - "$ref": "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: "已受理，生成中（新報告）"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ReportAccepted"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "402":
+          "$ref": "#/components/responses/InsufficientPoints"
+        "403":
+          "$ref": "#/components/responses/Forbidden"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+        "429":
+          "$ref": "#/components/responses/RateLimited"
+  "/points":
+    get:
+      operationId: getPointBalance
+      summary: "查看點數餘額與效期"
+      description: "回傳未過期的可用餘額與各批次效期。"
+      tags: [Points]
+      responses:
+        "200":
+          description: "點數餘額"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PointBalance"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+  "/points/transactions":
+    get:
+      operationId: listPointTransactions
+      summary: "列出點數異動紀錄"
+      description: ""
+      tags: [Points]
+      parameters:
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: "點數異動"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PointTransactionList"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+  "/point-packages":
+    get:
+      operationId: listPointPackages
+      summary: "取得可購買的點數方案"
+      description: "價格後續決定。"
+      tags: [Payments]
+      security: []
+      responses:
+        "200":
+          description: "點數方案"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/PointPackage"
+  "/payments":
+    post:
+      operationId: createPayment
+      summary: "建立點數購買付款流程"
+      description: "回傳付款頁連結與不退款告知（RULE-012）。"
+      tags: [Payments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CreatePaymentRequest"
+      responses:
+        "201":
+          description: "付款流程已建立"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/CheckoutSession"
+        "400":
+          "$ref": "#/components/responses/ValidationError"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+    get:
+      operationId: listPayments
+      summary: "列出我的付款紀錄"
+      description: ""
+      tags: [Payments]
+      responses:
+        "200":
+          description: "付款紀錄"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/Payment"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+  "/payments/webhook":
+    post:
+      operationId: receivePaymentWebhook
+      summary: "接收付款服務事件"
+      description: "由付款服務呼叫，須驗證簽章並以事件 ID 冪等處理；成功事件為使用者加點並保存付款紀錄。"
+      tags: [Payments]
+      security:
+        - webhookSignature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: "付款服務事件內容（格式依供應商，待選定）"
+      responses:
+        "200":
+          description: "已接收（含重複事件）"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/WebhookAck"
+        "400":
+          "$ref": "#/components/responses/ValidationError"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+  "/share-cards":
+    post:
+      operationId: createShareCard
+      summary: "產生分享結果卡"
+      description: "依結果產生分享卡內容，不含不必要個資（RULE-026）。"
+      tags: [Share]
+      security:
+        - bearerAuth: []
+        - guestSession: []
+      parameters:
+        - "$ref": "#/components/parameters/GuestSessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/ShareCardRequest"
+      responses:
+        "200":
+          description: "分享卡"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ShareCard"
+        "400":
+          "$ref": "#/components/responses/ValidationError"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+  "/account/data":
+    delete:
+      operationId: deleteAccountData
+      summary: "刪除我的資料"
+      description: "依 scopes 刪除所選範圍（測驗結果、summary、報告、人類圖），不影響點數與付款。需明確確認。"
+      tags: [Account]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/DeleteDataRequest"
+      responses:
+        "200":
+          description: "已刪除"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/DeleteResult"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+  "/account":
+    delete:
+      operationId: deleteAccount
+      summary: "刪除我的帳號"
+      description: "刪除該使用者的全部紀錄（含付款），僅保留贈點紀錄（RULE-024、RULE-031）；同一 Google 帳號再登入視為全新帳號（RULE-029）。未用點數無法再使用且不退款。"
+      tags: [Account]
+      responses:
+        "200":
+          description: "已刪除"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/DeleteResult"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+  "/admin/fixed-contents":
+    get:
+      operationId: listFixedContents
+      summary: "列出固定內容"
+      description: "【MVP 後】可依類型與狀態篩選。需 editor 角色。"
+      tags: [Admin]
+      parameters:
+        - name: contentType
+          in: query
+          schema:
+            "$ref": "#/components/schemas/ContentType"
+        - name: status
+          in: query
+          schema:
+            "$ref": "#/components/schemas/ContentStatus"
+      responses:
+        "200":
+          description: "固定內容"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/FixedContentItem"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "403":
+          "$ref": "#/components/responses/Forbidden"
+  "/admin/fixed-contents/{contentType}/{key}":
+    put:
+      operationId: saveFixedContent
+      summary: "新增或修改固定內容（草稿）"
+      description: "【MVP 後】組合須唯一且合法（RULE-003、RULE-021），更新時遞增 contentVersion。需 editor 角色。"
+      tags: [Admin]
+      parameters:
+        - name: contentType
+          in: path
+          required: true
+          schema:
+            "$ref": "#/components/schemas/ContentType"
+        - name: key
+          in: path
+          required: true
+          description: "summary 為組合鍵（如 aries_INTJ_A），單項為對應值"
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/FixedContentBody"
+      responses:
+        "200":
+          description: "已儲存"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/FixedContentItem"
+        "400":
+          "$ref": "#/components/responses/ValidationError"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "403":
+          "$ref": "#/components/responses/Forbidden"
+  "/admin/fixed-contents/{contentType}/{key}/publication":
+    post:
+      operationId: publishFixedContent
+      summary: "審核後發布固定內容"
+      description: "【MVP 後】發布後即生效，無需重新部署。需 editor 角色。"
+      tags: [Admin]
+      parameters:
+        - name: contentType
+          in: path
+          required: true
+          schema:
+            "$ref": "#/components/schemas/ContentType"
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "已發布"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/FixedContentItem"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "403":
+          "$ref": "#/components/responses/Forbidden"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+  "/admin/fixed-contents/coverage":
+    get:
+      operationId: getFixedContentCoverage
+      summary: "檢查 summary 組合覆蓋"
+      description: "【MVP 後】列出 960 種組合中尚未發布者。需 editor 角色。"
+      tags: [Admin]
+      responses:
+        "200":
+          description: "覆蓋狀況"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ContentCoverage"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "403":
+          "$ref": "#/components/responses/Forbidden"
+  "/admin/ai-usage":
+    get:
+      operationId: getAiUsage
+      summary: "查看 AI 用量與成本"
+      description: "【MVP 後】需 operator 角色。"
+      tags: [Admin]
+      parameters:
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: "用量統計"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/AiUsageSummary"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "403":
+          "$ref": "#/components/responses/Forbidden"
+  "/admin/metrics":
+    get:
+      operationId: getProductMetrics
+      summary: "查看產品指標"
+      description: "【MVP 後】讀取伺服器端每日計數：測驗完成、summary 取得、報告成功與失敗、付款完成、分享卡產生。需 operator 角色。"
+      tags: [Admin]
+      parameters:
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: "指標"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ProductMetrics"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "403":
+          "$ref": "#/components/responses/Forbidden"
+  "/cron/data-expiry":
+    get:
+      operationId: runDataExpiry
+      summary: "排程清除到期資料"
+      description: "由 Vercel Cron 呼叫，以 CRON_SECRET 驗證；刪除滿 3 個月的測驗結果、簡易 summary、MBTI 欄位與人類圖結果，以及滿 6 個月的詳細分析，不影響付款紀錄。"
+      tags: [Operations]
+      security:
+        - cronSecret: []
+      responses:
+        "200":
+          description: "清除結果"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/CronResult"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+  "/human-design":
+    get:
+      operationId: getHumanDesign
+      summary: "取得我已儲存的人類圖"
+      description: "讀取已儲存的人類圖結果，不重新計算。尚未計算過回傳 404。"
+      tags: [HumanDesign]
+      responses:
+        "200":
+          description: "人類圖結果"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HumanDesignResult"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+  "/detailed-reports/{reportId}/downloads":
+    post:
+      operationId: downloadDetailedReport
+      summary: "以點數取得詳細分析報告書（寄送 email）"
+      description: "僅報告擁有者且報告未到期；每次扣 1 點，產生 PDF 並寄送至使用者 email。若該報告已下載過，未帶 confirmRepeat=true 時回傳 409 提醒（不扣點），確認後才重複扣點。需 Idempotency-Key。"
+      tags: [DetailedReports]
+      parameters:
+        - "$ref": "#/components/parameters/ReportIdPath"
+        - "$ref": "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/ReportDownloadRequest"
+      responses:
+        "202":
+          description: "已受理並寄送"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ReportDelivery"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "402":
+          "$ref": "#/components/responses/InsufficientPoints"
+        "403":
+          "$ref": "#/components/responses/Forbidden"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+        "409":
+          "$ref": "#/components/responses/ConfirmationRequired"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: "Firebase ID token"
+      description: "Google 登入後取得的 Firebase ID token，後端驗證。Admin 路徑另需 editor／operator 角色 claim。"
+    guestSession:
+      type: apiKey
+      in: header
+      name: X-Guest-Session-Id
+      description: "訪客暫存 session id（不可猜測，TTL 1 天）"
+    webhookSignature:
+      type: apiKey
+      in: header
+      name: X-Webhook-Signature
+      description: "付款服務簽章（實際標頭依供應商）"
+    cronSecret:
+      type: http
+      scheme: bearer
+      description: "Vercel Cron 帶入的 CRON_SECRET"
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: "防止重複扣點／重複生成（RULE-025、NFR-017）"
+      schema:
+        type: string
+    GuestSessionId:
+      name: X-Guest-Session-Id
+      in: header
+      required: false
+      description: "未登入時用以暫存當次結果"
+      schema:
+        type: string
+    SessionIdPath:
+      name: sessionId
+      in: path
+      required: true
+      schema:
+        type: string
+    ReportIdPath:
+      name: reportId
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    ValidationError:
+      description: "請求格式或欄位無效，或違反業務規則（details 指出 RULE）"
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: "未登入或 token 無效"
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: "無權限（非擁有者或角色不足）"
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: "資源不存在或已到期刪除"
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/ErrorResponse"
+    InsufficientPoints:
+      description: "點數不足或已過期"
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/ErrorResponse"
+    RateLimited:
+      description: "超過頻率限制"
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/ErrorResponse"
+    ConfirmationRequired:
+      description: "需使用者確認（例如報告已下載過，重複下載將再扣 1 點），details 含上次下載時間"
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/ErrorResponse"
+  schemas:
+    ErrorResponse:
+      type: object
+      description: "統一錯誤格式；違反業務規則時 code 對應 RULE。"
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+      required: [code, message]
+    Zodiac:
+      type: string
+      enum: [aries, taurus, gemini, cancer, leo, virgo, libra, scorpio, sagittarius, capricorn, aquarius, pisces]
+    BloodType:
+      type: string
+      enum: [A, B, O, AB, UNKNOWN]
+    MbtiType:
+      type: string
+      enum: [INTJ, INTP, ENTJ, ENTP, INFJ, INFP, ENFJ, ENFP, ISTJ, ISFJ, ESTJ, ESFJ, ISTP, ISFP, ESTP, ESFP]
+    HumanDesignType:
+      type: string
+      enum: [generator, manifesting_generator, projector, manifestor, reflector]
+    ContentType:
+      type: string
+      enum: [SUMMARY, ZODIAC, BLOOD, MBTI]
+    ContentStatus:
+      type: string
+      enum: [DRAFT, REVIEWED, PUBLISHED]
+    BirthData:
+      type: object
+      properties:
+        birthDate:
+          type: string
+          format: date
+        zodiac:
+          "$ref": "#/components/schemas/Zodiac"
+        birthTime:
+          type: string
+          pattern: "^([01]\\d|2[0-3]):[0-5]\\d$"
+          nullable: true
+        birthPlace:
+          type: string
+          description: "預設城市清單的代碼（含經緯度與時區），由前端選單提供"
+          nullable: true
+      required: [birthDate, zodiac]
+    ProfileInput:
+      type: object
+      properties:
+        birthData:
+          "$ref": "#/components/schemas/BirthData"
+        bloodType:
+          "$ref": "#/components/schemas/BloodType"
+        mbti:
+          "$ref": "#/components/schemas/MbtiType"
+          nullable: true
+      required: [birthData]
+    Profile:
+      type: object
+      properties:
+        userId:
+          type: string
+        email:
+          type: string
+        birthData:
+          "$ref": "#/components/schemas/BirthData"
+        bloodType:
+          "$ref": "#/components/schemas/BloodType"
+        mbti:
+          "$ref": "#/components/schemas/MbtiType"
+          nullable: true
+      required: [userId, birthData]
+    LoginRequest:
+      type: object
+      properties:
+        idToken:
+          type: string
+      required: [idToken]
+    LoginResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+        email:
+          type: string
+        isNewUser:
+          type: boolean
+        welcomePointsGranted:
+          type: integer
+      required: [userId, isNewUser, welcomePointsGranted]
+    GuestSession:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+      required: [sessionId, expiresAt]
+    ClaimResult:
+      type: object
+      properties:
+        savedAttempts:
+          type: integer
+      required: [savedAttempts]
+    FixedResultContent:
+      type: object
+      properties:
+        contentType:
+          "$ref": "#/components/schemas/ContentType"
+        key:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        strengths:
+          type: array
+          items:
+            type: string
+        blindSpots:
+          type: array
+          items:
+            type: string
+        loveStyle:
+          type: string
+        workStyle:
+          type: string
+        communicationStyle:
+          type: string
+        growthAdvice:
+          type: string
+        disclaimer:
+          type: string
+        contentVersion:
+          type: string
+      required: [contentType, key, title, summary, disclaimer, contentVersion]
+    FixedContentBody:
+      type: object
+      properties:
+        title:
+          type: string
+        summary:
+          type: string
+        strengths:
+          type: array
+          items:
+            type: string
+        blindSpots:
+          type: array
+          items:
+            type: string
+        loveStyle:
+          type: string
+        workStyle:
+          type: string
+        communicationStyle:
+          type: string
+        growthAdvice:
+          type: string
+        disclaimer:
+          type: string
+      required: [title, summary, disclaimer]
+    FixedContentItem:
+      type: object
+      properties:
+        contentType:
+          "$ref": "#/components/schemas/ContentType"
+        key:
+          type: string
+        body:
+          "$ref": "#/components/schemas/FixedContentBody"
+        contentVersion:
+          type: string
+        status:
+          "$ref": "#/components/schemas/ContentStatus"
+      required: [contentType, key, contentVersion, status]
+    ContentCoverage:
+      type: object
+      properties:
+        expectedSummaryCombinations:
+          type: integer
+          example: 960
+        publishedSummaryCombinations:
+          type: integer
+        missing:
+          type: array
+          items:
+            "$ref": "#/components/schemas/CombinationKey"
+      required: [expectedSummaryCombinations, publishedSummaryCombinations, missing]
+    TestSummary:
+      type: object
+      properties:
+        testId:
+          type: string
+        title:
+          type: string
+        version:
+          type: string
+        questionCount:
+          type: integer
+      required: [testId, title, version]
+    Question:
+      type: object
+      properties:
+        questionId:
+          type: string
+        text:
+          type: string
+        options:
+          type: array
+          items:
+            type: object
+            properties:
+              value:
+                type: string
+              label:
+                type: string
+            required: [value, label]
+      required: [questionId, text, options]
+    Test:
+      type: object
+      properties:
+        testId:
+          type: string
+        title:
+          type: string
+        version:
+          type: string
+        questions:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Question"
+      required: [testId, version, questions]
+    Answer:
+      type: object
+      properties:
+        questionId:
+          type: string
+        value:
+          oneOf:
+            - type: string
+            - type: number
+        responseTimeMs:
+          type: integer
+          minimum: 0
+          nullable: true
+      required: [questionId, value]
+    TestSubmissionRequest:
+      type: object
+      properties:
+        testVersion:
+          type: string
+        answers:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Answer"
+          minItems: 1
+        responseTimeConsent:
+          type: boolean
+          description: "使用者已被告知並同意蒐集作答時間"
+      required: [testVersion, answers]
+    TestSubmissionResponse:
+      type: object
+      properties:
+        attemptId:
+          type: string
+          nullable: true
+        testVersion:
+          type: string
+        result:
+          "$ref": "#/components/schemas/MbtiType"
+        content:
+          "$ref": "#/components/schemas/FixedResultContent"
+        persisted:
+          type: boolean
+          description: "訪客為 false（僅暫存 1 天）"
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+      required: [testVersion, result, content, persisted]
+    TestAttempt:
+      type: object
+      properties:
+        attemptId:
+          type: string
+        testId:
+          type: string
+        testVersion:
+          type: string
+        result:
+          "$ref": "#/components/schemas/MbtiType"
+        completedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+      required: [attemptId, testId, testVersion, result, completedAt, expiresAt]
+    CombinationKey:
+      type: object
+      properties:
+        zodiac:
+          "$ref": "#/components/schemas/Zodiac"
+        mbti:
+          "$ref": "#/components/schemas/MbtiType"
+        bloodType:
+          "$ref": "#/components/schemas/BloodType"
+          nullable: true
+        humanDesignType:
+          "$ref": "#/components/schemas/HumanDesignType"
+          nullable: true
+      required: [zodiac, mbti]
+    SummaryRequest:
+      type: object
+      properties:
+        includeBloodType:
+          type: boolean
+          default: true
+    MemberSummary:
+      type: object
+      properties:
+        summaryId:
+          type: string
+        combinationKey:
+          "$ref": "#/components/schemas/CombinationKey"
+        content:
+          "$ref": "#/components/schemas/FixedResultContent"
+        obtainedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+      required: [summaryId, combinationKey, content, obtainedAt, expiresAt]
+    SummaryObtained:
+      allOf:
+        - "$ref": "#/components/schemas/MemberSummary"
+        - type: object
+          properties:
+            pointsDeducted:
+              type: integer
+              description: "首次取得為 1，已取得過為 0"
+          required: [pointsDeducted]
+    HumanDesignRequest:
+      type: object
+      properties:
+        birthDate:
+          type: string
+          format: date
+        birthTime:
+          type: string
+          pattern: "^([01]\\d|2[0-3]):[0-5]\\d$"
+        birthPlace:
+          type: string
+          description: "預設城市清單的代碼"
+      required: [birthDate, birthTime, birthPlace]
+    HumanDesignResult:
+      type: object
+      properties:
+        type:
+          "$ref": "#/components/schemas/HumanDesignType"
+        centers:
+          type: object
+          additionalProperties: true
+          description: "9 大能量中心"
+        profile:
+          type: string
+          example: "1/3"
+        authority:
+          type: string
+        strategy:
+          type: string
+        definitionAndChannels:
+          type: object
+          additionalProperties: true
+        gates:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+            maximum: 64
+        disclaimer:
+          type: string
+      required: [type, profile, authority, strategy, disclaimer]
+    DetailedReportRequest:
+      type: object
+      properties:
+        includeBloodType:
+          type: boolean
+          default: true
+        includeHumanDesign:
+          type: boolean
+          default: false
+          description: "需個人資料含出生時間與地點"
+    ReportSection:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        evidence:
+          type: string
+        evidenceKind:
+          type: string
+          enum: [OBSERVED, INFERRED]
+      required: [title, content, evidenceKind]
+    DetailedReport:
+      type: object
+      properties:
+        reportId:
+          type: string
+        status:
+          type: string
+          enum: [GENERATING, COMPLETED, FAILED]
+        combinationKey:
+          "$ref": "#/components/schemas/CombinationKey"
+        sections:
+          type: array
+          items:
+            "$ref": "#/components/schemas/ReportSection"
+        disclaimer:
+          type: string
+        modelName:
+          type: string
+        promptVersion:
+          type: string
+        supersedesReportId:
+          type: string
+          nullable: true
+        failureReason:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [reportId, status, combinationKey, createdAt]
+    ReportDelivery:
+      type: object
+      properties:
+        pointsDeducted:
+          type: integer
+        deliveredTo:
+          type: string
+          description: "遮罩後的 email"
+        requestedAt:
+          type: string
+          format: date-time
+        downloadCount:
+          type: integer
+      required: [pointsDeducted, deliveredTo, requestedAt]
+    ReportDownloadRequest:
+      type: object
+      properties:
+        confirmRepeat:
+          type: boolean
+          default: false
+          description: "已下載過時須為 true 才會重複扣點與寄送"
+    ReportAccepted:
+      type: object
+      properties:
+        reportId:
+          type: string
+        status:
+          type: string
+          enum: [GENERATING]
+        pointsDeducted:
+          type: integer
+      required: [reportId, status, pointsDeducted]
+    PointBatch:
+      type: object
+      properties:
+        batchId:
+          type: string
+        source:
+          type: string
+          enum: [WELCOME, PURCHASE]
+        granted:
+          type: integer
+        remaining:
+          type: integer
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+      required: [batchId, source, remaining]
+    PointBalance:
+      type: object
+      properties:
+        availableBalance:
+          type: integer
+        batches:
+          type: array
+          items:
+            "$ref": "#/components/schemas/PointBatch"
+      required: [availableBalance, batches]
+    PointTransaction:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        type:
+          type: string
+          enum: [GRANT, PURCHASE, DEDUCT, REFUND]
+        amount:
+          type: integer
+        reason:
+          type: string
+          enum: [WELCOME, SUMMARY, DETAILED_REPORT, REGENERATE, DOWNLOAD, PURCHASE]
+        reference:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [transactionId, type, amount, reason, createdAt]
+    PointTransactionList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/PointTransaction"
+        nextCursor:
+          type: string
+          nullable: true
+      required: [items]
+    Money:
+      type: object
+      properties:
+        amount:
+          type: number
+        currency:
+          type: string
+      required: [amount, currency]
+    PointPackage:
+      type: object
+      properties:
+        packageId:
+          type: string
+        points:
+          type: integer
+        price:
+          "$ref": "#/components/schemas/Money"
+        validityDays:
+          type: integer
+          description: "null 代表無限期"
+          nullable: true
+      required: [packageId, points, price]
+    CreatePaymentRequest:
+      type: object
+      properties:
+        packageId:
+          type: string
+        acceptDigitalContentTerms:
+          type: boolean
+          description: "必須為 true：同意立即提供數位內容並放棄解約（RULE-012）"
+        termsVersion:
+          type: string
+      required: [packageId, acceptDigitalContentTerms, termsVersion]
+    CheckoutSession:
+      type: object
+      properties:
+        paymentId:
+          type: string
+        checkoutUrl:
+          type: string
+          format: uri
+        noRefundNotice:
+          type: string
+      required: [paymentId, checkoutUrl, noRefundNotice]
+    Payment:
+      type: object
+      properties:
+        paymentId:
+          type: string
+        pointsPurchased:
+          type: integer
+        amount:
+          "$ref": "#/components/schemas/Money"
+        status:
+          type: string
+          enum: [PENDING, COMPLETED, FAILED]
+        createdAt:
+          type: string
+          format: date-time
+      required: [paymentId, pointsPurchased, amount, status, createdAt]
+    WebhookAck:
+      type: object
+      properties:
+        received:
+          type: boolean
+      required: [received]
+    ShareCardRequest:
+      type: object
+      properties:
+        source:
+          type: string
+          enum: [SINGLE_RESULT, SUMMARY, HUMAN_DESIGN]
+        referenceId:
+          type: string
+      required: [source, referenceId]
+    ShareCard:
+      type: object
+      properties:
+        title:
+          type: string
+        summaryText:
+          type: string
+        imageUrl:
+          type: string
+          format: uri
+          nullable: true
+      required: [title, summaryText]
+    DeleteDataRequest:
+      type: object
+      properties:
+        scopes:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            enum: [RESULTS, SUMMARIES, REPORTS, HUMAN_DESIGN]
+      required: [scopes]
+    DeleteResult:
+      type: object
+      properties:
+        deleted:
+          type: array
+          items:
+            type: string
+      required: [deleted]
+    AiUsageSummary:
+      type: object
+      properties:
+        totalCalls:
+          type: integer
+        inputTokens:
+          type: integer
+        outputTokens:
+          type: integer
+        estimatedCost:
+          type: number
+        averageCostPerReport:
+          type: number
+      required: [totalCalls, estimatedCost]
+    ProductMetrics:
+      type: object
+      properties:
+        testsStarted:
+          type: integer
+        testsCompleted:
+          type: integer
+        shares:
+          type: integer
+        paymentConversionRate:
+          type: number
+        reportSuccessRate:
+          type: number
+    CronResult:
+      type: object
+      properties:
+        deletedAttempts:
+          type: integer
+        deletedSummaries:
+          type: integer
+      required: [deletedAttempts, deletedSummaries]

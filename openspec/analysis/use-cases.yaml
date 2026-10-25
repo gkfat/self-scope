@@ -1,0 +1,563 @@
+version: 1
+generatedBy: requirement-modeling
+updatedAt: 2026-10-25T18:00:00+08:00
+relatedChanges: [ai-personality-app]
+
+stories:
+  - id: STORY-001
+    actor: CTX-ACTOR-001
+    want: "用 Google 帳號登入"
+    benefit: "保存我的結果並使用點數"
+    requirements: ["FR-001", "FR-032"]
+    useCases: ["UC-001"]
+  - id: STORY-002
+    actor: CTX-ACTOR-001
+    want: "首次登入就獲得贈點"
+    benefit: "不付費也能試用 summary"
+    requirements: ["FR-037"]
+    useCases: ["UC-002"]
+  - id: STORY-003
+    actor: CTX-ACTOR-001
+    want: "填寫生日與選填資料"
+    benefit: "取得符合我的結果"
+    requirements: ["FR-002"]
+    useCases: ["UC-003"]
+  - id: STORY-004
+    actor: CTX-ACTOR-001
+    want: "不用點數就能看星座與血型分析"
+    benefit: "先體驗產品"
+    requirements: ["FR-040", "FR-007"]
+    useCases: ["UC-004"]
+  - id: STORY-005
+    actor: CTX-ACTOR-001
+    want: "完成 MBTI 測驗"
+    benefit: "取得 MBTI 結果並作為 summary 的輸入"
+    requirements: ["FR-003", "FR-004", "FR-024", "FR-005"]
+    useCases: ["UC-005"]
+  - id: STORY-006
+    actor: CTX-ACTOR-001
+    want: "未登入測完後可選擇登入保存"
+    benefit: "不會因沒登入而失去結果"
+    requirements: ["FR-032", "FR-005"]
+    useCases: ["UC-006"]
+  - id: STORY-007
+    actor: CTX-ACTOR-001
+    want: "用 1 點取得簡易 summary"
+    benefit: "快速看到綜合分析且不重複花點"
+    requirements: ["FR-006", "FR-038", "FR-041", "FR-014", "FR-042"]
+    useCases: ["UC-007"]
+  - id: STORY-008
+    actor: CTX-ACTOR-001
+    want: "填出生資料後查看人類圖"
+    benefit: "多一個了解自己的角度"
+    requirements: ["FR-036"]
+    useCases: ["UC-008"]
+  - id: STORY-009
+    actor: CTX-ACTOR-002
+    want: "用 5 點生成詳細分析"
+    benefit: "取得依我資料個人化的深度報告"
+    requirements: ["FR-015", "FR-016", "FR-017", "FR-018", "FR-019", "FR-022", "FR-038"]
+    useCases: ["UC-009"]
+  - id: STORY-010
+    actor: CTX-ACTOR-001
+    want: "購買點數"
+    benefit: "在點數不足時繼續使用"
+    requirements: ["FR-011", "FR-013"]
+    useCases: ["UC-010"]
+  - id: STORY-011
+    actor: CTX-ACTOR-004
+    want: "可靠地處理付款事件"
+    benefit: "使用者付款後正確入帳且付款紀錄不遺失"
+    requirements: ["FR-012", "FR-013", "FR-043"]
+    useCases: ["UC-011"]
+  - id: STORY-012
+    actor: CTX-ACTOR-002
+    want: "重複查看已生成的報告"
+    benefit: "不需再次付費"
+    requirements: ["FR-018", "FR-021"]
+    useCases: ["UC-012"]
+  - id: STORY-013
+    actor: CTX-ACTOR-002
+    want: "需要時重新生成詳細分析"
+    benefit: "用新資料更新報告"
+    requirements: ["FR-020", "FR-038"]
+    useCases: ["UC-013"]
+  - id: STORY-014
+    actor: CTX-ACTOR-002
+    want: "查看點數餘額、效期與異動"
+    benefit: "知道自己的點數怎麼用"
+    requirements: ["FR-039", "FR-042", "FR-014"]
+    useCases: ["UC-014"]
+  - id: STORY-015
+    actor: CTX-ACTOR-001
+    want: "在個人中心看到我保存的內容與到期時間"
+    benefit: "管理自己的資料"
+    requirements: ["FR-025", "FR-005"]
+    useCases: ["UC-015"]
+  - id: STORY-016
+    actor: CTX-ACTOR-001
+    want: "刪除我的資料與帳號"
+    benefit: "控制我的個資"
+    requirements: ["FR-023"]
+    useCases: ["UC-016"]
+  - id: STORY-017
+    actor: CTX-ACTOR-004
+    want: "到期資料自動清除"
+    benefit: "符合保留政策並降低個資風險"
+    requirements: ["FR-033"]
+    useCases: ["UC-017"]
+  - id: STORY-018
+    actor: CTX-ACTOR-001
+    want: "分享我的結果卡"
+    benefit: "與朋友分享"
+    requirements: ["FR-010"]
+    useCases: ["UC-018"]
+  - id: STORY-019
+    actor: CTX-ACTOR-003
+    want: "管理固定內容並確認組合完整"
+    benefit: "內容可更新且無缺漏"
+    requirements: ["FR-008", "FR-009"]
+    useCases: ["UC-019"]
+  - id: STORY-020
+    actor: CTX-ACTOR-004
+    want: "查看 AI 用量成本與產品指標"
+    benefit: "控管成本並評估商業模式"
+    requirements: ["FR-022", "FR-026"]
+    useCases: ["UC-020"]
+  - id: STORY-021
+    actor: CTX-ACTOR-002
+    want: "用 1 點把詳細分析報告書寄到我的 email"
+    benefit: "在報告到期前自行保存"
+    requirements: ["FR-034", "FR-038"]
+    useCases: ["UC-021"]
+
+useCases:
+  - id: UC-001
+    title: "以 Google 登入"
+    actor: CTX-ACTOR-001
+    requirements: ["FR-001", "FR-032"]
+    stories: ["STORY-001"]
+    preconditions:
+      - "使用者未登入（含訪客）"
+      - "Firebase Auth 已啟用 Google provider"
+    mainFlow:
+      - { step: 1, action: "使用者在 app 中選擇 Google 登入" }
+      - { step: 2, action: "系統開啟 Google 登入視窗" }
+      - { step: 3, action: "使用者完成 Google 授權" }
+      - { step: 4, action: "前端取得 Firebase ID token 並送交後端", constraints: ["NFR-003"] }
+      - { step: 5, action: "後端驗證 ID token 並辨識帳號", constraints: ["NFR-001", "NFR-003"] }
+      - { step: 6, action: "系統回傳登入成功並導向原頁面" }
+    alternateFlows:
+      - { condition: "使用者關閉或取消登入視窗", handling: "保持訪客狀態並提示可再次登入" }
+      - { condition: "ID token 無效或過期", handling: "後端回傳 401，前端重新取得 token 重試一次，仍失敗則提示重新登入" }
+      - { condition: "Google 或 Firebase Auth 服務失敗", handling: "顯示明確錯誤，保持訪客狀態，不寫入任何資料" }
+    postconditions:
+      - "使用者已登入，後端可辨識其帳號"
+      - "首次登入者另走 UC-002"
+  - id: UC-002
+    title: "首次登入建立帳號並領取贈點"
+    actor: CTX-ACTOR-001
+    requirements: ["FR-001", "FR-037"]
+    stories: ["STORY-002"]
+    preconditions:
+      - "使用者首次以此 Google 帳號登入（後端查無對應帳號）"
+    mainFlow:
+      - { step: 1, action: "後端驗證 ID token 後確認帳號不存在" }
+      - { step: 2, action: "系統建立使用者帳號與點數帳戶", constraints: ["NFR-017"] }
+      - { step: 3, action: "系統檢查贈點紀錄（上次贈點未滿 3 個月者不發放），並一次性發放 3 點贈點、記錄贈點時間與異動", constraints: ["NFR-017"] }
+      - { step: 4, action: "系統告知使用者已獲得 3 點" }
+    alternateFlows:
+      - { condition: "並行或重送的首次登入請求", handling: "贈點 MUST 僅發放一次，其餘請求回傳既有帳號" }
+      - { condition: "建立帳號或點數帳戶失敗", handling: "整體回滾、不發放贈點，回傳明確錯誤，使用者可重試" }
+      - { condition: "帳號已存在", handling: "略過贈點，視為一般登入" }
+      - { condition: "此 Google 帳號先前曾刪除帳號", handling: "視為全新帳號：建立新的使用者與點數帳戶，不繼承任何歷史紀錄；若上次贈點未滿 3 個月則不再發放贈點（RULE-031）" }
+    postconditions:
+      - "帳號與點數帳戶存在，餘額 3 點，贈點僅一次"
+    note: "贈點效期見 FR-042（長度待討論）"
+  - id: UC-003
+    title: "填寫生日、星座與選填資料"
+    actor: CTX-ACTOR-001
+    requirements: ["FR-002"]
+    stories: ["STORY-003"]
+    preconditions:
+      - "使用者開啟個人資料或測驗入口"
+    mainFlow:
+      - { step: 1, action: "使用者輸入生日；系統帶入對應星座供確認", constraints: ["NFR-001"] }
+      - { step: 2, action: "使用者可選填血型（A/B/O/AB/不知道）" }
+      - { step: 3, action: "使用者可選填 MBTI、出生時間與出生地點（出生地點從預設城市清單選擇）" }
+      - { step: 4, action: "系統驗證必填欄位（生日、星座）並在後端驗證格式", constraints: ["NFR-001"] }
+      - { step: 5, action: "已登入者：系統儲存資料；訪客：以 session id 暫存於 Firestore，TTL 1 天，不與帳號關聯", constraints: ["NFR-005"] }
+    alternateFlows:
+      - { condition: "必填欄位缺漏或格式無效", handling: "標示錯誤並阻擋繼續" }
+      - { condition: "血型選「不知道」", handling: "記錄為未知，後續分析不計入血型" }
+      - { condition: "訪客", handling: "畫面明確提示未登入將不保留資料" }
+    postconditions:
+      - "個人資料可供單項結果、summary 與人類圖使用"
+    note: "訪客資料不寫入 Firestore（FR-032）"
+  - id: UC-004
+    title: "取得單項免費結果（星座、血型）"
+    actor: CTX-ACTOR-001
+    requirements: ["FR-040", "FR-007", "FR-002"]
+    stories: ["STORY-004"]
+    preconditions:
+      - "已提供生日／星座，血型分析另需已選血型"
+    mainFlow:
+      - { step: 1, action: "使用者選擇查看星座結果" }
+      - { step: 2, action: "後端依生日／星座回傳固定結果內容", constraints: ["NFR-010", "NFR-007"] }
+      - { step: 3, action: "使用者可選擇查看血型分析，後端回傳該血型固定內容" }
+      - { step: 4, action: "系統顯示結果並附娛樂性免責說明", constraints: ["NFR-007"] }
+    alternateFlows:
+      - { condition: "血型為「不知道」或未填", handling: "不提供血型分析，提示可補填" }
+      - { condition: "結果內容讀取失敗", handling: "回傳明確錯誤，不使用 AI 補足", constraints: ["NFR-011"] }
+    postconditions:
+      - "使用者看到固定單項結果；系統不扣點、不儲存此結果"
+  - id: UC-005
+    title: "完成 MBTI 測驗"
+    actor: CTX-ACTOR-001
+    requirements: ["FR-003", "FR-004", "FR-024", "FR-040", "FR-007"]
+    stories: ["STORY-005"]
+    preconditions:
+      - "使用者開啟測驗清單"
+    mainFlow:
+      - { step: 1, action: "系統顯示可用測驗清單，使用者選擇 MBTI", constraints: ["NFR-012"] }
+      - { step: 2, action: "後端回傳含版本的題目與選項" }
+      - { step: 3, action: "使用者逐題作答；已告知時才記錄作答時間", constraints: ["NFR-005"] }
+      - { step: 4, action: "使用者送出作答，後端驗證並依評分規則計算 16 型", constraints: ["NFR-001"] }
+      - { step: 5, action: "系統顯示 MBTI 固定結果與免責說明", constraints: ["NFR-007"] }
+      - { step: 6, action: "已登入者：系統保存此次測驗版本、作答與結果；訪客：以 session id 暫存於 Firestore，TTL 1 天", constraints: ["NFR-005"] }
+    alternateFlows:
+      - { condition: "作答不完整或選項無效", handling: "後端拒絕並指出缺漏題目" }
+      - { condition: "測驗版本已更新", handling: "以送出時的版本評分，記錄所用版本" }
+      - { condition: "訪客", handling: "結果頁提示未登入將不保留，並提供登入入口（UC-006）" }
+      - { condition: "保存失敗", handling: "仍顯示結果，提示保存失敗並可重試" }
+    postconditions:
+      - "使用者取得 MBTI 結果；登入者的測驗結果保存 3 個月"
+  - id: UC-006
+    title: "訪客登入並保存當次結果"
+    actor: CTX-ACTOR-001
+    requirements: ["FR-032", "FR-005", "FR-001"]
+    stories: ["STORY-006"]
+    preconditions:
+      - "訪客已完成測驗並看到結果"
+      - "結果已以 session id 暫存於 Firestore（TTL 1 天）"
+    mainFlow:
+      - { step: 1, action: "結果頁提示未登入將不保留，使用者選擇登入保存" }
+      - { step: 2, action: "使用者完成 UC-001 登入" }
+      - { step: 3, action: "後端依 session id 取出暫存結果並寫入該帳號", constraints: ["NFR-001", "NFR-003"] }
+      - { step: 4, action: "系統確認已保存並顯示於個人中心" }
+    alternateFlows:
+      - { condition: "使用者拒絕登入", handling: "不保存，暫存結果於 TTL 到期後自動清除" }
+      - { condition: "暫存結果已過期（超過 1 天）或 session 不存在", handling: "提示結果已失效，引導重新測驗" }
+      - { condition: "登入後寫入失敗", handling: "提示失敗並保留畫面結果供重試" }
+      - { condition: "重送造成重複寫入", handling: "以當次結果冪等寫入，不產生重複紀錄" }
+    postconditions:
+      - "當次結果歸屬登入帳號，保存 3 個月；該 session 的暫存結果已清除"
+    note: "暫存機制已定：session id + Firestore TTL 1 天（FR-032）"
+  - id: UC-007
+    title: "取得簡易 summary"
+    actor: CTX-ACTOR-001
+    requirements: ["FR-006", "FR-007", "FR-038", "FR-041", "FR-014", "FR-042", "FR-032", "FR-040"]
+    stories: ["STORY-007"]
+    preconditions:
+      - "使用者已登入"
+      - "已提供星座與 MBTI（血型選填）"
+    mainFlow:
+      - { step: 1, action: "使用者選擇取得簡易 summary" }
+      - { step: 2, action: "後端驗證登入身分", constraints: ["NFR-003"] }
+      - { step: 3, action: "後端依有無血型決定組合：星座+MBTI 或 星座+MBTI+血型（血型未知則用前者）" }
+      - { step: 4, action: "後端檢查該會員是否已生成過此組合；若已生成則直接回傳已存 summary，不扣點", constraints: ["NFR-017"] }
+      - { step: 5, action: "否則後端檢查未過期點數餘額 ≥ 1", constraints: ["NFR-017"] }
+      - { step: 6, action: "後端原子地扣 1 點、記錄異動並保存該 summary 結果", constraints: ["NFR-017"] }
+      - { step: 7, action: "系統顯示 summary 與免責說明", constraints: ["NFR-007", "NFR-010"] }
+    alternateFlows:
+      - { condition: "訪客", handling: "不可取得；提示登入（UC-001）" }
+      - { condition: "缺少 MBTI", handling: "不提供 summary，引導完成 MBTI 或改看單項結果" }
+      - { condition: "點數不足或已過期", handling: "拒絕並引導購買點數（UC-010）" }
+      - { condition: "並行重複請求", handling: "僅扣一次點，其餘回傳已生成結果" }
+      - { condition: "讀取組合內容失敗", handling: "不扣點，回傳明確錯誤", constraints: ["NFR-011"] }
+    postconditions:
+      - "會員取得該組 summary 並保存 3 個月；已扣 1 點（首次）；重複取得不再扣點"
+  - id: UC-008
+    title: "計算並檢視人類圖"
+    actor: CTX-ACTOR-001
+    requirements: ["FR-036", "FR-002"]
+    stories: ["STORY-008"]
+    preconditions:
+      - "已提供生日、出生時間與出生地點"
+    mainFlow:
+      - { step: 1, action: "使用者選擇查看人類圖" }
+      - { step: 2, action: "後端驗證出生資料完整", constraints: ["NFR-001"] }
+      - { step: 3, action: "後端依規則計算並回傳固定結果：類型、能量中心、人生角色、內在權威、策略、定義與通道、閘門；已登入者儲存於帳號，訪客暫存於其 session（TTL 1 天）" }
+      - { step: 4, action: "系統顯示結果並附娛樂與自我探索免責說明", constraints: ["NFR-007"] }
+    alternateFlows:
+      - { condition: "未填出生時間或地點", handling: "不產生人類圖，提示補填" }
+      - { condition: "出生地不在預設城市清單", handling: "請改選最接近的城市" }
+      - { condition: "出生資料無效", handling: "標示錯誤並拒絕計算" }
+      - { condition: "計算失敗", handling: "回傳明確錯誤，不使用 AI 補足", constraints: ["NFR-011"] }
+    postconditions:
+      - "使用者看到人類圖結果；已登入者的結果已儲存（保存 3 個月）；此結果為固定計算，不呼叫 AI"
+    note: "單獨檢視不扣點；出生地點採預設城市清單（FR-036）"
+  - id: UC-009
+    title: "生成詳細分析"
+    actor: CTX-ACTOR-002
+    requirements: ["FR-015", "FR-016", "FR-017", "FR-018", "FR-019", "FR-022", "FR-014", "FR-038", "FR-036"]
+    stories: ["STORY-009"]
+    preconditions:
+      - "使用者已登入"
+      - "點數餘額 ≥ 5 且未過期"
+      - "已有星座與 MBTI 結果（血型、人類圖選填）"
+    mainFlow:
+      - { step: 1, action: "使用者選擇生成詳細分析" }
+      - { step: 2, action: "後端驗證登入、點數與用量限制", constraints: ["NFR-003", "NFR-008"] }
+      - { step: 3, action: "後端將標籤、測驗結果與人類圖正規化為分析輸入並記錄資料版本" }
+      - { step: 4, action: "後端原子扣 5 點並建立狀態為「生成中」的報告", constraints: ["NFR-017"] }
+      - { step: 5, action: "後端呼叫 AI 供應商，設定 Token 與逾時上限", constraints: ["NFR-008", "NFR-009", "NFR-002"] }
+      - { step: 6, action: "系統驗證報告含八章節、依據與不確定性標示，區分直接觀察與 AI 推測", constraints: ["NFR-013", "NFR-007"] }
+      - { step: 7, action: "系統保存報告、模型名稱、提示詞版本與輸入版本，更新狀態為完成", constraints: ["NFR-015"] }
+      - { step: 8, action: "系統記錄 AI 用量與預估成本" }
+    alternateFlows:
+      - { condition: "點數不足或已過期", handling: "拒絕並引導購買點數" }
+      - { condition: "缺少 MBTI 結果", handling: "拒絕（422）並引導先完成 MBTI 測驗" }
+      - { condition: "超過頻率或用量限制", handling: "拒絕並說明限制", constraints: ["NFR-008"] }
+      - { condition: "AI 逾時或失敗", handling: "依重試策略重試；仍失敗則狀態為失敗、返還已扣點並回報明確錯誤", constraints: ["NFR-009", "NFR-011"] }
+      - { condition: "輸出不符格式或含診斷式內容", handling: "視為失敗，不交付、不扣點", constraints: ["NFR-007", "NFR-013"] }
+      - { condition: "並行重複請求", handling: "僅建立一份報告、僅扣一次點", constraints: ["NFR-017"] }
+    postconditions:
+      - "詳細分析保存 6 個月；點數已扣 5 點（失敗則返還）；用量已記錄"
+    note: "非同步生成，逾時 120 秒視為失敗並返還點數（NFR-009）"
+  - id: UC-010
+    title: "購買點數"
+    actor: CTX-ACTOR-001
+    requirements: ["FR-011", "FR-013"]
+    stories: ["STORY-010"]
+    preconditions:
+      - "使用者已登入"
+      - "點數方案與價格已定義（定價待定）"
+    mainFlow:
+      - { step: 1, action: "使用者於點數不足提示或點數頁選擇購買" }
+      - { step: 2, action: "系統顯示點數用途、價格並明確告知不提供退款，使用者須勾選「同意立即提供數位內容、放棄解約」" }
+      - { step: 3, action: "使用者確認，後端記錄同意（時間與條款版本）並建立付款流程", constraints: ["NFR-002", "NFR-003"] }
+      - { step: 4, action: "使用者在付款服務完成付款" }
+      - { step: 5, action: "付款結果由 UC-011 處理後入帳，系統顯示新餘額" }
+    alternateFlows:
+      - { condition: "未勾選同意", handling: "不建立付款流程，提示須先同意" }
+      - { condition: "使用者取消付款", handling: "不入帳，回到原頁面" }
+      - { condition: "付款失敗", handling: "顯示失敗訊息，不入帳，可重試" }
+      - { condition: "訪客", handling: "要求先登入" }
+      - { condition: "付款服務無法使用", handling: "顯示明確錯誤", constraints: ["NFR-011"] }
+    postconditions:
+      - "付款成功後點數增加；失敗則餘額不變"
+  - id: UC-011
+    title: "處理付款事件並入帳"
+    actor: CTX-ACTOR-004
+    trigger: external-system
+    requirements: ["FR-012", "FR-013", "FR-043"]
+    stories: ["STORY-011"]
+    preconditions:
+      - "付款服務送出 webhook"
+    mainFlow:
+      - { step: 1, action: "後端接收 webhook 並驗證簽章", constraints: ["NFR-004"] }
+      - { step: 2, action: "後端以事件 ID 檢查是否已處理（冪等）", constraints: ["NFR-004", "NFR-017"] }
+      - { step: 3, action: "成功事件：原子地為使用者加點並記錄異動", constraints: ["NFR-017"] }
+      - { step: 4, action: "永久保存付款紀錄", constraints: ["NFR-005"] }
+      - { step: 5, action: "回應付款服務已接收" }
+    alternateFlows:
+      - { condition: "簽章無效", handling: "拒絕並記錄安全事件", constraints: ["NFR-004"] }
+      - { condition: "重複事件", handling: "不重複加點，回應成功", constraints: ["NFR-004"] }
+      - { condition: "付款失敗事件", handling: "記錄失敗，不加點" }
+      - { condition: "無法對應使用者或入帳失敗", handling: "記錄並通知營運處理，不遺失付款紀錄", constraints: ["NFR-011"] }
+    postconditions:
+      - "點數依付款結果變動；付款紀錄於帳號存續期間永久保存"
+    note: "觸發者為付款服務（CTX-EXT-001），營運人員（CTX-ACTOR-004）負責異常處理"
+  - id: UC-012
+    title: "查看已生成的報告"
+    actor: CTX-ACTOR-002
+    requirements: ["FR-018", "FR-021", "FR-007"]
+    stories: ["STORY-012"]
+    preconditions:
+      - "使用者已登入"
+      - "該報告已生成"
+    mainFlow:
+      - { step: 1, action: "使用者從個人中心選擇一份報告" }
+      - { step: 2, action: "後端驗證請求者為報告擁有者", constraints: ["NFR-003"] }
+      - { step: 3, action: "後端讀取已保存內容並回傳，不呼叫 AI、不扣點" }
+      - { step: 4, action: "系統顯示章節、依據與免責說明", constraints: ["NFR-007"] }
+    alternateFlows:
+      - { condition: "非擁有者請求", handling: "拒絕存取", constraints: ["NFR-003"] }
+      - { condition: "報告不存在或已到期刪除", handling: "回傳明確的不存在訊息" }
+      - { condition: "報告狀態為失敗或生成中", handling: "顯示對應狀態，不顯示內容" }
+    postconditions:
+      - "使用者讀取報告；無點數與用量變動"
+  - id: UC-013
+    title: "重新生成詳細分析"
+    actor: CTX-ACTOR-002
+    requirements: ["FR-020", "FR-038", "FR-019", "FR-014"]
+    stories: ["STORY-013"]
+    preconditions:
+      - "使用者已登入"
+      - "已有該組合的詳細分析"
+      - "點數餘額 ≥ 5"
+    mainFlow:
+      - { step: 1, action: "使用者要求重新生成（或有新資料時重新分析）" }
+      - { step: 2, action: "後端確認該會員已生成過此組合，需再扣點", constraints: ["NFR-017"] }
+      - { step: 3, action: "後端驗證點數與用量限制並扣 5 點", constraints: ["NFR-008", "NFR-017"] }
+      - { step: 4, action: "系統依 UC-009 的生成流程產生新報告並保存，保留舊報告" }
+      - { step: 5, action: "系統顯示新報告" }
+    alternateFlows:
+      - { condition: "點數不足", handling: "拒絕並引導購買點數" }
+      - { condition: "生成失敗", handling: "返還已扣點，原報告不受影響", constraints: ["NFR-011"] }
+      - { condition: "使用者重複點擊", handling: "僅處理一次扣點與生成", constraints: ["NFR-017"] }
+    postconditions:
+      - "新報告已保存、舊報告保留；已扣 5 點（失敗則返還）"
+    note: "舊報告保留已確認（FR-020）"
+  - id: UC-014
+    title: "查看點數餘額與異動紀錄"
+    actor: CTX-ACTOR-002
+    requirements: ["FR-039", "FR-014", "FR-042"]
+    stories: ["STORY-014"]
+    preconditions:
+      - "使用者已登入"
+    mainFlow:
+      - { step: 1, action: "使用者開啟點數頁" }
+      - { step: 2, action: "後端驗證身分並回傳餘額與各批點數效期", constraints: ["NFR-003"] }
+      - { step: 3, action: "系統顯示發放、購買、扣除、返還的異動紀錄" }
+    alternateFlows:
+      - { condition: "無異動紀錄", handling: "顯示空狀態" }
+      - { condition: "點數已過期", handling: "標示過期且不計入可用餘額" }
+    postconditions:
+      - "使用者可確認可用點數與效期"
+  - id: UC-015
+    title: "查看個人中心與歷史"
+    actor: CTX-ACTOR-001
+    requirements: ["FR-025", "FR-005"]
+    stories: ["STORY-015"]
+    preconditions:
+      - "使用者已登入"
+    mainFlow:
+      - { step: 1, action: "使用者開啟個人中心" }
+      - { step: 2, action: "後端僅回傳該使用者的測驗結果、summary、詳細分析與付款狀態", constraints: ["NFR-003"] }
+      - { step: 3, action: "系統顯示各項保存到期時間與資料管理入口" }
+    alternateFlows:
+      - { condition: "沒有任何紀錄", handling: "顯示空狀態並引導開始測驗" }
+      - { condition: "已到期資料", handling: "不顯示，視為已刪除" }
+    postconditions:
+      - "使用者掌握自己保存的內容與到期時間"
+  - id: UC-016
+    title: "刪除資料與帳號"
+    actor: CTX-ACTOR-001
+    requirements: ["FR-023", "FR-043"]
+    stories: ["STORY-016"]
+    preconditions:
+      - "使用者已登入"
+    mainFlow:
+      - { step: 1, action: "使用者於資料管理選擇刪除資料或帳號" }
+      - { step: 2, action: "系統說明將刪除的範圍並要求確認" }
+      - { step: 3, action: "使用者確認，後端驗證身分並執行刪除", constraints: ["NFR-003", "NFR-005"] }
+      - { step: 4, action: "選擇刪除資料時，使用者須明列要刪除的範圍（結果、summary、報告、人類圖），系統只刪除所選範圍，不影響點數與付款；選擇刪除帳號時，系統刪除該使用者的全部紀錄（個人資料、測驗結果、summary、詳細分析、人類圖、點數、付款），僅保留贈點紀錄（3 個月）" }
+      - { step: 5, action: "系統登出並顯示完成" }
+    alternateFlows:
+      - { condition: "使用者取消", handling: "不變更任何資料" }
+      - { condition: "刪除部分失敗", handling: "回報明確錯誤並可重試，不留下半刪除狀態", constraints: ["NFR-011"] }
+      - { condition: "使用者尚有未用點數", handling: "刪除帳號前警示未用點數將無法再使用且不退款" }
+    postconditions:
+      - "刪除資料：指定資料已刪除；刪除帳號：使用者全部紀錄已刪除，僅保留贈點紀錄 3 個月"
+    note: "刪除帳號時移除全部紀錄，僅保留贈點防濫用紀錄（FR-023、FR-037）"
+  - id: UC-017
+    title: "到期資料自動清除"
+    actor: CTX-ACTOR-004
+    trigger: scheduler
+    requirements: ["FR-033"]
+    stories: ["STORY-017"]
+    preconditions:
+      - "排程觸發"
+      - "存在已到期的測驗結果、簡易 summary、MBTI 欄位與人類圖結果（3 個月）或詳細分析（6 個月）"
+    mainFlow:
+      - { step: 1, action: "排程啟動並驗證排程身分", constraints: ["NFR-002"] }
+      - { step: 2, action: "系統找出自產生時間起滿 3 個月的測驗結果、簡易 summary、MBTI 欄位與人類圖結果，以及滿 6 個月的詳細分析", constraints: ["NFR-005"] }
+      - { step: 3, action: "系統刪除這些資料並記錄刪除數量", constraints: ["NFR-006"] }
+      - { step: 4, action: "付款紀錄不納入刪除" }
+    alternateFlows:
+      - { condition: "單筆刪除失敗", handling: "記錄錯誤並於下次排程重試，不影響其他筆", constraints: ["NFR-011"] }
+      - { condition: "排程未被授權", handling: "拒絕執行", constraints: ["NFR-003"] }
+    postconditions:
+      - "到期資料已刪除；付款紀錄不受影響"
+    note: "排程觸發，營運人員為負責方"
+  - id: UC-018
+    title: "分享結果卡"
+    actor: CTX-ACTOR-001
+    requirements: ["FR-010"]
+    stories: ["STORY-018"]
+    preconditions:
+      - "使用者已看到單項結果、summary 或人類圖"
+    mainFlow:
+      - { step: 1, action: "使用者選擇分享" }
+      - { step: 2, action: "系統產生結果卡（不含不必要的個資）", constraints: ["NFR-005", "NFR-006"] }
+      - { step: 3, action: "使用者選擇分享目的地並送出" }
+    alternateFlows:
+      - { condition: "結果卡產生失敗", handling: "提示錯誤並可重試" }
+      - { condition: "分享目的地不可用", handling: "提示改用其他方式（如下載圖片）", constraints: ["NFR-011"] }
+    postconditions:
+      - "結果卡已分享或取得；不改變點數與資料"
+    note: "分享目的地平台未指定（CTX-EXT-003）"
+  - id: UC-019
+    title: "管理固定內容與版本"
+    actor: CTX-ACTOR-003
+    requirements: ["FR-008", "FR-009"]
+    stories: ["STORY-019"]
+    preconditions:
+      - "編輯者具備內容管理權限"
+    mainFlow:
+      - { step: 1, action: "編輯者新增或修改簡易 summary、單項結果等固定內容", constraints: ["NFR-012", "NFR-014"] }
+      - { step: 2, action: "系統驗證組合唯一並記錄 content_version", constraints: ["NFR-001"] }
+      - { step: 3, action: "內容經審核後發布，無需重新部署" }
+      - { step: 4, action: "系統檢查 960 種 summary 組合的覆蓋完整性並列出缺漏" }
+    alternateFlows:
+      - { condition: "組合重複或不合法", handling: "拒絕儲存並指出原因" }
+      - { condition: "內容未通過審核", handling: "維持原發布版本" }
+      - { condition: "無權限", handling: "拒絕", constraints: ["NFR-003"] }
+    postconditions:
+      - "固定內容為最新已審核版本；缺漏組合已列出"
+    note: "MVP 以匯入腳本（JSON／CSV）寫入 Firestore、審核用 Git；後台 API 延後（API-031 至 API-034）"
+  - id: UC-020
+    title: "查看 AI 用量、成本與產品指標"
+    actor: CTX-ACTOR-004
+    requirements: ["FR-022", "FR-026"]
+    stories: ["STORY-020"]
+    preconditions:
+      - "營運人員已授權"
+    mainFlow:
+      - { step: 1, action: "營運人員開啟用量與指標檢視", constraints: ["NFR-003"] }
+      - { step: 2, action: "系統顯示 AI 呼叫次數、Token、預估成本與每份報告平均成本", constraints: ["NFR-008", "NFR-015"] }
+      - { step: 3, action: "系統顯示測驗完成、分享、付費轉換與生成成功率等指標" }
+    alternateFlows:
+      - { condition: "無資料", handling: "顯示空狀態" }
+      - { condition: "未授權", handling: "拒絕存取", constraints: ["NFR-003"] }
+    postconditions:
+      - "營運人員掌握成本與指標以調整用量限制與定價"
+    note: "MVP 不做後台 API；指標以伺服器端每日計數彙總，檢視方式延後（FR-026）"
+  - id: UC-021
+    title: "以點數將詳細分析報告書寄送 email"
+    actor: CTX-ACTOR-002
+    requirements: ["FR-034", "FR-038", "FR-014", "FR-042"]
+    stories: ["STORY-021"]
+    preconditions:
+      - "使用者已登入且帳號有 email"
+      - "報告已生成且未到期"
+      - "點數餘額 ≥ 1"
+    mainFlow:
+      - { step: 1, action: "使用者選擇一份詳細分析並選擇下載報告書" }
+      - { step: 2, action: "後端驗證請求者為報告擁有者", constraints: ["NFR-003"] }
+      - { step: 3, action: "後端檢查此報告是否曾下載；若曾下載，系統提醒並顯示上次下載時間，須使用者確認才繼續" }
+      - { step: 4, action: "後端驗證未過期點數並原子扣 1 點", constraints: ["NFR-017"] }
+      - { step: 5, action: "系統產生 PDF 報告書並寄送至使用者 email" }
+      - { step: 6, action: "系統記錄下載次數與時間，並告知已寄出" }
+    alternateFlows:
+      - { condition: "非擁有者請求", handling: "拒絕存取", constraints: ["NFR-003"] }
+      - { condition: "點數不足或已過期", handling: "拒絕並引導購買點數" }
+      - { condition: "報告已到期刪除", handling: "回傳不存在訊息" }
+      - { condition: "曾下載過且使用者未確認", handling: "不扣點、不寄送，回到確認提示" }
+      - { condition: "PDF 產生或寄送失敗", handling: "返還已扣 1 點並回報明確錯誤", constraints: ["NFR-011"] }
+      - { condition: "重複送出同一請求", handling: "以 Idempotency-Key 僅處理一次", constraints: ["NFR-017"] }
+    postconditions:
+      - "PDF 已寄至使用者 email；已扣 1 點（失敗則返還）；該報告下載次數 +1"
+    note: "Email 寄送服務供應商未選定（CTX-EXT-007）；重複下載每次再扣 1 點"
