@@ -9,9 +9,13 @@ import {
 } from '../../shared/schemas/firestore/guestSession.schema';
 import type { ProfileInput } from '../../shared/schemas/api/profile.schema';
 import type { TestResult } from '../../shared/schemas/firestore/testAttempt.schema';
-import type { ClaimGuestSessionResponse } from '../../shared/schemas/api/guest.schema';
+import type { GuestHumanDesign } from '../../shared/schemas/firestore/humanDesign.schema';
+import type {
+    ClaimGuestSessionResponse, GuestProfileResponse,
+} from '../../shared/schemas/api/guest.schema';
 import type { UserDoc } from '../../shared/schemas/firestore/user.schema';
 import { addMonths } from '../../shared/utils/time';
+import { toDate } from '../utils/firestoreTime';
 import {
     ForbiddenError, GoneError, NotFoundError,
 } from '../../shared/types/errors';
@@ -22,6 +26,7 @@ type GuestSessionServiceOptions = {
 };
 
 const MBTI_VALID_MONTHS = 3;
+const HUMAN_DESIGN_VALID_MONTHS = 3;
 const ATTEMPT_RETENTION_MONTHS = 3;
 
 export class GuestSessionService extends BaseService {
@@ -85,6 +90,58 @@ export class GuestSessionService extends BaseService {
     }
 
     /**
+     * Birth data the guest has entered, or null when the session is missing, expired, claimed or has none.
+     */
+    async getBirthData(sessionId: string): Promise<ProfileInput['birthData'] | null> {
+        const snap = await this.repository.sessionRef(sessionId).get();
+
+        if (!snap.exists) return null;
+
+        const session = guestSessionDocSchema.parse(this.fromFirestore(snap.data()));
+
+        if (session.expiresAt.getTime() <= this.clock() || session.claimedBy) return null;
+
+        return session.tempProfile?.birthData ?? null;
+    }
+
+    /**
+     * Everything the guest has entered so far. Missing, expired and claimed sessions are all "not found".
+     */
+    async getProfile(sessionId: string): Promise<GuestProfileResponse> {
+        const snap = await this.repository.sessionRef(sessionId).get();
+
+        if (!snap.exists) {
+            throw new NotFoundError('Guest session');
+        }
+
+        const session = guestSessionDocSchema.parse(this.fromFirestore(snap.data()));
+
+        if (session.expiresAt.getTime() <= this.clock() || session.claimedBy) {
+            throw new NotFoundError('Guest session');
+        }
+
+        return {
+            birthData: session.tempProfile?.birthData ?? null,
+            bloodType: session.tempProfile?.bloodType ?? 'UNKNOWN',
+            mbti: session.tempResults?.test?.result ?? session.tempProfile?.mbti ?? null,
+            hasHumanDesign: session.tempResults?.humanDesign != null,
+        };
+    }
+
+    /**
+     * Keep the guest's latest human-design chart (used by the human-design calculation).
+     */
+    async saveHumanDesign(sessionId: string, humanDesign: GuestHumanDesign): Promise<void> {
+        await this.updateActiveSession(sessionId, (session) => ({
+            tempResults: {
+                ...this.emptyResults(),
+                ...session.tempResults,
+                humanDesign,
+            },
+        }));
+    }
+
+    /**
      * Move the session's results into the signed-in user's account (FR-032).
      * Idempotent: the same user claiming twice gets the same answer, and the
      * temporary data is cleared by the first claim.
@@ -124,6 +181,8 @@ export class GuestSessionService extends BaseService {
             }
 
             const user = userSnap.data() as UserDoc;
+            // Read before any write: an existing chart is never replaced by a guest's older one.
+            const humanDesignSnap = await tx.get(repo.humanDesignRef(uid));
             const userPatch: Partial<UserDoc> = { updatedAt: now };
             let savedAttempts = 0;
 
@@ -152,6 +211,15 @@ export class GuestSessionService extends BaseService {
             } else if (session.tempProfile?.mbti && user.mbti === null) {
                 userPatch.mbti = session.tempProfile.mbti;
                 userPatch.mbtiExpiresAt = addMonths(now, MBTI_VALID_MONTHS);
+            }
+
+            const humanDesign = session.tempResults?.humanDesign ?? null;
+
+            if (humanDesign && !humanDesignSnap.exists) {
+                tx.set(repo.humanDesignRef(uid), {
+                    ...humanDesign,
+                    expiresAt: addMonths(humanDesign.calculatedAt, HUMAN_DESIGN_VALID_MONTHS),
+                });
             }
 
             tx.update(userRef, userPatch);
@@ -210,21 +278,17 @@ export class GuestSessionService extends BaseService {
     }
 
     /**
-     * Firestore Timestamps arrive as objects with toDate(); normalize to Date for zod.
+     * Firestore returns `expiresAt` as a Timestamp; the schema expects a Date.
      */
     private fromFirestore(data: unknown): unknown {
         if (typeof data !== 'object' || data === null) return data;
 
         const record = data as Record<string, unknown>;
-        const expiresAt = record.expiresAt;
 
-        if (typeof expiresAt === 'object' && expiresAt !== null && 'toDate' in expiresAt) {
-            return {
-                ...record,
-                expiresAt: (expiresAt as { toDate: () => Date }).toDate(),
-            };
-        }
-
-        return record;
+        return 'expiresAt' in record
+            ? {
+                ...record, expiresAt: toDate(record.expiresAt),
+            }
+            : record;
     }
 }

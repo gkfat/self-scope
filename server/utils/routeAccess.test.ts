@@ -8,6 +8,8 @@ describe('classifyRoute', () => {
         expect(classifyRoute('POST', '/api/auth/login')).toBe('public');
         expect(classifyRoute('POST', '/api/guest-sessions')).toBe('public');
         expect(classifyRoute('PUT', '/api/guest-sessions/abc/profile')).toBe('public');
+        expect(classifyRoute('GET', '/api/guest-sessions/abc/profile')).toBe('public');
+        expect(classifyRoute('POST', '/api/zodiac/natal-chart')).toBe('public');
         expect(classifyRoute('GET', '/api/fixed-results/zodiac?birthDate=2000-01-01')).toBe('public');
         expect(classifyRoute('GET', '/api/tests')).toBe('public');
         expect(classifyRoute('GET', '/api/tests/mbti')).toBe('public');

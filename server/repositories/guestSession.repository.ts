@@ -22,6 +22,10 @@ export class GuestSessionRepository {
         return this.userRef(uid).collection('testAttempts').doc(attemptId);
     }
 
+    humanDesignRef(uid: string) {
+        return this.userRef(uid).collection('humanDesign').doc('main');
+    }
+
     runTransaction<T>(fn: (tx: Transaction) => Promise<T>): Promise<T> {
         return this.db.runTransaction(fn);
     }

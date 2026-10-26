@@ -28,6 +28,9 @@ const RULES: readonly Rule[] = [
         method: 'PUT', pattern: /^\/api\/guest-sessions\/[^/]+\/profile$/, access: 'public',
     },
     {
+        method: 'GET', pattern: /^\/api\/guest-sessions\/[^/]+\/profile$/, access: 'public',
+    },
+    {
         method: 'GET', pattern: /^\/api\/fixed-results\/.+$/, access: 'public',
     },
     {
@@ -41,6 +44,9 @@ const RULES: readonly Rule[] = [
     },
     {
         method: 'POST', pattern: /^\/api\/human-design\/calculations$/, access: 'optional',
+    },
+    {
+        method: 'POST', pattern: /^\/api\/zodiac\/natal-chart$/, access: 'public',
     },
     {
         method: 'POST', pattern: /^\/api\/share-cards$/, access: 'optional',

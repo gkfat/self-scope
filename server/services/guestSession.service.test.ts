@@ -1,12 +1,15 @@
 import {
     beforeEach, describe, expect, it, vi,
 } from 'vitest';
-import { FakeFirestore } from '../test-utils/fakeFirestore';
+import {
+    FakeFirestore, FakeTimestamp,
+} from '../test-utils/fakeFirestore';
 import { GuestSessionService } from './guestSession.service';
 import {
     ForbiddenError, GoneError, NotFoundError,
 } from '../../shared/types/errors';
 import { addMonths } from '../../shared/utils/time';
+import { calculateHumanDesign } from '../humanDesign/calculate';
 import { GUEST_SESSION_ID_PATTERN } from '../../shared/schemas/firestore/guestSession.schema';
 import type { ProfileInput } from '../../shared/schemas/api/profile.schema';
 import type { TestResult } from '../../shared/schemas/firestore/testAttempt.schema';
@@ -72,7 +75,8 @@ describe('GuestSessionService', () => {
             expect(expiresAt).toBe(NOW + DAY);
 
             const stored = (await db.doc(`guestSessions/${sessionId}`).get()).data();
-            expect(stored?.expiresAt).toBeInstanceOf(Date);
+            // A Timestamp on read means it was written as a Date, which Firestore TTL requires.
+            expect(stored?.expiresAt).toBeInstanceOf(FakeTimestamp);
             expect(stored?.claimedBy).toBeNull();
         });
 
@@ -109,7 +113,7 @@ describe('GuestSessionService', () => {
             await service.saveProfile(sessionId, profile);
 
             const stored = (await db.doc(`guestSessions/${sessionId}`).get()).data();
-            expect((stored?.expiresAt as Date).getTime()).toBe(expiresAt);
+            expect((stored?.expiresAt as FakeTimestamp).toMillis()).toBe(expiresAt);
         });
 
         it('treats an unknown or expired session as not found', async () => {
@@ -119,6 +123,53 @@ describe('GuestSessionService', () => {
             clock.now += DAY;
 
             await expect(service.saveProfile(sessionId, profile)).rejects.toBeInstanceOf(NotFoundError);
+        });
+    });
+
+    describe('getProfile', () => {
+        it('returns what the guest has entered so far', async () => {
+            const { sessionId } = await service.create();
+
+            expect(await service.getProfile(sessionId)).toEqual({
+                birthData: null, bloodType: 'UNKNOWN', mbti: null, hasHumanDesign: false,
+            });
+
+            await service.saveProfile(sessionId, profile);
+            await service.saveTestResult(sessionId, testResult);
+
+            expect(await service.getProfile(sessionId)).toMatchObject({
+                birthData: {
+                    birthDate: '1995-03-25', zodiac: 'aries', 
+                },
+                bloodType: 'O',
+                mbti: 'INTJ',
+                hasHumanDesign: false,
+            });
+        });
+
+        it('says whether a human design chart is kept', async () => {
+            const { sessionId } = await service.create();
+            await service.saveHumanDesign(sessionId, {
+                result: calculateHumanDesign('1990-06-15', '12:00', 'Europe/Madrid'),
+                inputDigest: 'digest',
+                calculatedAt: NOW,
+            });
+
+            expect((await service.getProfile(sessionId)).hasHumanDesign).toBe(true);
+        });
+
+        it('treats an unknown, expired or claimed session as not found', async () => {
+            const { sessionId } = await service.create();
+
+            await expect(service.getProfile('nope')).rejects.toBeInstanceOf(NotFoundError);
+
+            await db.doc('users/u1').set(emptyUser);
+            await service.claim(sessionId, 'u1');
+            await expect(service.getProfile(sessionId)).rejects.toBeInstanceOf(NotFoundError);
+
+            const other = await service.create();
+            clock.now += 2 * DAY;
+            await expect(service.getProfile(other.sessionId)).rejects.toBeInstanceOf(NotFoundError);
         });
     });
 
@@ -149,6 +200,50 @@ describe('GuestSessionService', () => {
             expect(user?.bloodType).toBe('O');
             expect(user?.mbti).toBe('INTJ');
             expect(user?.mbtiExpiresAt).toBe(addMonths(NOW, 3));
+        });
+
+        describe('human design', () => {
+            const guestChart = {
+                result: calculateHumanDesign('1990-06-15', '12:00', 'Europe/Madrid'),
+                inputDigest: 'guest-digest',
+                calculatedAt: NOW - 60_000,
+            };
+
+            it('moves the guest\'s chart into the account for 3 months from when it was calculated', async () => {
+                await db.doc('users/u1').set(emptyUser);
+                const sessionId = await sessionWithResults();
+                await service.saveHumanDesign(sessionId, guestChart);
+
+                await service.claim(sessionId, 'u1');
+
+                expect((await db.doc('users/u1/humanDesign/main').get()).data()).toMatchObject({
+                    inputDigest: 'guest-digest',
+                    result: { profile: '2/4' },
+                    expiresAt: addMonths(NOW - 60_000, 3),
+                });
+                expect((await db.doc(`guestSessions/${sessionId}`).get()).data()?.tempResults).toBeNull();
+            });
+
+            it('keeps a chart the member already has', async () => {
+                await db.doc('users/u1').set(emptyUser);
+                await db.doc('users/u1/humanDesign/main').set({
+                    result: {}, inputDigest: 'member-digest', calculatedAt: NOW - DAY, expiresAt: addMonths(NOW, 2),
+                });
+                const sessionId = await sessionWithResults();
+                await service.saveHumanDesign(sessionId, guestChart);
+
+                await service.claim(sessionId, 'u1');
+
+                expect((await db.doc('users/u1/humanDesign/main').get()).data()?.inputDigest).toBe('member-digest');
+            });
+
+            it('saves nothing when the guest never calculated one', async () => {
+                await db.doc('users/u1').set(emptyUser);
+
+                await service.claim(await sessionWithResults(), 'u1');
+
+                expect((await db.doc('users/u1/humanDesign/main').get()).exists).toBe(false);
+            });
         });
 
         it('clears the temporary data on the first claim', async () => {
