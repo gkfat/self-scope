@@ -1,0 +1,482 @@
+[
+  {
+    "contentType": "SUMMARY",
+    "key": "aries_INTJ",
+    "status": "DRAFT",
+    "body": {
+      "title": "白羊座 × INTJ：先想清楚，再全力衝刺",
+      "summary": "你有白羊座的行動衝勁，又帶著 INTJ 的長線思考，所以常是「想好了就立刻推進」的類型。衝勁讓計畫落地，規劃讓方向不偏。",
+      "strengths": [
+        "計畫與行動兼具",
+        "遇到阻礙仍會推進",
+        "目標明確"
+      ],
+      "blindSpots": [
+        "對慢節奏的人沒耐心",
+        "容易單打獨鬥",
+        "太快下結論"
+      ],
+      "loveStyle": "感情中直接而認真，欣賞同樣有目標的人，但需要練習傾聽。",
+      "workStyle": "適合帶專案從構想走到上線，負責設定方向並掃除障礙。",
+      "communicationStyle": "簡短明確，先講結論；記得補上背景讓人跟得上。",
+      "growthAdvice": "重要決策前，留一天讓自己重新檢視假設。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "taurus_ENFP",
+    "status": "DRAFT",
+    "body": {
+      "title": "金牛座 × ENFP：靈感與務實的拉扯",
+      "summary": "金牛座想要踏實，ENFP 渴望新鮮，兩股力量讓你既愛嘗試、又想要有成果。你多半是把點子慢慢養成作品的人。",
+      "strengths": [
+        "能把靈感落實",
+        "重視人也重視結果",
+        "耐心與熱情並存"
+      ],
+      "blindSpots": [
+        "內心常在安穩與冒險間拉扯",
+        "容易一邊想變一邊抗拒變",
+        "同時開太多線"
+      ],
+      "loveStyle": "感情中熱情卻需要安全感，喜歡慢慢累積的陪伴。",
+      "workStyle": "適合創意與製作並重的工作，如內容、品牌、教學。",
+      "communicationStyle": "生動而踏實，講得出細節，也講得出願景。",
+      "growthAdvice": "每個點子先做一個最小版本，再決定要不要投入更多。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "gemini_ISTJ",
+    "status": "DRAFT",
+    "body": {
+      "title": "雙子座 × ISTJ：好奇心遇上紀律",
+      "summary": "雙子座愛接觸新資訊，ISTJ 重視穩定與流程。你常把外界的訊息整理成可靠的系統，是團隊裡的資訊管家。",
+      "strengths": [
+        "資訊整理力強",
+        "兼顧彈性與紀律",
+        "學習快又可靠"
+      ],
+      "blindSpots": [
+        "在彈性與規則間搖擺",
+        "對突發變動感到壓力",
+        "話題多但情感表達含蓄"
+      ],
+      "loveStyle": "感情中慢熱，靠聊天與穩定的相處建立信任。",
+      "workStyle": "適合資料整理、行政企劃、文件與知識管理。",
+      "communicationStyle": "條理分明，愛補充資料；不習慣談感受。",
+      "growthAdvice": "為「好奇」留出固定的探索時間，不干擾主要任務。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "cancer_ENTP",
+    "status": "DRAFT",
+    "body": {
+      "title": "巨蟹座 × ENTP：嘴上辯論，心裡很在意",
+      "summary": "巨蟹座的細膩與 ENTP 的辯論性格並存：你愛挑戰想法，卻也很在意身邊人的感受。外表機智，內心其實重感情。",
+      "strengths": [
+        "機智又體貼",
+        "能用幽默化解尷尬",
+        "點子多且顧及人"
+      ],
+      "blindSpots": [
+        "被反駁時會敏感",
+        "嘴硬心軟讓人誤會",
+        "情緒與理性切換快"
+      ],
+      "loveStyle": "感情中風趣、愛鬥嘴，真正在意時會默默照顧。",
+      "workStyle": "適合需要創意與人際並重的角色，如策劃、顧問、社群。",
+      "communicationStyle": "善用幽默；需要時說明自己其實是在關心。",
+      "growthAdvice": "辯論後主動確認對方的感受。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "leo_INFJ",
+    "status": "DRAFT",
+    "body": {
+      "title": "獅子座 × INFJ：安靜的領導者",
+      "summary": "獅子座有舞台感，INFJ 偏內斂且有使命感。你不一定喜歡喧嘩，但會在重要的時候挺身而出，用理念帶領別人。",
+      "strengths": [
+        "有感召力又有深度",
+        "能看見他人潛力",
+        "關鍵時刻有擔當"
+      ],
+      "blindSpots": [
+        "內在自尊與敏感並存",
+        "不被理解時容易孤單",
+        "對自己要求高"
+      ],
+      "loveStyle": "感情中真誠而專一，需要被看見也需要獨處。",
+      "workStyle": "適合帶領價值導向的團隊、教育、公益與創作。",
+      "communicationStyle": "話不多但有分量，善於一對一鼓舞。",
+      "growthAdvice": "練習適度示弱，讓人有機會支持你。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "virgo_ESFP",
+    "status": "DRAFT",
+    "body": {
+      "title": "處女座 × ESFP：細心的氣氛製造者",
+      "summary": "處女座注重細節，ESFP 享受當下與人互動。你常是既會照顧細節、又能讓大家開心的人，辦活動特別有一套。",
+      "strengths": [
+        "細節與氣氛兼顧",
+        "貼心且有行動力",
+        "善於實際幫忙"
+      ],
+      "blindSpots": [
+        "對自己與場面要求高",
+        "享樂與自律拉扯",
+        "在意別人的反應"
+      ],
+      "loveStyle": "感情中以行動關照對方，也喜歡一起玩樂。",
+      "workStyle": "適合活動企劃、接待、體驗設計與服務業。",
+      "communicationStyle": "親切而具體，會留意對方需要什麼。",
+      "growthAdvice": "為自己的休息排進行程，不只照顧別人。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "libra_INTP",
+    "status": "DRAFT",
+    "body": {
+      "title": "天秤座 × INTP：公平與邏輯的雙重標準",
+      "summary": "天秤座在意公平與平衡，INTP 在意邏輯一致，你會用很理性的方式權衡各方，卻常因想得太周全而遲遲不下決定。",
+      "strengths": [
+        "客觀公正",
+        "分析多個立場",
+        "討論時有說服力"
+      ],
+      "blindSpots": [
+        "決策時間長",
+        "怕得罪人而不表態",
+        "想法多於行動"
+      ],
+      "loveStyle": "感情中重視平等與心智交流，慢慢才說出自己的需求。",
+      "workStyle": "適合分析、評估、制度設計與調解。",
+      "communicationStyle": "委婉而有邏輯，喜歡把兩邊的觀點都列清楚。",
+      "growthAdvice": "設定決策期限，並先寫下自己的傾向。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "scorpio_ESFJ",
+    "status": "DRAFT",
+    "body": {
+      "title": "天蠍座 × ESFJ：低調的團隊守護者",
+      "summary": "天蠍座的深度與 ESFJ 的照顧特質結合，你對少數人付出很深，對團隊的氣氛和需求也看得很清楚。",
+      "strengths": [
+        "洞察並關照他人",
+        "忠誠可靠",
+        "能在關鍵時刻出面協調"
+      ],
+      "blindSpots": [
+        "不輕易交心",
+        "受傷後會記很久",
+        "承擔過多又不說"
+      ],
+      "loveStyle": "感情中專一深情，重視忠誠與默契。",
+      "workStyle": "適合團隊運作、人事協調、客戶關係。",
+      "communicationStyle": "外表親切、內在謹慎，重要的話選擇性才說。",
+      "growthAdvice": "把需求說出來，別讓委屈累積。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "sagittarius_ISFP",
+    "status": "DRAFT",
+    "body": {
+      "title": "射手座 × ISFP：自由的感受型旅人",
+      "summary": "射手座愛自由與探索，ISFP 以感受體驗世界。你喜歡隨心而行，用作品或行動留下旅程中的片段。",
+      "strengths": [
+        "自由開放",
+        "審美與感受力",
+        "活在當下"
+      ],
+      "blindSpots": [
+        "不愛被規劃",
+        "承諾時猶豫",
+        "不擅長說明自己的想法"
+      ],
+      "loveStyle": "感情中需要空間與真實，欣賞自在不控制的人。",
+      "workStyle": "適合創作、旅行相關、自由接案等彈性工作。",
+      "communicationStyle": "隨性溫和，用故事或作品表達比條列更自然。",
+      "growthAdvice": "為重要目標設定最低限度的規律。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "capricorn_ENFJ",
+    "status": "DRAFT",
+    "body": {
+      "title": "摩羯座 × ENFJ：有責任感的領頭羊",
+      "summary": "摩羯座的責任感加上 ENFJ 的帶人能力，你常成為團隊裡既能扛事、又能照顧大家的人，但也容易把所有事攬在身上。",
+      "strengths": [
+        "能扛責任也會鼓勵人",
+        "長期規劃與人際並重",
+        "值得信賴"
+      ],
+      "blindSpots": [
+        "承擔過多",
+        "不允許自己休息",
+        "情感需求被忽略"
+      ],
+      "loveStyle": "感情中穩重且願意付出，需要有人也照顧你。",
+      "workStyle": "適合管理、培訓、專案領導與組織營運。",
+      "communicationStyle": "穩重有條理，善於給予方向與支持。",
+      "growthAdvice": "分派責任，並安排固定的休息時間。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "aquarius_ESTJ",
+    "status": "DRAFT",
+    "body": {
+      "title": "水瓶座 × ESTJ：務實的改革者",
+      "summary": "水瓶座想打破舊框架，ESTJ 想建立有效秩序。你傾向用明確的制度推動改變，讓創新有穩定的落地方式。",
+      "strengths": [
+        "能把創新制度化",
+        "理性且果斷",
+        "重視公平效率"
+      ],
+      "blindSpots": [
+        "對舊做法缺乏耐心",
+        "可能顯得疏離",
+        "對感受較遲鈍"
+      ],
+      "loveStyle": "感情中重視平等與責任，以實際行動表達。",
+      "workStyle": "適合流程改善、營運、組織變革與專案管理。",
+      "communicationStyle": "直接清楚，講制度也講理念。",
+      "growthAdvice": "改變前先傾聽受影響者的感受。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "pisces_ISTP",
+    "status": "DRAFT",
+    "body": {
+      "title": "雙魚座 × ISTP：安靜的手作夢想家",
+      "summary": "雙魚座的想像力與 ISTP 的動手能力，使你偏好把腦中的畫面用雙手做出來。你不太愛講，但作品很有個人味。",
+      "strengths": [
+        "動手與想像並用",
+        "臨場應變",
+        "安靜而有創意"
+      ],
+      "blindSpots": [
+        "情緒不外顯",
+        "難以規劃長期",
+        "逃避衝突"
+      ],
+      "loveStyle": "感情中溫柔、含蓄，以陪伴與行動表達。",
+      "workStyle": "適合工藝、設計、技術創作與獨立作業。",
+      "communicationStyle": "話少，偏好用成品或示範說明。",
+      "growthAdvice": "把需要別人配合的事提早說出口。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "aries_INTJ_A",
+    "status": "DRAFT",
+    "body": {
+      "title": "白羊座 × INTJ × A 型：把急性子包進計畫裡",
+      "summary": "在白羊與 INTJ 的行動規劃之外，A 型常被形容為細心謹慎，這讓你的衝勁多了一層準備。血型只是常見說法，請當成輕鬆的參考。",
+      "strengths": [
+        "推進力加上周全準備",
+        "對細節有警覺",
+        "計畫通常完整"
+      ],
+      "blindSpots": [
+        "容易給自己很大壓力",
+        "一旦落後會焦躁",
+        "不輕易向他人求助"
+      ],
+      "loveStyle": "感情中謹慎而認真，需要時間確認後才全力投入。",
+      "workStyle": "適合需要快速行動、同時要求品質的專案。",
+      "communicationStyle": "直接又周到，會提前準備說明資料。",
+      "growthAdvice": "給計畫留出緩衝，並允許自己求助。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "taurus_ENFP_O",
+    "status": "DRAFT",
+    "body": {
+      "title": "金牛座 × ENFP × O 型：有目標的靈感家",
+      "summary": "在金牛的穩重與 ENFP 的靈感之外，O 型常被形容為目標明確，因此你比一般 ENFP 更願意把點子推到完成。血型僅為娛樂性說法。",
+      "strengths": [
+        "靈感能轉成成果",
+        "目標感與熱情兼具",
+        "願意持續投入"
+      ],
+      "blindSpots": [
+        "對進度停滯容易不耐",
+        "堅持與好奇互相拉扯",
+        "可能過度承諾"
+      ],
+      "loveStyle": "感情中熱情穩定，重視共同目標與生活品質。",
+      "workStyle": "適合需要創意與交付並重的專案負責人。",
+      "communicationStyle": "熱情明確，會用成果說話。",
+      "growthAdvice": "承諾前先評估自己的時間。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "cancer_ENTP_B",
+    "status": "DRAFT",
+    "body": {
+      "title": "巨蟹座 × ENTP × B 型：愛自由的暖心辯論家",
+      "summary": "巨蟹的體貼、ENTP 的辯才，加上 B 型常被形容的自由隨興，讓你顯得風趣又難以捉摸，只是照顧人的方式很獨特。血型為娛樂性說法。",
+      "strengths": [
+        "創意與暖心",
+        "隨機應變",
+        "有個人風格"
+      ],
+      "blindSpots": [
+        "步調不易配合他人",
+        "情緒與想法起伏大",
+        "承諾後容易想改變"
+      ],
+      "loveStyle": "感情中玩心重又很在意對方，需要被信任而非管控。",
+      "workStyle": "適合自由度高、需要創意與人際的角色。",
+      "communicationStyle": "幽默機智，想到就說。",
+      "growthAdvice": "重要約定前，先確認自己能不能做到。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "leo_INFJ_AB",
+    "status": "DRAFT",
+    "body": {
+      "title": "獅子座 × INFJ × AB 型：安靜又有魅力的觀察者",
+      "summary": "獅子的舞台感、INFJ 的深度，再加上 AB 型常被形容的理性與感性並存，你在人群裡不一定最吵，卻總讓人印象深刻。血型僅供參考。",
+      "strengths": [
+        "有魅力也有深度",
+        "多角度看事情",
+        "能同時理解理念與情緒"
+      ],
+      "blindSpots": [
+        "不易讓人完全看懂",
+        "想要被看見卻保持距離",
+        "情緒內在複雜"
+      ],
+      "loveStyle": "感情中需要心靈契合與空間，慢慢才打開心房。",
+      "workStyle": "適合需要觀點與影響力的角色，如策展、顧問、創作。",
+      "communicationStyle": "語調沉穩，能同時講道理與感受。",
+      "growthAdvice": "主動說明自己的想法，讓人更容易靠近。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "virgo_ESFP_O",
+    "status": "DRAFT",
+    "body": {
+      "title": "處女座 × ESFP × O 型：貼心的行動派",
+      "summary": "處女的細心、ESFP 的熱情，與 O 型常被形容的目標感，讓你能把活動或服務做得細緻又有活力。血型僅為娛樂性說法。",
+      "strengths": [
+        "細節與熱情並重",
+        "行動快速",
+        "能在現場解決問題"
+      ],
+      "blindSpots": [
+        "對自己與場面要求高",
+        "容易因他人反應影響心情",
+        "忙碌時忽略休息"
+      ],
+      "loveStyle": "感情中熱情付出，重視一起行動的時光。",
+      "workStyle": "適合現場營運、活動、服務與體驗設計。",
+      "communicationStyle": "親切明確，會立刻提出可行的方案。",
+      "growthAdvice": "安排固定的恢復時間，不讓行程塞滿。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "scorpio_ESFJ_A",
+    "status": "DRAFT",
+    "body": {
+      "title": "天蠍座 × ESFJ × A 型：細心而深情的守護者",
+      "summary": "天蠍的深度、ESFJ 的關懷，與 A 型常被形容的細心，讓你對在乎的人格外周到，同時對外保持謹慎。血型僅供娛樂參考。",
+      "strengths": [
+        "周到體貼",
+        "忠誠",
+        "細節掌握佳"
+      ],
+      "blindSpots": [
+        "壓力大時悶著不說",
+        "不輕易原諒",
+        "對自己很嚴格"
+      ],
+      "loveStyle": "感情中專一細膩，重視承諾與安全感。",
+      "workStyle": "適合需要長期關係與細節處理的工作，如客戶成功、人事。",
+      "communicationStyle": "溫和謹慎，重要的話會想很久才說。",
+      "growthAdvice": "把顧慮說出口，早一點溝通。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "capricorn_ENFJ_B",
+    "status": "DRAFT",
+    "body": {
+      "title": "摩羯座 × ENFJ × B 型：自由派的穩重領導",
+      "summary": "摩羯的責任、ENFJ 的帶人能力，加上 B 型常被形容的自在，使你在扛事之餘還保有彈性，不容易被規則綁死。血型僅為娛樂性說法。",
+      "strengths": [
+        "責任感與彈性並存",
+        "善於激勵人",
+        "能在壓力下保持開放"
+      ],
+      "blindSpots": [
+        "有時規劃與隨興拉扯",
+        "期待與彈性不一致",
+        "容易同時答應太多事"
+      ],
+      "loveStyle": "感情中穩重又不失輕鬆，重視共同成長。",
+      "workStyle": "適合需要領導又需要隨機應變的角色。",
+      "communicationStyle": "穩重而親切，會用輕鬆方式化解緊張。",
+      "growthAdvice": "把答應的事寫下來，定期檢視。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  },
+  {
+    "contentType": "SUMMARY",
+    "key": "pisces_ISTP_AB",
+    "status": "DRAFT",
+    "body": {
+      "title": "雙魚座 × ISTP × AB 型：獨特的手作思考者",
+      "summary": "雙魚的想像力、ISTP 的實作力，再加上 AB 型常被形容的理性感性並存，使你的作品常帶著理性的結構與感性的味道。血型僅供娛樂參考。",
+      "strengths": [
+        "理性與感性兼具",
+        "創作有個人風格",
+        "獨立作業能力強"
+      ],
+      "blindSpots": [
+        "不易讓他人理解",
+        "情緒不外顯",
+        "難以做單一取捨"
+      ],
+      "loveStyle": "感情中含蓄獨立，需要空間也需要被理解。",
+      "workStyle": "適合設計、技術創作與需要獨立完成的專案。",
+      "communicationStyle": "簡短、具象，常用作品代替說明。",
+      "growthAdvice": "主動分享創作背後的想法。",
+      "disclaimer": "本內容為娛樂與自我探索參考，不代表心理評估或診斷，也不應作為重要決策的依據。"
+    }
+  }
+]
