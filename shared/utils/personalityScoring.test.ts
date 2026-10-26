@@ -4,7 +4,7 @@ import {
 import definition from '../../content/tests/personality16-v1.json';
 import { testDefinitionFileSchema } from '../schemas/firestore/test.schema';
 import {
-    findAnswerIssues, scorePersonality, type AnswerInput,
+    findAnswerIssues, scoreDimensions, scorePersonality, type AnswerInput,
 } from './personalityScoring';
 
 const {
@@ -149,5 +149,55 @@ describe('scorePersonality', () => {
 
     it('rejects a missing answer instead of guessing', () => {
         expect(() => scorePersonality(questions, answersLeaning('first').slice(1), scoringRule)).toThrow('missing answer');
+    });
+});
+
+describe('scoreDimensions', () => {
+    it('reports the strength and side of every dimension', () => {
+        const dimensions = scoreDimensions(questions, answersLeaning('first'), scoringRule);
+
+        expect(dimensions).toEqual({
+            EI: {
+                score: 16, maxScore: 16, leaning: 'E',
+            },
+            SN: {
+                score: 16, maxScore: 16, leaning: 'S',
+            },
+            TF: {
+                score: 16, maxScore: 16, leaning: 'T',
+            },
+            JP: {
+                score: 16, maxScore: 16, leaning: 'J',
+            },
+        });
+    });
+
+    it('uses negative scores and the second letter for the other lean', () => {
+        const dimensions = scoreDimensions(questions, answersLeaning('second'), scoringRule);
+
+        expect(dimensions.EI).toEqual({
+            score: -16, maxScore: 16, leaning: 'I',
+        });
+    });
+
+    it('shows a balanced dimension as zero with the tie-break letter', () => {
+        const neutral = questions.map((q) => ({
+            questionId: q.questionId, value: 3,
+        }));
+
+        expect(scoreDimensions(questions, neutral, scoringRule).TF).toEqual({
+            score: 0, maxScore: 16, leaning: 'F',
+        });
+    });
+
+    it('agrees with scorePersonality on the letters', () => {
+        const answers = answersLeaning('first').map((a, i) => (i % 3 === 0
+            ? {
+                ...a, value: 3,
+            }
+            : a));
+        const letters = Object.values(scoreDimensions(questions, answers, scoringRule)).map((d) => d.leaning).join('');
+
+        expect(letters).toBe(scorePersonality(questions, answers, scoringRule));
     });
 });

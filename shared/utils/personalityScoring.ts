@@ -102,3 +102,51 @@ export function scorePersonality(
 
     return resultSchema.parse(letters.join(''));
 }
+
+export type DimensionScore = {
+    /** Sum of the centered answers; positive leans to the first letter. */
+    score: number;
+    /** Largest possible absolute score on this dimension. */
+    maxScore: number;
+    leaning: string;
+};
+
+/**
+ * Per-dimension strength of the member's leanings. The type letters alone hide how
+ * clear-cut each side is, and that is what makes a written analysis specific.
+ */
+export function scoreDimensions(
+    questions: readonly TestQuestion[],
+    answers: readonly AnswerInput[],
+    rule: ScoringRule,
+): Record<string, DimensionScore> {
+    const valueById = new Map(answers.map((a) => [a.questionId, Number(a.value)]));
+    const result: Record<string, DimensionScore> = {};
+
+    for (const dimension of rule.dimensions) {
+        let score = 0;
+        let maxScore = 0;
+
+        for (const question of questions.filter((q) => q.dimension === dimension.id)) {
+            const value = valueById.get(question.questionId);
+
+            if (value === undefined) {
+                throw new Error(`missing answer for ${question.questionId}`);
+            }
+
+            const sign = question.direction === 'first' ? 1 : -1;
+            const widest = Math.max(...question.options.map((option) => Math.abs(option.value - rule.neutralValue)));
+
+            score += sign * (value - rule.neutralValue);
+            maxScore += widest;
+        }
+
+        result[dimension.id] = {
+            score,
+            maxScore,
+            leaning: score > 0 ? dimension.first : score < 0 ? dimension.second : dimension.tieBreak,
+        };
+    }
+
+    return result;
+}
