@@ -25,6 +25,23 @@ export const importRowSchema = z.object({
             message: `"${row.key}" is not a legal key for ${row.contentType}`,
         });
     }
+
+    // The page puts each strength's "when overused" note on that strength's card, matched by name.
+    // A strength without a note, or a note without a strength, would show as a half-empty or stray card.
+    if (row.body.overuse.length > 0) {
+        const strengths = new Set(row.body.strengths.map((name) => name.trim()));
+        const noted = new Set(row.body.overuse.map((item) => item.strength.trim()));
+        const missing = [...strengths].filter((name) => !noted.has(name));
+        const stray = [...noted].filter((name) => !strengths.has(name));
+
+        if (missing.length > 0 || stray.length > 0) {
+            ctx.addIssue({
+                code: 'custom',
+                path: ['body', 'overuse'],
+                message: `strengths and overuse must list the same names (no note for: ${missing.join('、') || '-'}; not a strength: ${stray.join('、') || '-'})`,
+            });
+        }
+    }
 });
 
 export type ImportRow = z.infer<typeof importRowSchema>;

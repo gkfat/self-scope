@@ -14,10 +14,11 @@ export default defineEventHandler(async (event) => {
         const query = zodiacResultQuerySchema.safeParse(getQuery(event));
 
         if (!query.success) {
-            throw new ValidationError('A valid birthDate (YYYY-MM-DD) is required', { issues: query.error.issues });
+            throw new ValidationError('A valid birthDate (YYYY-MM-DD) or sign is required', { issues: query.error.issues });
         }
 
-        const result = await new FixedContentService().getPublished('ZODIAC', zodiacFromIsoDate(query.data.birthDate));
+        const sign = 'sign' in query.data ? query.data.sign : zodiacFromIsoDate(query.data.birthDate);
+        const result = await new FixedContentService().getPublished('ZODIAC', sign);
 
         return fixedResultResponseSchema.parse(result);
     } catch (error) {

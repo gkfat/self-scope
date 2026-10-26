@@ -11,6 +11,41 @@ export const FIXED_CONTENT_STATUSES = [
 
 export const fixedContentStatusSchema = z.enum(FIXED_CONTENT_STATUSES);
 
+/**
+ * The deeper layers of an analysis. Every part is optional so that shorter content (and content written
+ * before these existed) stays valid; the page shows only what a piece of content has.
+ */
+
+/** What may sit behind the behaviour: the need, where safety comes from, the worry, the inner tension. */
+export const coreNeedsSchema = z.object({
+    pursuit: z.string().min(1),
+    securitySource: z.string().min(1),
+    deepWorry: z.string().min(1),
+    innerConflict: z.string().min(1),
+});
+
+/** The same trait in everyday situations. */
+export const situationsSchema = z.object({
+    underStress: z.string().min(1),
+    inConflict: z.string().min(1),
+    inUncertainty: z.string().min(1),
+    inNewEnvironment: z.string().min(1),
+});
+
+/** A strength and how it can turn against its owner when used too much. */
+export const overuseSchema = z.object({
+    strength: z.string().min(1),
+    whenOverused: z.string().min(1),
+});
+
+/** Something to try this week, not only something to read. */
+export const growthPracticeSchema = z.object({
+    habitToObserve: z.string().min(1),
+    behaviorToTry: z.string().min(1),
+    reflectionQuestion: z.string().min(1),
+    weeklyPractice: z.string().min(1),
+});
+
 /** Content body: shared by single results and summaries (plan 5.2). */
 export const fixedContentBodySchema = z.object({
     title: z.string().min(1),
@@ -21,6 +56,17 @@ export const fixedContentBodySchema = z.object({
     workStyle: z.string().default(''),
     communicationStyle: z.string().default(''),
     growthAdvice: z.string().default(''),
+    /** Layer 2: why the person may act this way, and how it shows in daily situations */
+    coreNeeds: coreNeedsSchema.nullable().default(null),
+    situations: situationsSchema.nullable().default(null),
+    relationshipBlindSpots: z.array(z.string().min(1)).default([]),
+    /** Bullet points for the three life areas; older content only has the single strings above */
+    relationshipPoints: z.array(z.string().min(1)).default([]),
+    lovePoints: z.array(z.string().min(1)).default([]),
+    workPoints: z.array(z.string().min(1)).default([]),
+    overuse: z.array(overuseSchema).default([]),
+    /** Layer 3: growth the reader can act on */
+    growthPractice: growthPracticeSchema.nullable().default(null),
     /** Every result must carry the entertainment / self-exploration disclaimer (RULE-023). */
     disclaimer: z.string().min(1),
 });

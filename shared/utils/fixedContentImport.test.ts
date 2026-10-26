@@ -25,6 +25,82 @@ describe('parseImportJson', () => {
         expect(result.rows[0]?.body.strengths).toEqual([]);
     });
 
+    it('keeps the deeper layers empty when a row does not have them', () => {
+        const result = parseImportJson(JSON.stringify([
+            {
+                contentType: 'ZODIAC', key: 'aries', body,
+            },
+        ]));
+
+        expect(result.rows[0]?.body).toMatchObject({
+            coreNeeds: null, situations: null, relationshipBlindSpots: [], overuse: [], growthPractice: null,
+        });
+    });
+
+    it('accepts the deeper layers when they are complete', () => {
+        const result = parseImportJson(JSON.stringify([
+            {
+                contentType: 'ZODIAC',
+                key: 'scorpio',
+                body: {
+                    ...body,
+                    strengths: ['洞察力強'],
+                    coreNeeds: {
+                        pursuit: 'a', securitySource: 'b', deepWorry: 'c', innerConflict: 'd',
+                    },
+                    overuse: [
+                        {
+                            strength: '洞察力強', whenOverused: '過度解讀他人',
+                        },
+                    ],
+                },
+            },
+        ]));
+
+        expect(result.errors).toEqual([]);
+        expect(result.rows[0]?.body.coreNeeds?.pursuit).toBe('a');
+        expect(result.rows[0]?.body.overuse).toHaveLength(1);
+    });
+
+    it('rejects a half-filled group instead of showing a half-empty block', () => {
+        const result = parseImportJson(JSON.stringify([
+            {
+                contentType: 'ZODIAC',
+                key: 'aries',
+                body: {
+                    ...body,
+                    situations: { underStress: '獨自分析' },
+                },
+            },
+        ]));
+
+        expect(result.rows).toHaveLength(0);
+        expect(result.errors[0]?.message).toContain('body.situations');
+    });
+
+    it('needs a "when overused" note for every strength, and no note without a strength', () => {
+        const row = (strengths: string[], overuse: Array<{ strength: string; whenOverused: string }>) => parseImportJson(JSON.stringify([
+            {
+                contentType: 'ZODIAC', key: 'aries', body: {
+                    ...body, strengths, overuse,
+                },
+            },
+        ]));
+        const note = (strength: string) => ({
+            strength, whenOverused: '用得太過',
+        });
+
+        expect(row(['A', 'B'], [note('A'), note('B')]).errors).toEqual([]);
+        // strengths with no notes at all are fine: the notes are optional as a whole
+        expect(row(['A', 'B'], []).errors).toEqual([]);
+
+        const missing = row(['A', 'B'], [note('A')]);
+        expect(missing.errors[0]?.message).toContain('B');
+
+        const stray = row(['A'], [note('A'), note('C')]);
+        expect(stray.errors[0]?.message).toContain('C');
+    });
+
     it('rejects an illegal key for the type', () => {
         const result = parseImportJson(JSON.stringify([
             {
