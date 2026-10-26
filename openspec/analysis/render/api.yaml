@@ -126,6 +126,23 @@ paths:
           "$ref": "#/components/responses/ValidationError"
         "404":
           "$ref": "#/components/responses/NotFound"
+    get:
+      operationId: getGuestProfile
+      summary: "讀取訪客目前已輸入的資料"
+      description: "回傳訪客已填的出生資料與血型、MBTI（取自訪客測驗結果或自行輸入）、是否已有人類圖，供個人資料與探索進度畫面再次顯示。session 不存在、已逾時或已被認領一律回傳 404。"
+      tags: [Guest]
+      security: []
+      parameters:
+        - "$ref": "#/components/parameters/SessionIdPath"
+      responses:
+        "200":
+          description: "訪客資料"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/GuestProfile"
+        "404":
+          "$ref": "#/components/responses/NotFound"
   "/guest-sessions/{sessionId}/claim":
     post:
       operationId: claimGuestSession
@@ -156,16 +173,22 @@ paths:
     get:
       operationId: getZodiacResult
       summary: "取得星座單項結果"
-      description: "依生日換算星座並回傳固定內容，不呼叫 AI、不扣點、不儲存（RULE-017、RULE-018）。"
+      description: "依生日換算星座，或直接以星座名稱（sign）取得，並回傳固定內容，不呼叫 AI、不扣點、不儲存（RULE-017、RULE-018）。birthDate 與 sign 擇一提供；只看某個星座的頁面用 sign，連結中就不必帶出生日期。"
       tags: [FixedResults]
       security: []
       parameters:
         - name: birthDate
           in: query
-          required: true
+          required: false
           schema:
             type: string
             format: date
+        - name: sign
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [aries, taurus, gemini, cancer, leo, virgo, libra, scorpio, sagittarius, capricorn, aquarius, pisces]
       responses:
         "200":
           description: "星座固定結果"
@@ -177,6 +200,28 @@ paths:
           "$ref": "#/components/responses/ValidationError"
         "404":
           "$ref": "#/components/responses/NotFound"
+  "/zodiac/natal-chart":
+    post:
+      operationId: calculateNatalChart
+      summary: "計算進階星盤（太陽、月亮、水星、金星、火星、木星、土星與上升的星座）"
+      description: "依出生日期、時間與城市算出固定的星盤結果，不呼叫 AI、不扣點、不儲存。三個欄位都必填，城市須在預設清單內。出生時間落在夏令時間切換而出現兩次或不存在時，timeNote 會標示。"
+      tags: [FixedResults]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/NatalChartRequest"
+      responses:
+        "200":
+          description: "星盤結果"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NatalChart"
+        "400":
+          "$ref": "#/components/responses/ValidationError"
   "/fixed-results/blood-types/{bloodType}":
     get:
       operationId: getBloodTypeResult
@@ -197,6 +242,30 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/FixedResultContent"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+  "/fixed-results/mbti/{type}":
+    get:
+      operationId: getMbtiResult
+      summary: "取得 MBTI 單項分析"
+      description: ""
+      tags: [FixedResults]
+      security: []
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            "$ref": "#/components/schemas/MbtiType"
+      responses:
+        "200":
+          description: "MBTI 固定結果"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/FixedResultContent"
+        "400":
+          "$ref": "#/components/responses/ValidationError"
         "404":
           "$ref": "#/components/responses/NotFound"
   "/tests":
@@ -1349,7 +1418,23 @@ components:
               type: integer
               description: "首次取得為 1，已取得過為 0"
           required: [pointsDeducted]
-    HumanDesignRequest:
+    GuestProfile:
+      type: object
+      properties:
+        birthData:
+          type: object
+          nullable: true
+          additionalProperties: true
+        bloodType:
+          type: string
+          enum: [A, B, O, AB, UNKNOWN]
+        mbti:
+          type: string
+          nullable: true
+        hasHumanDesign:
+          type: boolean
+      required: [birthData, bloodType, mbti, hasHumanDesign]
+    NatalChartRequest:
       type: object
       properties:
         birthDate:
@@ -1362,34 +1447,130 @@ components:
           type: string
           description: "預設城市清單的代碼"
       required: [birthDate, birthTime, birthPlace]
+    NatalChartPlacement:
+      type: object
+      properties:
+        sign:
+          type: string
+          enum: [aries, taurus, gemini, cancer, leo, virgo, libra, scorpio, sagittarius, capricorn, aquarius, pisces]
+        degree:
+          type: integer
+          minimum: 0
+          maximum: 29
+      required: [sign, degree]
+    NatalChart:
+      type: object
+      properties:
+        ascendant:
+          "$ref": "#/components/schemas/NatalChartPlacement"
+        bodies:
+          type: object
+          properties:
+            SUN:
+              "$ref": "#/components/schemas/NatalChartPlacement"
+            MOON:
+              "$ref": "#/components/schemas/NatalChartPlacement"
+            MERCURY:
+              "$ref": "#/components/schemas/NatalChartPlacement"
+            VENUS:
+              "$ref": "#/components/schemas/NatalChartPlacement"
+            MARS:
+              "$ref": "#/components/schemas/NatalChartPlacement"
+            JUPITER:
+              "$ref": "#/components/schemas/NatalChartPlacement"
+            SATURN:
+              "$ref": "#/components/schemas/NatalChartPlacement"
+        timeNote:
+          type: string
+          nullable: true
+          enum: [AMBIGUOUS, NONEXISTENT]
+      required: [ascendant, bodies, timeNote]
+    HumanDesignRequest:
+      type: object
+      properties:
+        birthDate:
+          type: string
+          format: date
+        birthTime:
+          type: string
+          pattern: "^([01]\\d|2[0-3]):[0-5]\\d$"
+        birthPlace:
+          type: string
+          description: "預設城市清單的代碼"
+      description: "三個欄位皆選填：未提供的部分取自已儲存的個人資料（會員）或訪客 session 的個人資料；補齊後仍缺出生時間或地點回傳 422（BIRTH_TIME_REQUIRED／BIRTH_PLACE_REQUIRED）。"
     HumanDesignResult:
       type: object
       properties:
         type:
           "$ref": "#/components/schemas/HumanDesignType"
-        centers:
-          type: object
-          additionalProperties: true
-          description: "9 大能量中心"
+        strategy:
+          type: string
+          enum: [INFORM, RESPOND, WAIT_FOR_INVITATION, WAIT_A_LUNAR_CYCLE]
+        authority:
+          type: string
+          enum: [EMOTIONAL, SACRAL, SPLENIC, EGO, SELF_PROJECTED, MENTAL, LUNAR]
         profile:
           type: string
           example: "1/3"
-        authority:
+        definition:
           type: string
-        strategy:
-          type: string
-        definitionAndChannels:
+          enum: [NONE, SINGLE, SPLIT, TRIPLE_SPLIT, QUADRUPLE_SPLIT]
+        incarnationCross:
           type: object
-          additionalProperties: true
-        gates:
+          properties:
+            angle:
+              type: string
+              enum: [RIGHT_ANGLE, JUXTAPOSITION, LEFT_ANGLE]
+            gates:
+              type: array
+              description: "人格太陽/地球、設計太陽/地球四個閘門"
+              items:
+                type: integer
+          required: [angle, gates]
+        definedCenters:
           type: array
           items:
-            type: integer
-            minimum: 1
-            maximum: 64
+            type: string
+            enum: [HEAD, AJNA, THROAT, G, HEART, SACRAL, SPLEEN, SOLAR_PLEXUS, ROOT]
+        channels:
+          type: array
+          items:
+            type: array
+            items:
+              type: integer
+        personality:
+          type: array
+          description: "出生時的 13 個天體閘門與線（意識）"
+          items:
+            "$ref": "#/components/schemas/HumanDesignActivation"
+        design:
+          type: array
+          description: "出生前太陽弧 88 度的 13 個天體閘門與線（潛意識）"
+          items:
+            "$ref": "#/components/schemas/HumanDesignActivation"
         disclaimer:
           type: string
-      required: [type, profile, authority, strategy, disclaimer]
+        saved:
+          type: boolean
+          description: "會員為 true（保存 3 個月）；訪客為 true 表示暫存於 session"
+        expiresAt:
+          type: integer
+          nullable: true
+      required: [type, strategy, authority, profile, definition, incarnationCross, disclaimer, saved]
+    HumanDesignActivation:
+      type: object
+      properties:
+        body:
+          type: string
+        gate:
+          type: integer
+          minimum: 1
+          maximum: 64
+        line:
+          type: integer
+          minimum: 1
+          maximum: 6
+      required: [body, gate, line]
     DetailedReportRequest:
       type: object
       properties:
