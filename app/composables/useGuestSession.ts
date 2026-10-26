@@ -111,6 +111,7 @@ export const useGuestSession = () => {
 
     return {
         sessionId: computed(() => sessionId.value),
+        restore,
         ensureSession,
         claim,
         forget,
