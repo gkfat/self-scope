@@ -1,147 +1,124 @@
 <template>
-    <v-main>
-        <v-container class="py-6">
+    <div class="report-page">
+        <ReportBanner
+            title="MBTI"
+            :headline="result ? result.result : '16 型人格測驗'"
+            tone="green"
+        />
+
+        <v-alert
+            v-if="loadError"
+            type="error"
+            variant="tonal"
+        >
+            {{ loadError }}
+        </v-alert>
+
+        <v-progress-circular
+            v-else-if="loading"
+            indeterminate
+        />
+
+        <template v-else-if="result">
+            <FixedResultView :result="result.content" />
+
+            <div class="d-flex justify-center mb-4">
+                <v-btn
+                    variant="outlined"
+                    prepend-icon="mdi-restart"
+                    @click="retake"
+                >
+                    重新測驗
+                </v-btn>
+            </div>
+
             <v-alert
-                v-if="loadError"
+                v-if="result.saveFailed"
+                type="warning"
+                variant="tonal"
+                class="mb-4"
+            >
+                結果已計算，但儲存失敗。請稍後重新送出以儲存。
+            </v-alert>
+            <v-alert
+                v-else-if="result.persisted"
+                type="success"
+                variant="tonal"
+                class="mb-4"
+            >
+                結果已儲存於你的帳號。
+            </v-alert>
+        </template>
+
+        <template v-else-if="test">
+            <v-progress-linear
+                :model-value="progress"
+                class="mb-4"
+            />
+            <v-card
+                v-for="question in pageQuestions"
+                :key="question.questionId"
+                class="mb-3"
+            >
+                <v-card-text>
+                    <div class="mb-2">
+                        {{ question.text }}
+                    </div>
+                    <v-radio-group
+                        v-model="answers[question.questionId]"
+                        inline
+                        hide-details
+                    >
+                        <v-radio
+                            v-for="option in question.options"
+                            :key="option.value"
+                            :label="option.label"
+                            :value="option.value"
+                        />
+                    </v-radio-group>
+                </v-card-text>
+            </v-card>
+
+            <v-alert
+                v-if="submitError"
                 type="error"
                 variant="tonal"
+                class="mb-3"
             >
-                {{ loadError }}
+                {{ submitError }}
             </v-alert>
 
-            <v-progress-circular
-                v-else-if="loading"
-                indeterminate
-            />
-
-            <template v-else-if="result">
-                <v-card class="mb-4">
-                    <v-card-title>{{ result.content.title }}（{{ result.result }}）</v-card-title>
-                    <v-card-text>
-                        <p class="mb-4">
-                            {{ result.content.summary }}
-                        </p>
-                        <div v-if="result.content.strengths.length">
-                            <strong>可能優勢</strong>
-                            <ul class="mb-4">
-                                <li
-                                    v-for="item in result.content.strengths"
-                                    :key="item"
-                                >
-                                    {{ item }}
-                                </li>
-                            </ul>
-                        </div>
-                        <div v-if="result.content.blindSpots.length">
-                            <strong>潛在盲點</strong>
-                            <ul class="mb-4">
-                                <li
-                                    v-for="item in result.content.blindSpots"
-                                    :key="item"
-                                >
-                                    {{ item }}
-                                </li>
-                            </ul>
-                        </div>
-                        <p class="text-caption text-medium-emphasis">
-                            {{ result.content.disclaimer }}
-                        </p>
-                    </v-card-text>
-                </v-card>
-
-                <v-alert
-                    v-if="result.saveFailed"
-                    type="warning"
-                    variant="tonal"
-                    class="mb-4"
+            <div class="d-flex justify-space-between">
+                <v-btn
+                    :disabled="page === 0"
+                    @click="page -= 1"
                 >
-                    結果已計算，但儲存失敗。請稍後重新送出以儲存。
-                </v-alert>
-                <v-alert
-                    v-else-if="result.persisted"
-                    type="success"
-                    variant="tonal"
-                    class="mb-4"
+                    上一頁
+                </v-btn>
+                <v-btn
+                    v-if="page < pageCount - 1"
+                    color="primary"
+                    :disabled="!pageComplete"
+                    @click="page += 1"
                 >
-                    結果已儲存於你的帳號。
-                </v-alert>
-                <GuestNotice v-else />
-            </template>
-
-            <template v-else-if="test">
-                <h1 class="text-h5 mb-2">
-                    {{ test.title }}
-                </h1>
-                <v-progress-linear
-                    :model-value="progress"
-                    class="mb-4"
-                />
-                <GuestNotice />
-
-                <v-card
-                    v-for="question in pageQuestions"
-                    :key="question.questionId"
-                    class="mb-3"
+                    下一頁
+                </v-btn>
+                <v-btn
+                    v-else
+                    color="primary"
+                    :disabled="!allAnswered"
+                    :loading="submitting"
+                    @click="submit"
                 >
-                    <v-card-text>
-                        <div class="mb-2">
-                            {{ question.text }}
-                        </div>
-                        <v-radio-group
-                            v-model="answers[question.questionId]"
-                            inline
-                            hide-details
-                        >
-                            <v-radio
-                                v-for="option in question.options"
-                                :key="option.value"
-                                :label="option.label"
-                                :value="option.value"
-                            />
-                        </v-radio-group>
-                    </v-card-text>
-                </v-card>
-
-                <v-alert
-                    v-if="submitError"
-                    type="error"
-                    variant="tonal"
-                    class="mb-3"
-                >
-                    {{ submitError }}
-                </v-alert>
-
-                <div class="d-flex justify-space-between">
-                    <v-btn
-                        :disabled="page === 0"
-                        @click="page -= 1"
-                    >
-                        上一頁
-                    </v-btn>
-                    <v-btn
-                        v-if="page < pageCount - 1"
-                        color="primary"
-                        :disabled="!pageComplete"
-                        @click="page += 1"
-                    >
-                        下一頁
-                    </v-btn>
-                    <v-btn
-                        v-else
-                        color="primary"
-                        :disabled="!allAnswered"
-                        :loading="submitting"
-                        @click="submit"
-                    >
-                        送出
-                    </v-btn>
-                </div>
-            </template>
-        </v-container>
-    </v-main>
+                    送出
+                </v-btn>
+            </div>
+        </template>
+    </div>
 </template>
 
 <script lang="ts" setup>
+import { submissionResponseSchema } from '../../shared/schemas/api/test.schema';
 import type {
     PublicTest, SubmissionResponse, TestSummary,
 } from '../../shared/schemas/api/test.schema';
@@ -149,7 +126,9 @@ import type {
 useHead({ title: '16 型人格測驗' });
 
 const QUESTIONS_PER_PAGE = 8;
+const RESULT_STORAGE_KEY = 'self-scope:mbti-result';
 
+const route = useRoute();
 const { isAuthenticated } = useAuth();
 const { ensureSession } = useGuestSession();
 const { post } = useApi();
@@ -172,6 +151,11 @@ const progress = computed(() => (questions.value.length
     ? (Object.keys(answers).length / questions.value.length) * 100
     : 0));
 
+// Each page of questions starts at the top
+watch(page, () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
 function messageOf(error: unknown, fallback: string): string {
     if (typeof error === 'object' && error !== null && 'data' in error) {
         const data = (error as { data?: { message?: string } }).data;
@@ -181,7 +165,42 @@ function messageOf(error: unknown, fallback: string): string {
     return error instanceof Error ? error.message : fallback;
 }
 
+// A guest's result is kept for this browser tab only; a signed-in user's is saved on the server.
+function readStoredResult(): SubmissionResponse | null {
+    try {
+        const raw = sessionStorage.getItem(RESULT_STORAGE_KEY);
+        if (!raw) return null;
+
+        const parsed = submissionResponseSchema.safeParse(JSON.parse(raw));
+        return parsed.success ? parsed.data : null;
+    } catch (error) {
+        console.warn('[test] stored result unreadable:', error);
+        return null;
+    }
+}
+
+function storeResult(value: SubmissionResponse | null) {
+    try {
+        if (value) sessionStorage.setItem(RESULT_STORAGE_KEY, JSON.stringify(value));
+        else sessionStorage.removeItem(RESULT_STORAGE_KEY);
+    } catch (error) {
+        console.warn('[test] sessionStorage unavailable:', error);
+    }
+}
+
+function retake() {
+    storeResult(null);
+    result.value = null;
+    page.value = 0;
+    for (const key of Object.keys(answers)) Reflect.deleteProperty(answers, key);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 onMounted(async () => {
+    // Arriving from a report's "retake" button starts over instead of showing the kept result
+    if (route.query.retake) storeResult(null);
+    result.value = readStoredResult();
+
     try {
         const tests = await $fetch<TestSummary[]>('/api/tests');
         const first = tests[0];
@@ -224,6 +243,7 @@ async function submit() {
             {},
             'optional',
         );
+        storeResult(result.value);
     } catch (error) {
         console.error('[test] submit failed:', error);
         submitError.value = messageOf(error, '送出失敗，請稍後再試。');
