@@ -1,3 +1,9 @@
+import {
+    DEFAULT_AI_PRICE_INPUT_PER_MTOK,
+    DEFAULT_AI_PRICE_OUTPUT_PER_MTOK,
+    DEFAULT_OPENAI_MODEL,
+} from '../shared/constants/ai';
+
 /**
  * Server-only configuration
  * Contains sensitive data that should NEVER be exposed to client
@@ -23,6 +29,16 @@ type ServerConfig = {
 
     /** Shared secret of the development payment provider's webhook signature. */
     paymentDevWebhookSecret?: string;
+
+    /** OpenAI API key (server-only). */
+    openaiApiKey?: string;
+
+    /** OpenAI model id used for detailed reports. */
+    openaiModel: string;
+
+    /** USD per million tokens, used only to estimate cost in usage records. */
+    aiPriceInputPerMtok: number;
+    aiPriceOutputPerMtok: number;
 
     nodeEnv: string;
 };
@@ -69,6 +85,10 @@ export function getServerConfig(): ServerConfig {
         welcomeGrantHmacKey: runtimeConfig.welcomeGrantHmacKey || undefined,
         paymentProvider: runtimeConfig.paymentProvider || undefined,
         paymentDevWebhookSecret: runtimeConfig.paymentDevWebhookSecret || undefined,
+        openaiApiKey: runtimeConfig.openaiApiKey || undefined,
+        openaiModel: runtimeConfig.openaiModel || DEFAULT_OPENAI_MODEL,
+        aiPriceInputPerMtok: Number(runtimeConfig.aiPriceInputPerMtok) || DEFAULT_AI_PRICE_INPUT_PER_MTOK,
+        aiPriceOutputPerMtok: Number(runtimeConfig.aiPriceOutputPerMtok) || DEFAULT_AI_PRICE_OUTPUT_PER_MTOK,
         nodeEnv: process.env.NODE_ENV || 'development',
     };
 }
@@ -77,7 +97,7 @@ export function getServerConfig(): ServerConfig {
  * Get a required server secret or fail loudly.
  * Never fall back to a default: a missing secret must be an explicit error.
  */
-export function requireServerSecret(name: 'cronSecret' | 'welcomeGrantHmacKey' | 'paymentDevWebhookSecret'): string {
+export function requireServerSecret(name: 'cronSecret' | 'welcomeGrantHmacKey' | 'paymentDevWebhookSecret' | 'openaiApiKey'): string {
     const value = getServerConfig()[name];
 
     if (!value) {

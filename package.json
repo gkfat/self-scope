@@ -15,13 +15,17 @@
     "content:import-test": "node scripts/import-test.ts",
     "content:import-packages": "node scripts/import-point-packages.ts",
     "check:bundle": "node scripts/check-client-bundle.ts",
-    "firebase:provision": "node scripts/provision-firebase.ts"
+    "firebase:provision": "node scripts/provision-firebase.ts",
+    "e2e:smoke": "node scripts/e2e-smoke.ts"
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
+    "@vercel/functions": "^3.10.3",
+    "astronomy-engine": "^2.1.19",
     "firebase": "^12.8.0",
     "firebase-admin": "^13.6.0",
     "nuxt": "^4.2.2",
+    "openai": "^7.43.0",
     "vue": "^3.5.26",
     "vuetify": "^3.11.6",
     "zod": "^4.3.5"

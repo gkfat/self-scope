@@ -26,15 +26,16 @@ export default defineNuxtConfig({
     // SPA mode for Vercel deployment
     ssr: false,
 
-    css: [
-        'vuetify/lib/styles/main.sass',
-        '@mdi/font/css/materialdesignicons.min.css',
-    ],
+    css: ['vuetify/lib/styles/main.sass', '@mdi/font/css/materialdesignicons.min.css'],
 
     build: { transpile: ['vuetify'] },
 
     // Vercel deployment preset
-    nitro: { preset: 'vercel' },
+    nitro: {
+        preset: 'vercel',
+        // Detailed reports keep running after the response (waitUntil); allow the 120 s AI timeout plus settling
+        vercel: { functions: { maxDuration: 180 } },
+    },
 
     /**
      * Env handling:
@@ -54,6 +55,11 @@ export default defineNuxtConfig({
         // Payment provider id; 'dev' (local only) until a real provider is chosen
         paymentProvider: process.env.PAYMENT_PROVIDER,
         paymentDevWebhookSecret: process.env.PAYMENT_DEV_WEBHOOK_SECRET,
+        // OpenAI for detailed reports; the model and prices are overridable without a code change
+        openaiApiKey: process.env.OPENAI_API_KEY,
+        openaiModel: process.env.OPENAI_MODEL,
+        aiPriceInputPerMtok: process.env.AI_PRICE_INPUT_PER_MTOK,
+        aiPriceOutputPerMtok: process.env.AI_PRICE_OUTPUT_PER_MTOK,
 
         // Public configuration (exposed to client)
         public: {
