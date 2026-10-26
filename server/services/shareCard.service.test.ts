@@ -5,7 +5,9 @@ import { FakeFirestore } from '../test-utils/fakeFirestore';
 import {
     ShareCardService, excerpt,
 } from './shareCard.service';
+import { HumanDesignService } from './humanDesign.service';
 import { SummaryService } from './summary.service';
+import { calculateHumanDesign } from '../humanDesign/calculate';
 import {
     AuthError, NotFoundError,
 } from '../../shared/types/errors';
@@ -56,7 +58,10 @@ describe('ShareCardService', () => {
     beforeEach(async () => {
         db = new FakeFirestore();
         holder.db = db;
-        service = new ShareCardService({ summaries: new SummaryService({ clock: () => NOW }) });
+        service = new ShareCardService({
+            summaries: new SummaryService({ clock: () => NOW }),
+            humanDesign: new HumanDesignService({ clock: () => NOW }),
+        });
 
         await db.doc('fixedContents/ZODIAC_aries').set(content('ZODIAC', 'aries', longText));
         await db.doc('fixedContents/SUMMARY_aries_INTJ').set(content('SUMMARY', 'aries_INTJ', '摘要'));
@@ -142,9 +147,43 @@ describe('ShareCardService', () => {
         }
     });
 
-    it('has nothing to share for a human design yet', async () => {
-        await expect(service.create({
-            source: 'HUMAN_DESIGN', referenceId: 'main',
-        }, 'u1')).rejects.toBeInstanceOf(NotFoundError);
+    describe('human design', () => {
+        const chart = calculateHumanDesign('1990-06-15', '12:00', 'Europe/Madrid');
+
+        beforeEach(async () => {
+            await db.doc('users/u1/humanDesign/main').set({
+                result: chart,
+                inputDigest: 'digest',
+                calculatedAt: NOW,
+                expiresAt: addMonths(NOW, 3),
+            });
+        });
+
+        it('shares the chart level facts only, for its owner', async () => {
+            const card = await service.create({
+                source: 'HUMAN_DESIGN', referenceId: 'main',
+            }, 'u1');
+
+            expect(card.title).toBe('人類圖：顯示生產者');
+            expect(card.summaryText).toContain('人生角色 2/4');
+            expect(card.summaryText).toContain('薦骨權威');
+            expect(card.summaryText).toContain('等待回應');
+            expect(JSON.stringify(card)).not.toMatch(/1990|12:00|madrid|u1/i);
+        });
+
+        it('needs sign-in', async () => {
+            await expect(service.create({
+                source: 'HUMAN_DESIGN', referenceId: 'main',
+            }, null)).rejects.toBeInstanceOf(AuthError);
+        });
+
+        it('has nothing to share for another member or another reference', async () => {
+            await expect(service.create({
+                source: 'HUMAN_DESIGN', referenceId: 'main',
+            }, 'u2')).rejects.toBeInstanceOf(NotFoundError);
+            await expect(service.create({
+                source: 'HUMAN_DESIGN', referenceId: 'someone-else',
+            }, 'u1')).rejects.toBeInstanceOf(NotFoundError);
+        });
     });
 });
