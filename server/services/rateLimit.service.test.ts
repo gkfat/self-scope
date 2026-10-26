@@ -1,7 +1,9 @@
 import {
     beforeEach, describe, expect, it, vi,
 } from 'vitest';
-import { FakeFirestore } from '../test-utils/fakeFirestore';
+import {
+    FakeFirestore, FakeTimestamp,
+} from '../test-utils/fakeFirestore';
 import { RateLimitService } from './rateLimit.service';
 import { RateLimitError } from '../../shared/types/errors';
 
@@ -56,6 +58,6 @@ describe('RateLimitService', () => {
 
         const [path] = db.paths();
         const stored = (await db.doc(path as string).get()).data();
-        expect(stored?.expiresAt).toBeInstanceOf(Date);
+        expect(stored?.expiresAt).toBeInstanceOf(FakeTimestamp);
     });
 });

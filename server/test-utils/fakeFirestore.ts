@@ -45,6 +45,33 @@ function clone<T>(value: T): T {
     return structuredClone(value);
 }
 
+/**
+ * Mimics the SDK's Timestamp: documents written with a Date come back as this, not as a Date.
+ * Only the methods production code is allowed to rely on are provided.
+ */
+export class FakeTimestamp {
+    constructor(private readonly millis: number) {}
+
+    toMillis() {
+        return this.millis;
+    }
+
+    toDate() {
+        return new Date(this.millis);
+    }
+}
+
+function withTimestamps(value: unknown): unknown {
+    if (value instanceof Date) return new FakeTimestamp(value.getTime());
+    if (Array.isArray(value)) return value.map(withTimestamps);
+
+    if (value && typeof value === 'object') {
+        return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, withTimestamps(child)]));
+    }
+
+    return value;
+}
+
 function comparable(value: unknown): number | string | boolean | null {
     if (value instanceof Date) return value.getTime();
     if (value === undefined || value === null) return null;
@@ -91,7 +118,7 @@ export class FakeDocumentSnapshot {
     }
 
     data(): Data | undefined {
-        return this.stored ? clone(this.stored.data) : undefined;
+        return this.stored ? withTimestamps(clone(this.stored.data)) as Data : undefined;
     }
 }
 

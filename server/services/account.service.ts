@@ -2,6 +2,7 @@ import { BaseService } from './base.service';
 import { AccountRepository } from '../repositories/account.repository';
 import { requireServerSecret } from '../../config/config';
 import { hashGoogleUid } from '../utils/hmac';
+import { toMillis } from '../utils/firestoreTime';
 import {
     WELCOME_BATCH_VALID_DAYS,
     WELCOME_GRANT_RECORD_MONTHS,
@@ -79,7 +80,7 @@ export class AccountService extends BaseService {
             const grantSnap = await tx.get(grantRef);
             // Firestore TTL deletes lazily, so an expired record may still exist.
             const grantExpiresAt = grantSnap.exists
-                ? (grantSnap.data() as { expiresAt: Date }).expiresAt.getTime()
+                ? toMillis((grantSnap.data() as { expiresAt: unknown }).expiresAt)
                 : 0;
             const grantBlocked = grantExpiresAt > now;
 
