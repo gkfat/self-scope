@@ -1,91 +1,89 @@
 <template>
-    <v-main>
-        <v-container class="py-6">
-            <h1 class="text-h5 mb-4">
-                我的點數
-            </h1>
+    <div>
+        <h1 class="text-h5 mb-4">
+            我的點數
+        </h1>
 
-            <v-alert
-                v-if="!isAuthenticated"
-                type="info"
-                variant="tonal"
+        <v-alert
+            v-if="!isAuthenticated"
+            type="info"
+            variant="tonal"
+        >
+            請先登入以查看點數。
+            <v-btn
+                class="ml-2"
+                color="primary"
+                @click="signInWithGoogle"
             >
-                請先登入以查看點數。
-                <v-btn
-                    class="ml-2"
-                    color="primary"
-                    @click="signInWithGoogle"
-                >
-                    以 Google 登入
-                </v-btn>
-            </v-alert>
+                以 Google 登入
+            </v-btn>
+        </v-alert>
 
-            <v-alert
-                v-else-if="loadError"
-                type="error"
-                variant="tonal"
-            >
-                {{ loadError }}
-            </v-alert>
+        <v-alert
+            v-else-if="loadError"
+            type="error"
+            variant="tonal"
+        >
+            {{ loadError }}
+        </v-alert>
 
-            <template v-else-if="balance">
-                <v-card class="mb-4">
-                    <v-card-title>可用點數：{{ balance.availableBalance }}</v-card-title>
-                    <v-card-text>
-                        <v-table
-                            v-if="balance.batches.length"
-                            density="compact"
-                        >
-                            <thead>
-                                <tr>
-                                    <th>來源</th>
-                                    <th>剩餘</th>
-                                    <th>效期</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="batch in balance.batches"
-                                    :key="batch.batchId"
-                                >
-                                    <td>{{ sourceLabel[batch.source] }}</td>
-                                    <td>{{ batch.remaining }} / {{ batch.granted }}</td>
-                                    <td>{{ batch.expiresAt ? formatDate(batch.expiresAt) : '無期限' }}</td>
-                                </tr>
-                            </tbody>
-                        </v-table>
-                        <p v-else>
-                            目前沒有可用的點數。
-                        </p>
-                    </v-card-text>
-                </v-card>
+        <template v-else-if="balance">
+            <v-card class="mb-4">
+                <v-card-title>可用點數：{{ balance.availableBalance }}</v-card-title>
+                <v-card-text>
+                    <v-table
+                        v-if="balance.batches.length"
+                        density="compact"
+                    >
+                        <thead>
+                            <tr>
+                                <th>來源</th>
+                                <th>剩餘</th>
+                                <th>效期</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                v-for="batch in balance.batches"
+                                :key="batch.batchId"
+                            >
+                                <td>{{ sourceLabel[batch.source] }}</td>
+                                <td>{{ batch.remaining }} / {{ batch.granted }}</td>
+                                <td>{{ batch.expiresAt ? formatDate(batch.expiresAt) : '無期限' }}</td>
+                            </tr>
+                        </tbody>
+                    </v-table>
+                    <p v-else>
+                        目前沒有可用的點數。
+                    </p>
+                </v-card-text>
+            </v-card>
 
-                <v-card>
-                    <v-card-title>異動紀錄</v-card-title>
-                    <v-card-text>
-                        <p v-if="!transactions.length">
-                            尚無異動紀錄。
-                        </p>
-                        <v-list v-else>
-                            <v-list-item
-                                v-for="item in transactions"
-                                :key="item.transactionId"
-                                :title="`${typeLabel[item.type]} ${item.amount} 點 · ${reasonLabel[item.reason]}`"
-                                :subtitle="formatDate(item.createdAt)"
-                            />
-                        </v-list>
-                        <v-btn
-                            v-if="nextCursor"
-                            :loading="loadingMore"
-                            @click="loadMore"
-                        >
-                            載入更多
-                        </v-btn>
-                    </v-card-text>
-                </v-card>
-            </template>
-        </v-container>
-    </v-main>
+            <v-card>
+                <v-card-title>異動紀錄</v-card-title>
+                <v-card-text>
+                    <p v-if="!transactions.length">
+                        尚無異動紀錄。
+                    </p>
+                    <v-list v-else>
+                        <v-list-item
+                            v-for="item in transactions"
+                            :key="item.transactionId"
+                            :title="`${typeLabel[item.type]} ${item.amount} 點 · ${reasonLabel[item.reason]}`"
+                            :subtitle="formatDate(item.createdAt)"
+                        />
+                    </v-list>
+                    <v-btn
+                        v-if="nextCursor"
+                        :loading="loadingMore"
+                        @click="loadMore"
+                    >
+                        載入更多
+                    </v-btn>
+                </v-card-text>
+            </v-card>
+        </template>
+    </div>
 </template>
 
 <script lang="ts" setup>

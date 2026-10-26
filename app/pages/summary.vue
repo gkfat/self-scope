@@ -1,82 +1,80 @@
 <template>
-    <v-main>
-        <v-container class="py-6">
-            <h1 class="text-h5 mb-4">
-                簡易 summary
-            </h1>
+    <div>
+        <h1 class="text-h5 mb-4">
+            簡易 summary
+        </h1>
 
-            <v-alert
-                v-if="!isAuthenticated"
-                type="info"
-                variant="tonal"
+        <v-alert
+            v-if="!isAuthenticated"
+            type="info"
+            variant="tonal"
+        >
+            簡易 summary 需登入後取得（每組結果 1 點，註冊即贈 3 點）。
+            <v-btn
+                class="ml-2"
+                color="primary"
+                @click="signInWithGoogle"
             >
-                簡易 summary 需登入後取得（每組結果 1 點，註冊即贈 3 點）。
+                以 Google 登入
+            </v-btn>
+        </v-alert>
+
+        <template v-else>
+            <v-alert
+                v-if="problem"
+                :type="problem.type"
+                variant="tonal"
+                class="mb-4"
+            >
+                {{ problem.message }}
                 <v-btn
+                    v-if="problem.to"
                     class="ml-2"
-                    color="primary"
-                    @click="signInWithGoogle"
+                    :to="problem.to"
                 >
-                    以 Google 登入
+                    {{ problem.action }}
                 </v-btn>
             </v-alert>
 
-            <template v-else>
-                <v-alert
-                    v-if="problem"
-                    :type="problem.type"
-                    variant="tonal"
-                    class="mb-4"
-                >
-                    {{ problem.message }}
-                    <v-btn
-                        v-if="problem.to"
-                        class="ml-2"
-                        :to="problem.to"
+            <v-card
+                v-if="summary"
+                class="mb-4"
+            >
+                <v-card-title>{{ summary.content.title }}</v-card-title>
+                <v-card-text>
+                    <p class="mb-4">
+                        {{ summary.content.summary }}
+                    </p>
+                    <p
+                        v-if="summary.pointsDeducted === 0"
+                        class="text-caption"
                     >
-                        {{ problem.action }}
-                    </v-btn>
-                </v-alert>
+                        你已取得過這組結果，本次不扣點。
+                    </p>
+                    <p class="text-caption text-medium-emphasis">
+                        {{ summary.content.disclaimer }}
+                    </p>
+                    <p class="text-caption text-medium-emphasis">
+                        保存至 {{ new Date(summary.expiresAt).toLocaleDateString('zh-TW') }}
+                    </p>
+                </v-card-text>
+            </v-card>
 
-                <v-card
-                    v-if="summary"
-                    class="mb-4"
-                >
-                    <v-card-title>{{ summary.content.title }}</v-card-title>
-                    <v-card-text>
-                        <p class="mb-4">
-                            {{ summary.content.summary }}
-                        </p>
-                        <p
-                            v-if="summary.pointsDeducted === 0"
-                            class="text-caption"
-                        >
-                            你已取得過這組結果，本次不扣點。
-                        </p>
-                        <p class="text-caption text-medium-emphasis">
-                            {{ summary.content.disclaimer }}
-                        </p>
-                        <p class="text-caption text-medium-emphasis">
-                            保存至 {{ new Date(summary.expiresAt).toLocaleDateString('zh-TW') }}
-                        </p>
-                    </v-card-text>
-                </v-card>
-
-                <v-checkbox
-                    v-model="includeBloodType"
-                    label="納入血型（已填寫血型時）"
-                    hide-details
-                />
-                <v-btn
-                    color="primary"
-                    class="mt-2"
-                    :loading="loading"
-                    @click="obtain"
-                >
-                    取得簡易 summary（1 點）
-                </v-btn>
-            </template>
-        </v-container>
-    </v-main>
+            <v-checkbox
+                v-model="includeBloodType"
+                label="納入血型（已填寫血型時）"
+                hide-details
+            />
+            <v-btn
+                color="primary"
+                class="mt-2"
+                :loading="loading"
+                @click="obtain"
+            >
+                取得簡易 summary（1 點）
+            </v-btn>
+        </template>
+    </div>
 </template>
 
 <script lang="ts" setup>

@@ -1,219 +1,253 @@
 <template>
-    <v-main>
-        <v-container class="py-6">
-            <h1 class="text-h5 mb-4">
-                個人中心
-            </h1>
+    <div>
+        <h1 class="text-h5 mb-4">
+            個人中心
+        </h1>
 
-            <v-alert
-                v-if="!isAuthenticated"
-                type="info"
-                variant="tonal"
+        <v-alert
+            v-if="!isAuthenticated"
+            type="info"
+            variant="tonal"
+        >
+            請先登入。
+            <v-btn
+                class="ml-2"
+                color="primary"
+                @click="signInWithGoogle"
             >
-                請先登入。
-                <v-btn
-                    class="ml-2"
-                    color="primary"
-                    @click="signInWithGoogle"
-                >
-                    以 Google 登入
-                </v-btn>
+                以 Google 登入
+            </v-btn>
+        </v-alert>
+
+        <template v-else>
+            <v-alert
+                v-if="loadError"
+                type="error"
+                variant="tonal"
+                class="mb-4"
+            >
+                {{ loadError }}
             </v-alert>
 
-            <template v-else>
-                <v-alert
-                    v-if="loadError"
-                    type="error"
-                    variant="tonal"
-                    class="mb-4"
-                >
-                    {{ loadError }}
-                </v-alert>
+            <v-card class="mb-4">
+                <v-card-title>我的資料</v-card-title>
+                <v-card-text>
+                    <v-btn
+                        to="/profile"
+                        variant="text"
+                    >
+                        查看或修改出生日期、血型、出生時間與地點
+                    </v-btn>
+                </v-card-text>
+            </v-card>
 
-                <v-card class="mb-4">
-                    <v-card-title>點數</v-card-title>
-                    <v-card-text>
-                        可用 {{ balance?.availableBalance ?? '—' }} 點
-                        <v-btn
-                            class="ml-2"
-                            to="/points"
-                            variant="text"
-                        >
-                            明細
-                        </v-btn>
-                        <v-btn
-                            to="/purchase"
-                            variant="text"
-                        >
-                            購買
-                        </v-btn>
-                    </v-card-text>
-                </v-card>
+            <v-card class="mb-4">
+                <v-card-title>點數</v-card-title>
+                <v-card-text>
+                    可用 {{ balance?.availableBalance ?? '—' }} 點
+                    <v-btn
+                        class="ml-2"
+                        to="/points"
+                        variant="text"
+                    >
+                        明細
+                    </v-btn>
+                    <v-btn
+                        to="/purchase"
+                        variant="text"
+                    >
+                        購買
+                    </v-btn>
+                </v-card-text>
+            </v-card>
 
-                <v-card class="mb-4">
-                    <v-card-title>測驗結果（保存 3 個月）</v-card-title>
-                    <v-card-text>
-                        <p v-if="!attempts.length">
-                            尚無測驗結果。
-                        </p>
-                        <v-list v-else>
-                            <v-list-item
-                                v-for="item in attempts"
-                                :key="item.attemptId"
-                                :title="`${item.result} · ${formatDate(item.completedAt)}`"
-                                :subtitle="`保存至 ${formatDate(item.expiresAt)}`"
-                            />
-                        </v-list>
-                        <v-btn
-                            to="/test"
-                            variant="text"
-                        >
-                            重新測驗
-                        </v-btn>
-                    </v-card-text>
-                </v-card>
-
-                <v-card class="mb-4">
-                    <v-card-title>簡易 summary（保存 3 個月）</v-card-title>
-                    <v-card-text>
-                        <p v-if="!summaries.length">
-                            尚未取得。
-                        </p>
-                        <v-list v-else>
-                            <v-list-item
-                                v-for="item in summaries"
-                                :key="item.summaryId"
-                                :title="item.content.title"
-                                :subtitle="`保存至 ${formatDate(item.expiresAt)}`"
-                            >
-                                <template #append>
-                                    <ShareButton
-                                        source="SUMMARY"
-                                        :reference-id="item.summaryId"
-                                    />
-                                </template>
-                            </v-list-item>
-                        </v-list>
-                        <v-btn
-                            to="/summary"
-                            variant="text"
-                        >
-                            取得 summary
-                        </v-btn>
-                    </v-card-text>
-                </v-card>
-
-                <v-card class="mb-4">
-                    <v-card-title>付款紀錄</v-card-title>
-                    <v-card-text>
-                        <p v-if="!payments.length">
-                            尚無付款紀錄。
-                        </p>
-                        <v-list v-else>
-                            <v-list-item
-                                v-for="item in payments"
-                                :key="item.paymentId"
-                                :title="`${item.pointsPurchased} 點 · ${item.amount.amount} ${item.amount.currency}`"
-                                :subtitle="`${statusLabel[item.status]} · ${formatDate(item.createdAt)}`"
-                            />
-                        </v-list>
-                    </v-card-text>
-                </v-card>
-
-                <v-card>
-                    <v-card-title>資料管理</v-card-title>
-                    <v-card-text>
-                        <p class="mb-2">
-                            刪除所選資料（不影響點數與付款）：
-                        </p>
-                        <v-checkbox
-                            v-for="option in scopeOptions"
-                            :key="option.value"
-                            v-model="selectedScopes"
-                            :label="option.label"
-                            :value="option.value"
-                            hide-details
-                            density="compact"
+            <v-card class="mb-4">
+                <v-card-title>測驗結果（保存 3 個月）</v-card-title>
+                <v-card-text>
+                    <p v-if="!attempts.length">
+                        尚無測驗結果。
+                    </p>
+                    <v-list v-else>
+                        <v-list-item
+                            v-for="item in attempts"
+                            :key="item.attemptId"
+                            :title="`${item.result} · ${formatDate(item.completedAt)}`"
+                            :subtitle="`保存至 ${formatDate(item.expiresAt)}`"
                         />
-                        <v-btn
-                            class="mt-2"
-                            :disabled="!selectedScopes.length"
-                            @click="confirmData = true"
+                    </v-list>
+                    <v-btn
+                        to="/test"
+                        variant="text"
+                    >
+                        重新測驗
+                    </v-btn>
+                </v-card-text>
+            </v-card>
+
+            <v-card class="mb-4">
+                <v-card-title>簡易 summary（保存 3 個月）</v-card-title>
+                <v-card-text>
+                    <p v-if="!summaries.length">
+                        尚未取得。
+                    </p>
+                    <v-list v-else>
+                        <v-list-item
+                            v-for="item in summaries"
+                            :key="item.summaryId"
+                            :title="item.content.title"
+                            :subtitle="`保存至 ${formatDate(item.expiresAt)}`"
                         >
-                            刪除所選資料
-                        </v-btn>
+                            <template #append>
+                                <ShareButton
+                                    source="SUMMARY"
+                                    :reference-id="item.summaryId"
+                                />
+                            </template>
+                        </v-list-item>
+                    </v-list>
+                    <v-btn
+                        to="/summary"
+                        variant="text"
+                    >
+                        取得 summary
+                    </v-btn>
+                </v-card-text>
+            </v-card>
 
-                        <v-divider class="my-4" />
+            <v-card class="mb-4">
+                <v-card-title>人類圖（保存 3 個月）</v-card-title>
+                <v-card-text>
+                    <v-btn
+                        to="/human-design"
+                        variant="text"
+                    >
+                        查看或計算人類圖
+                    </v-btn>
+                </v-card-text>
+            </v-card>
 
-                        <p class="mb-2">
-                            刪除帳號會移除你的全部資料（含付款紀錄）。未用的點數會失效且不退款。
-                        </p>
-                        <v-btn
-                            color="error"
-                            @click="confirmAccount = true"
-                        >
-                            刪除帳號
-                        </v-btn>
-                    </v-card-text>
-                </v-card>
-            </template>
+            <v-card class="mb-4">
+                <v-card-title>詳細分析（保存 6 個月）</v-card-title>
+                <v-card-text>
+                    <v-btn
+                        to="/report"
+                        variant="text"
+                    >
+                        查看或產生詳細分析
+                    </v-btn>
+                </v-card-text>
+            </v-card>
 
-            <v-dialog
-                v-model="confirmData"
-                max-width="420"
-            >
-                <v-card>
-                    <v-card-title>確定刪除所選資料？</v-card-title>
-                    <v-card-text>刪除後無法復原。</v-card-text>
-                    <v-card-actions>
-                        <v-spacer />
-                        <v-btn @click="confirmData = false">
-                            取消
-                        </v-btn>
-                        <v-btn
-                            color="error"
-                            :loading="deleting"
-                            @click="deleteData"
-                        >
-                            刪除
-                        </v-btn>
-                    </v-card-actions>
-                </v-card>
-            </v-dialog>
+            <v-card class="mb-4">
+                <v-card-title>付款紀錄</v-card-title>
+                <v-card-text>
+                    <p v-if="!payments.length">
+                        尚無付款紀錄。
+                    </p>
+                    <v-list v-else>
+                        <v-list-item
+                            v-for="item in payments"
+                            :key="item.paymentId"
+                            :title="`${item.pointsPurchased} 點 · ${item.amount.amount} ${item.amount.currency}`"
+                            :subtitle="`${statusLabel[item.status]} · ${formatDate(item.createdAt)}`"
+                        />
+                    </v-list>
+                </v-card-text>
+            </v-card>
 
-            <v-dialog
-                v-model="confirmAccount"
-                max-width="420"
-            >
-                <v-card>
-                    <v-card-title>確定刪除帳號？</v-card-title>
-                    <v-card-text>
-                        你目前有 {{ balance?.availableBalance ?? 0 }} 點，刪除後將失效且不退款。此操作無法復原。
-                    </v-card-text>
-                    <v-card-actions>
-                        <v-spacer />
-                        <v-btn @click="confirmAccount = false">
-                            取消
-                        </v-btn>
-                        <v-btn
-                            color="error"
-                            :loading="deleting"
-                            @click="deleteAccount"
-                        >
-                            永久刪除
-                        </v-btn>
-                    </v-card-actions>
-                </v-card>
-            </v-dialog>
+            <v-card>
+                <v-card-title>資料管理</v-card-title>
+                <v-card-text>
+                    <p class="mb-2">
+                        刪除所選資料（不影響點數與付款）：
+                    </p>
+                    <v-checkbox
+                        v-for="option in scopeOptions"
+                        :key="option.value"
+                        v-model="selectedScopes"
+                        :label="option.label"
+                        :value="option.value"
+                        hide-details
+                        density="compact"
+                    />
+                    <v-btn
+                        class="mt-2"
+                        :disabled="!selectedScopes.length"
+                        @click="confirmData = true"
+                    >
+                        刪除所選資料
+                    </v-btn>
 
-            <v-snackbar
-                v-model="snackbar"
-                :color="snackbarColor"
-            >
-                {{ message }}
-            </v-snackbar>
-        </v-container>
-    </v-main>
+                    <v-divider class="my-4" />
+
+                    <p class="mb-2">
+                        刪除帳號會移除你的全部資料（含付款紀錄）。未用的點數會失效且不退款。
+                    </p>
+                    <v-btn
+                        color="error"
+                        @click="confirmAccount = true"
+                    >
+                        刪除帳號
+                    </v-btn>
+                </v-card-text>
+            </v-card>
+        </template>
+
+        <v-dialog
+            v-model="confirmData"
+            max-width="420"
+        >
+            <v-card>
+                <v-card-title>確定刪除所選資料？</v-card-title>
+                <v-card-text>刪除後無法復原。</v-card-text>
+                <v-card-actions>
+                    <v-spacer />
+                    <v-btn @click="confirmData = false">
+                        取消
+                    </v-btn>
+                    <v-btn
+                        color="error"
+                        :loading="deleting"
+                        @click="deleteData"
+                    >
+                        刪除
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
+        <v-dialog
+            v-model="confirmAccount"
+            max-width="420"
+        >
+            <v-card>
+                <v-card-title>確定刪除帳號？</v-card-title>
+                <v-card-text>
+                    你目前有 {{ balance?.availableBalance ?? 0 }} 點，刪除後將失效且不退款。此操作無法復原。
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer />
+                    <v-btn @click="confirmAccount = false">
+                        取消
+                    </v-btn>
+                    <v-btn
+                        color="error"
+                        :loading="deleting"
+                        @click="deleteAccount"
+                    >
+                        永久刪除
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
+        <v-snackbar
+            v-model="snackbar"
+            :color="snackbarColor"
+        >
+            {{ message }}
+        </v-snackbar>
+    </div>
 </template>
 
 <script lang="ts" setup>
