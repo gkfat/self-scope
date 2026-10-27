@@ -2,7 +2,9 @@ import type {
     BirthData, ProfileInput, ProfileResponse,
 } from '../../shared/schemas/api/profile.schema';
 import type { GuestProfileResponse } from '../../shared/schemas/api/guest.schema';
-import type { BloodType } from '../../shared/schemas/common';
+import type {
+    BloodType, Gender,
+} from '../../shared/schemas/common';
 import {
     explorationProgress, type ExplorationFacts,
 } from '../../shared/utils/explorationProgress';
@@ -14,12 +16,15 @@ export type ProfileForm = {
     birthTime: string;
     birthPlace: string | null;
     bloodType: BloodType;
+    /** Optional; only the BaZi luck cycles use it */
+    gender: Gender | null;
 };
 
 type ExplorationState = {
     loaded: boolean;
     birthData: BirthData | null;
     bloodType: BloodType;
+    gender: Gender | null;
     mbti: string | null;
     hasHumanDesign: boolean;
 };
@@ -41,6 +46,7 @@ export const useExploration = () => {
         loaded: false,
         birthData: null,
         bloodType: 'UNKNOWN',
+        gender: null,
         mbti: null,
         hasHumanDesign: false,
     }));
@@ -54,6 +60,7 @@ export const useExploration = () => {
 
     const facts = computed<ExplorationFacts>(() => ({
         birthDate: state.value.birthData?.birthDate ?? null,
+        birthTime: state.value.birthData?.birthTime ?? null,
         bloodType: state.value.bloodType,
         mbti: state.value.mbti,
         hasHumanDesign: state.value.hasHumanDesign,
@@ -65,6 +72,7 @@ export const useExploration = () => {
             loaded: true,
             birthData: null,
             bloodType: 'UNKNOWN',
+            gender: null,
             mbti: null,
             hasHumanDesign: false,
         };
@@ -86,6 +94,7 @@ export const useExploration = () => {
             loaded: true,
             birthData: profile.birthData,
             bloodType: profile.bloodType,
+            gender: profile.gender,
             mbti: profile.mbti,
             hasHumanDesign,
         };
@@ -108,6 +117,7 @@ export const useExploration = () => {
                 loaded: true,
                 birthData: profile.birthData,
                 bloodType: profile.bloodType,
+                gender: profile.gender,
                 mbti: profile.mbti,
                 hasHumanDesign: profile.hasHumanDesign,
             };
@@ -147,6 +157,7 @@ export const useExploration = () => {
                 birthPlace: form.birthPlace,
             },
             bloodType: form.bloodType,
+            gender: form.gender,
         };
 
         if (isAuthenticated.value) {

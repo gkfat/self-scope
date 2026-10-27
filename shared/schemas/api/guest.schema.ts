@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import {
-    bloodTypeSchema, mbtiTypeSchema, 
+    bloodTypeSchema, genderSchema, mbtiTypeSchema,
 } from '../common';
 import { guestSessionIdSchema } from '../firestore/guestSession.schema';
 import { birthDataSchema } from './profile.schema';
@@ -18,6 +18,7 @@ export const guestProfileResponseSchema = z.object({
     bloodType: bloodTypeSchema,
     /** From the guest's test result, or the type they entered themselves */
     mbti: mbtiTypeSchema.nullable(),
+    gender: genderSchema.nullable(),
     hasHumanDesign: z.boolean(),
 });
 

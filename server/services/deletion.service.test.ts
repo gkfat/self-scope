@@ -11,7 +11,7 @@ vi.mock('../utils/firebaseAdmin', () => ({ getAdminFirestore: () => holder.db })
 
 async function seed(db: FakeFirestore) {
     await db.doc('users/u1').set({
-        email: 'a@example.com', mbti: 'INTJ', mbtiExpiresAt: 1, updatedAt: 0,
+        email: 'a@example.com', mbti: 'INTJ', mbtiExpiresAt: 1, gender: 'MALE', updatedAt: 0,
     });
     await db.doc('users/u1/testAttempts/a1').set({ result: 'INTJ' });
     await db.doc('users/u1/summaries/s1').set({ x: 1 });
@@ -93,6 +93,12 @@ describe('DeletionService.deleteAccount', () => {
 
         expect(db.paths().filter((p) => p.startsWith('users/u1'))).toEqual([]);
         expect(deleteAuthUser).toHaveBeenCalledWith('u1');
+    });
+
+    it('removes the gender together with the profile', async () => {
+        await new DeletionService({ deleteAuthUser: async () => undefined }).deleteAccount('u1');
+
+        expect((await db.doc('users/u1').get()).exists).toBe(false);
     });
 
     it('keeps the welcome-grant ledger and other users', async () => {

@@ -37,7 +37,7 @@ export class ProfileService extends BaseService {
     }
 
     /**
-     * Replace the birth data and blood type. MBTI semantics:
+     * Replace the birth data, blood type and gender (gender is optional and defaults to not provided). MBTI semantics:
      * - undefined: keep the stored value (it may come from a test result)
      * - null: clear it
      * - a value: set it; the 3-month expiry restarts only when the value changes
@@ -65,6 +65,7 @@ export class ProfileService extends BaseService {
                 birthPlace: input.birthData.birthPlace ?? null,
             },
             bloodType: input.bloodType,
+            gender: input.gender,
             mbti,
             mbtiExpiresAt,
         });
@@ -84,6 +85,8 @@ export class ProfileService extends BaseService {
             birthData: user.birthData,
             bloodType: user.bloodType,
             mbti: user.mbti,
+            // Documents saved before the field existed have no gender
+            gender: user.gender ?? null,
         };
     }
 }

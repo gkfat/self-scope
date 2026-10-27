@@ -6,20 +6,29 @@ import {
 } from './explorationProgress';
 
 const none: ExplorationFacts = {
-    birthDate: null, bloodType: 'UNKNOWN', mbti: null, hasHumanDesign: false,
+    birthDate: null, birthTime: null, bloodType: 'UNKNOWN', mbti: null, hasHumanDesign: false,
 };
 
 describe('explorationProgress', () => {
     it('starts with nothing done and suggests the zodiac first', () => {
         expect(explorationProgress(none)).toEqual({
             done: {
-                ZODIAC: false, BLOOD: false, MBTI: false, HUMAN_DESIGN: false, NUMEROLOGY: false,
+                ZODIAC: false, BLOOD: false, MBTI: false, HUMAN_DESIGN: false, NUMEROLOGY: false, BAZI: false,
             },
             completed: 0,
-            total: 5,
+            total: 6,
             multiDimensionUnlocked: false,
             next: 'ZODIAC',
         });
+    });
+
+    it('needs the birth time for the BaZi chart', () => {
+        expect(explorationProgress({
+            ...none, birthDate: '1990-01-01',
+        }).done.BAZI).toBe(false);
+        expect(explorationProgress({
+            ...none, birthDate: '1990-01-01', birthTime: '12:00',
+        }).done.BAZI).toBe(true);
     });
 
     it('treats an unknown blood type as not done', () => {
@@ -60,10 +69,10 @@ describe('explorationProgress', () => {
 
     it('has nothing to suggest when everything is done', () => {
         const all = explorationProgress({
-            birthDate: '1990-01-01', bloodType: 'O', mbti: 'INTJ', hasHumanDesign: true,
+            birthDate: '1990-01-01', birthTime: '12:00', bloodType: 'O', mbti: 'INTJ', hasHumanDesign: true,
         });
 
-        expect(all.completed).toBe(5);
+        expect(all.completed).toBe(6);
         expect(all.next).toBeNull();
     });
 });

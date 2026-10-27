@@ -64,6 +64,35 @@ describe('profileInputSchema', () => {
         expect(result.mbti).toBeUndefined();
     });
 
+    it('defaults gender to not provided', () => {
+        expect(profileInputSchema.parse({ birthData: valid }).gender).toBeNull();
+    });
+
+    it('accepts MALE, FEMALE and an explicit null', () => {
+        for (const gender of [
+            'MALE',
+            'FEMALE',
+            null,
+        ] as const) {
+            expect(profileInputSchema.parse({
+                birthData: valid, gender,
+            }).gender).toBe(gender);
+        }
+    });
+
+    it('rejects any other gender value', () => {
+        for (const gender of [
+            'male',
+            'OTHER',
+            '',
+            1,
+        ]) {
+            expect(profileInputSchema.safeParse({
+                birthData: valid, gender,
+            }).success).toBe(false);
+        }
+    });
+
     it('rejects an unknown blood type or mbti', () => {
         expect(profileInputSchema.safeParse({
             birthData: valid, bloodType: 'C',

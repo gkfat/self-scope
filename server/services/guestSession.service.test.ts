@@ -29,6 +29,7 @@ const profile: ProfileInput = {
         birthPlace: null,
     },
     bloodType: 'O',
+    gender: null,
 };
 
 const testResult: TestResult = {
@@ -131,7 +132,7 @@ describe('GuestSessionService', () => {
             const { sessionId } = await service.create();
 
             expect(await service.getProfile(sessionId)).toEqual({
-                birthData: null, bloodType: 'UNKNOWN', mbti: null, hasHumanDesign: false,
+                birthData: null, bloodType: 'UNKNOWN', mbti: null, gender: null, hasHumanDesign: false,
             });
 
             await service.saveProfile(sessionId, profile);
@@ -200,6 +201,39 @@ describe('GuestSessionService', () => {
             expect(user?.bloodType).toBe('O');
             expect(user?.mbti).toBe('INTJ');
             expect(user?.mbtiExpiresAt).toBe(addMonths(NOW, 3));
+        });
+
+        it('carries the guest\'s gender over into the empty profile', async () => {
+            await db.doc('users/u1').set(emptyUser);
+
+            const { sessionId } = await service.create();
+            await service.saveProfile(sessionId, {
+                ...profile, gender: 'MALE',
+            });
+
+            expect((await service.getProfile(sessionId)).gender).toBe('MALE');
+
+            await service.claim(sessionId, 'u1');
+
+            expect((await db.doc('users/u1').get()).data()?.gender).toBe('MALE');
+        });
+
+        it('does not replace the gender of a user who already saved a profile', async () => {
+            await db.doc('users/u1').set({
+                ...emptyUser,
+                birthData: {
+                    birthDate: '1980-01-01', zodiac: 'capricorn', birthTime: null, birthPlace: null,
+                },
+                gender: 'FEMALE',
+            });
+
+            const { sessionId } = await service.create();
+            await service.saveProfile(sessionId, {
+                ...profile, gender: 'MALE',
+            });
+            await service.claim(sessionId, 'u1');
+
+            expect((await db.doc('users/u1').get()).data()?.gender).toBe('FEMALE');
         });
 
         describe('human design', () => {

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import {
-    bloodTypeSchema, isRealDate, isoDateSchema, mbtiTypeSchema, timeOfDaySchema, zodiacSchema,
+    bloodTypeSchema, genderSchema, isRealDate, isoDateSchema, mbtiTypeSchema, timeOfDaySchema, zodiacSchema,
 } from '../common';
 import { findCity } from '../../constants/cities';
 import { zodiacFromIsoDate } from '../../utils/zodiac';
@@ -54,6 +54,8 @@ export const profileInputSchema = z.object({
     birthData: birthDataSchema,
     bloodType: bloodTypeSchema.default('UNKNOWN'),
     mbti: mbtiTypeSchema.nullable().optional(),
+    /** Only used to choose the direction of the BaZi luck cycles; null means not provided. */
+    gender: genderSchema.nullable().default(null),
 });
 
 export const profileResponseSchema = z.object({
@@ -62,6 +64,7 @@ export const profileResponseSchema = z.object({
     birthData: birthDataSchema.nullable(),
     bloodType: bloodTypeSchema,
     mbti: mbtiTypeSchema.nullable(),
+    gender: genderSchema.nullable(),
 });
 
 export type BirthData = z.infer<typeof birthDataSchema>;

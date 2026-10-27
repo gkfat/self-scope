@@ -213,6 +213,7 @@ describe('HumanDesignService', () => {
                     birthDate: '1990-06-15', zodiac: 'gemini', birthTime: '12:00', birthPlace: 'es-madrid',
                 },
                 bloodType: 'UNKNOWN',
+                gender: null,
             });
 
             const response = await service.calculate({}, {

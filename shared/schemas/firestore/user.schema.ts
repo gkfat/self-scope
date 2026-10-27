@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import {
-    bloodTypeSchema, epochMsSchema, mbtiTypeSchema,
+    bloodTypeSchema, epochMsSchema, genderSchema, mbtiTypeSchema,
 } from '../common';
 import { birthDataSchema } from '../api/profile.schema';
 
@@ -11,6 +11,8 @@ export const userDocSchema = z.object({
     birthData: birthDataSchema.nullable(),
     bloodType: bloodTypeSchema,
     mbti: mbtiTypeSchema.nullable(),
+    /** Optional; documents written before the field existed read as null. */
+    gender: genderSchema.nullable().default(null),
     /** MBTI expires 3 months after it was set (RULE-014); cleared by the expiry job. */
     mbtiExpiresAt: epochMsSchema.nullable(),
     createdAt: epochMsSchema,

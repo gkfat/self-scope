@@ -58,15 +58,20 @@ export const NUMEROLOGY_NUMBERS = [
     '33',
 ] as const;
 
+/** Only used to pick the direction of the BaZi luck cycles; optional everywhere. */
+export const GENDERS = ['MALE', 'FEMALE'] as const;
+
 export const zodiacSchema = z.enum(ZODIACS);
 export const numerologySchema = z.enum(NUMEROLOGY_NUMBERS);
 export const bloodTypeSchema = z.enum(BLOOD_TYPES);
 export const mbtiTypeSchema = z.enum(MBTI_TYPES);
+export const genderSchema = z.enum(GENDERS);
 
 export type Zodiac = z.infer<typeof zodiacSchema>;
 export type NumerologyNumber = z.infer<typeof numerologySchema>;
 export type BloodType = z.infer<typeof bloodTypeSchema>;
 export type MbtiType = z.infer<typeof mbtiTypeSchema>;
+export type Gender = z.infer<typeof genderSchema>;
 
 /** Calendar date, YYYY-MM-DD. Real-date validity is checked separately. */
 export const isoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected YYYY-MM-DD');

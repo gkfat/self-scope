@@ -125,6 +125,7 @@ export class GuestSessionService extends BaseService {
             birthData: session.tempProfile?.birthData ?? null,
             bloodType: session.tempProfile?.bloodType ?? 'UNKNOWN',
             mbti: session.tempResults?.test?.result ?? session.tempProfile?.mbti ?? null,
+            gender: session.tempProfile?.gender ?? null,
             hasHumanDesign: session.tempResults?.humanDesign != null,
         };
     }
@@ -196,6 +197,7 @@ export class GuestSessionService extends BaseService {
                     birthPlace: session.tempProfile.birthData.birthPlace ?? null,
                 };
                 userPatch.bloodType = session.tempProfile.bloodType;
+                userPatch.gender = session.tempProfile.gender ?? null;
             }
 
             const test = session.tempResults?.test ?? null;

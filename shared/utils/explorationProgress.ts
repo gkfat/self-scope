@@ -6,6 +6,7 @@ export const EXPLORATION_LAYERS = [
     'MBTI',
     'HUMAN_DESIGN',
     'NUMEROLOGY',
+    'BAZI',
 ] as const;
 
 export type ExplorationLayer = typeof EXPLORATION_LAYERS[number];
@@ -13,6 +14,8 @@ export type ExplorationLayer = typeof EXPLORATION_LAYERS[number];
 /** What is known about the visitor, whether a signed-in member or a guest. */
 export type ExplorationFacts = {
     birthDate: string | null;
+    /** HH:mm; the BaZi chart needs it */
+    birthTime: string | null;
     bloodType: BloodType;
     mbti: string | null;
     hasHumanDesign: boolean;
@@ -46,6 +49,8 @@ export function explorationProgress(facts: ExplorationFacts): ExplorationProgres
         HUMAN_DESIGN: facts.hasHumanDesign,
         // The life path number comes from the birth date alone
         NUMEROLOGY: facts.birthDate !== null,
+        // The four pillars need the birth hour
+        BAZI: facts.birthDate !== null && facts.birthTime !== null,
     };
 
     return {

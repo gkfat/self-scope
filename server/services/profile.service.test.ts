@@ -17,6 +17,7 @@ const baseUser: UserDoc = {
     email: 'a@example.com',
     birthData: null,
     bloodType: 'UNKNOWN',
+    gender: null,
     mbti: null,
     mbtiExpiresAt: null,
     createdAt: NOW,
@@ -31,6 +32,7 @@ const input: ProfileInput = {
         birthPlace: 'tw-taipei',
     },
     bloodType: 'A',
+    gender: null,
 };
 
 describe('ProfileService', () => {
@@ -51,6 +53,7 @@ describe('ProfileService', () => {
             birthData: null,
             bloodType: 'UNKNOWN',
             mbti: null,
+            gender: null,
         });
     });
 
@@ -68,6 +71,28 @@ describe('ProfileService', () => {
             birthPlace: 'tw-taipei',
         });
         expect(profile.bloodType).toBe('A');
+    });
+
+    it('stores the gender when given and clears it when the next save leaves it out', async () => {
+        const saved = await service.updateProfile('u1', {
+            ...input, gender: 'FEMALE',
+        });
+
+        expect(saved.gender).toBe('FEMALE');
+        expect((await service.getProfile('u1')).gender).toBe('FEMALE');
+
+        const cleared = await service.updateProfile('u1', input);
+
+        expect(cleared.gender).toBeNull();
+    });
+
+    it('reads a user saved before the gender field existed as not provided', async () => {
+        const legacy: Partial<UserDoc> = { ...baseUser };
+
+        delete legacy.gender;
+        await db.doc('users/u2').set(legacy);
+
+        expect((await service.getProfile('u2')).gender).toBeNull();
     });
 
     it('sets mbti with a 3-month expiry', async () => {

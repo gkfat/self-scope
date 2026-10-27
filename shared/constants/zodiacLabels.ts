@@ -1,5 +1,5 @@
 import type {
-    BloodType, Zodiac,
+    BloodType, Gender, Zodiac,
 } from '../schemas/common';
 
 /** Traditional Chinese names shown to members. */
@@ -16,6 +16,11 @@ export const ZODIAC_LABELS: Record<Zodiac, string> = {
     capricorn: '摩羯座',
     aquarius: '水瓶座',
     pisces: '雙魚座',
+};
+
+export const GENDER_LABELS: Record<Gender, string> = {
+    MALE: '男',
+    FEMALE: '女',
 };
 
 export const BLOOD_TYPE_LABELS: Record<BloodType, string> = {

@@ -89,6 +89,7 @@ export class AccountService extends BaseService {
                 birthData: null,
                 bloodType: 'UNKNOWN',
                 mbti: null,
+                gender: null,
                 mbtiExpiresAt: null,
                 createdAt: now,
                 updatedAt: now,

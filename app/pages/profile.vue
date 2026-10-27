@@ -15,15 +15,33 @@
         </v-card>
 
         <v-card class="mb-4">
-            <v-card-title>血型</v-card-title>
+            <v-card-title>血型與性別</v-card-title>
             <v-card-text>
-                <v-select
-                    v-model="form.bloodType"
-                    :items="bloodTypeItems"
-                    label="血型"
-                    hint="不知道也沒關係，之後想補再回來填"
-                    persistent-hint
-                />
+                <v-row>
+                    <v-col
+                        cols="12"
+                        md="6"
+                    >
+                        <v-select
+                            v-model="form.bloodType"
+                            :items="bloodTypeItems"
+                            label="血型"
+                            persistent-hint
+                        />
+                    </v-col>
+                    <v-col
+                        cols="12"
+                        md="6"
+                    >
+                        <v-select
+                            v-model="form.gender"
+                            :items="genderItems"
+                            label="性別（選填）"
+                            hint="只用來決定八字大運的排法"
+                            persistent-hint
+                        />
+                    </v-col>
+                </v-row>
             </v-card-text>
         </v-card>
 
@@ -90,9 +108,11 @@
 
 <script lang="ts" setup>
 import {
-    BLOOD_TYPE_LABELS, ZODIAC_LABELS,
+    BLOOD_TYPE_LABELS, GENDER_LABELS, ZODIAC_LABELS,
 } from '../../shared/constants/zodiacLabels';
-import { BLOOD_TYPES } from '../../shared/schemas/common';
+import {
+    BLOOD_TYPES, GENDERS, type Gender,
+} from '../../shared/schemas/common';
 import { zodiacFromIsoDate } from '../../shared/utils/zodiac';
 
 useHead({ title: '我的資料' });
@@ -114,6 +134,7 @@ const form = reactive({
     birthTime: DEFAULT_BIRTH_TIME,
     birthPlace: DEFAULT_BIRTH_PLACE as string | null,
     bloodType: 'UNKNOWN' as (typeof BLOOD_TYPES)[number],
+    gender: null as Gender | null,
 });
 const withTimeAndPlace = ref(false);
 const saving = ref(false);
@@ -124,6 +145,15 @@ const bloodTypeItems = BLOOD_TYPES.map((value) => ({
     title: BLOOD_TYPE_LABELS[value], value,
 }));
 
+const genderItems = [
+    {
+        title: '不提供', value: null,
+    },
+    ...GENDERS.map((value) => ({
+        title: GENDER_LABELS[value], value,
+    })),
+];
+
 const zodiacText = computed(() => (form.birthDate ? ZODIAC_LABELS[zodiacFromIsoDate(form.birthDate)] : '請選擇出生日期'));
 const canSave = computed(() => form.birthDate !== '' && (!withTimeAndPlace.value || (form.birthTime !== '' && form.birthPlace !== null)));
 
@@ -132,6 +162,7 @@ function fillFromSaved() {
     const birth = state.value.birthData;
 
     form.bloodType = state.value.bloodType;
+    form.gender = state.value.gender;
 
     if (!birth) return;
 
@@ -151,6 +182,7 @@ async function save() {
             birthTime: withTimeAndPlace.value ? form.birthTime : '',
             birthPlace: withTimeAndPlace.value ? form.birthPlace : null,
             bloodType: form.bloodType,
+            gender: form.gender,
         });
         saved.value = true;
     } catch (error) {
