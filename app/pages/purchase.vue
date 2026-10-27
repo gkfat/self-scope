@@ -4,22 +4,7 @@
             購買點數
         </h1>
 
-        <v-alert
-            v-if="!isAuthenticated"
-            type="info"
-            variant="tonal"
-        >
-            購買點數需先登入。
-            <v-btn
-                class="ml-2"
-                color="primary"
-                @click="signInWithGoogle"
-            >
-                以 Google 登入
-            </v-btn>
-        </v-alert>
-
-        <template v-else>
+        <template v-if="isAuthenticated">
             <v-alert
                 v-if="loadError"
                 type="error"
@@ -90,10 +75,12 @@ import type {
 } from '../../shared/schemas/api/payment.schema';
 import { DIGITAL_CONTENT_TERMS_VERSION } from '../../shared/constants/terms';
 
+definePageMeta({ middleware: 'member' });
+
 useHead({ title: '購買點數' });
 
 const {
-    isAuthenticated, signInWithGoogle, initAuthListener,
+    isAuthenticated, initAuthListener,
 } = useAuth();
 const { post } = useApi();
 

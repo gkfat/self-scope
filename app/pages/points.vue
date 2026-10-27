@@ -5,22 +5,7 @@
         </h1>
 
         <v-alert
-            v-if="!isAuthenticated"
-            type="info"
-            variant="tonal"
-        >
-            請先登入以查看點數。
-            <v-btn
-                class="ml-2"
-                color="primary"
-                @click="signInWithGoogle"
-            >
-                以 Google 登入
-            </v-btn>
-        </v-alert>
-
-        <v-alert
-            v-else-if="loadError"
+            v-if="loadError"
             type="error"
             variant="tonal"
         >
@@ -91,10 +76,12 @@ import type {
     PointBalance, PointTransactionList,
 } from '../../shared/schemas/api/points.schema';
 
+definePageMeta({ middleware: 'member' });
+
 useHead({ title: '我的點數' });
 
 const {
-    isAuthenticated, signInWithGoogle,
+    isAuthenticated,
 } = useAuth();
 const { get } = useApi();
 
@@ -119,7 +106,7 @@ const typeLabel = {
 
 const reasonLabel = {
     WELCOME: '註冊贈點',
-    SUMMARY: '取得簡易 summary',
+    SUMMARY: '取得多維度分析報告',
     DETAILED_REPORT: '詳細分析',
     REGENERATE: '重新生成詳細分析',
     DOWNLOAD: '下載報告書',

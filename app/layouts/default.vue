@@ -13,19 +13,6 @@
                 </NuxtLink>
             </v-app-bar-title>
 
-            <template v-if="isAuthenticated && !mobile">
-                <v-btn
-                    v-for="item in navItems"
-                    :key="item.to"
-                    :to="item.to"
-                    :prepend-icon="item.icon"
-                    variant="text"
-                    :active="isActive(item)"
-                >
-                    {{ item.label }}
-                </v-btn>
-            </template>
-
             <v-spacer />
 
             <v-btn
@@ -38,16 +25,22 @@
             >
                 {{ balance ?? '—' }} 點
             </v-btn>
+            <v-btn
+                v-if="isAuthenticated"
+                icon="mdi-menu"
+                variant="text"
+                aria-label="開啟選單"
+                @click="drawer = true"
+            />
             <template v-else-if="initialized">
-                <span class="login-promo mr-3">現在登入即贈送免費 3 點！</span>
+                <span class="login-promo mr-3">現在登入即贈送 3 點！</span>
                 <v-btn
                     size="small"
                     variant="outlined"
                     color="primary"
-                    prepend-icon="mdi-google"
+                    prepend-icon="mdi-login"
                     class="mr-2"
-                    :loading="loading"
-                    @click="signIn"
+                    to="/login"
                 >
                     登入
                 </v-btn>
@@ -55,87 +48,126 @@
         </v-app-bar>
 
         <v-main class="layout-main">
-            <v-container :class="['page', { 'page--with-nav': isAuthenticated && mobile }]">
+            <v-container class="page">
                 <slot />
             </v-container>
         </v-main>
 
-        <v-bottom-navigation
-            v-if="isAuthenticated && mobile"
-            grow
-            color="primary"
+        <v-dialog
+            :model-value="welcomePoints > 0"
+            max-width="400"
+            @update:model-value="dismissWelcome"
         >
-            <v-btn
-                v-for="item in navItems"
-                :key="item.to"
-                :to="item.to"
-                :active="isActive(item)"
+            <v-card>
+                <v-card-title>歡迎加入！</v-card-title>
+                <v-card-text>
+                    你收到系統贈送的 {{ welcomePoints }} 點，可用在多維度分析。贈送的點數自發放日起 {{ WELCOME_BATCH_VALID_DAYS }} 天內有效。
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer />
+                    <v-btn
+                        color="primary"
+                        @click="dismissWelcome"
+                    >
+                        知道了
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
+        <v-navigation-drawer
+            v-if="isAuthenticated"
+            v-model="drawer"
+            location="right"
+            temporary
+        >
+            <v-list
+                nav
+                density="comfortable"
             >
-                <v-icon>{{ item.icon }}</v-icon>
-                <span>{{ item.label }}</span>
-            </v-btn>
-        </v-bottom-navigation>
+                <v-list-item
+                    v-for="item in menuItems"
+                    :key="item.to"
+                    :to="item.to"
+                    :prepend-icon="item.icon"
+                    :title="item.label"
+                    @click="drawer = false"
+                />
+            </v-list>
+            <template #append>
+                <v-divider />
+                <v-list
+                    nav
+                    density="comfortable"
+                >
+                    <v-list-item
+                        v-for="item in accountItems"
+                        :key="item.to"
+                        :to="item.to"
+                        :prepend-icon="item.icon"
+                        :title="item.label"
+                        @click="drawer = false"
+                    />
+                    <v-list-item
+                        prepend-icon="mdi-logout"
+                        title="登出"
+                        @click="logout"
+                    />
+                </v-list>
+            </template>
+        </v-navigation-drawer>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { useDisplay } from 'vuetify';
+import { WELCOME_BATCH_VALID_DAYS } from '../../shared/constants/points';
 
-type NavItem = {
+type MenuItem = {
     to: string;
     label: string;
     icon: string;
-    /** Other routes that belong under this tab */
-    also: string[];
 };
 
-const navItems: NavItem[] = [
+/** What the member does: their data and their reports */
+const menuItems: MenuItem[] = [
     {
-        to: '/',
-        label: '探索',
-        icon: 'mdi-compass-outline',
-        also: ['/profile', '/human-design'],
+        to: '/profile', label: '個人資料', icon: 'mdi-account-outline',
     },
     {
-        to: '/test',
-        label: '測驗',
-        icon: 'mdi-clipboard-text-outline',
-        also: [],
+        to: '/self-reports', label: '自我分析報告', icon: 'mdi-file-document-outline',
     },
     {
-        to: '/synthesis',
-        label: '合成',
-        icon: 'mdi-layers-outline',
-        also: ['/summary', '/report'],
-    },
-    {
-        to: '/me',
-        label: '我的',
-        icon: 'mdi-account-outline',
-        also: ['/points', '/purchase'],
+        to: '/report', label: '多維度分析', icon: 'mdi-layers-outline',
     },
 ];
 
-const { mobile } = useDisplay();
-const route = useRoute();
+/** The account itself: points, payments and settings, kept at the bottom */
+const accountItems: MenuItem[] = [
+    {
+        to: '/points', label: '點數紀錄', icon: 'mdi-circle-multiple-outline',
+    },
+    {
+        to: '/payments', label: '付款紀錄', icon: 'mdi-receipt-text-outline',
+    },
+    {
+        to: '/me', label: '帳號管理', icon: 'mdi-cog-outline',
+    },
+];
+
+const drawer = ref(false);
 const {
-    isAuthenticated, initialized, loading, initAuthListener, signInWithGoogle,
+    isAuthenticated, initialized, initAuthListener, signOut, welcomePoints, dismissWelcome,
 } = useAuth();
 const {
     balance, refresh: refreshPoints, clear: clearPoints,
 } = usePoints();
 const { load: loadExploration } = useExploration();
-const { claim } = useGuestSession();
 
-function isActive(item: NavItem): boolean {
-    if (item.to === '/') return route.path === '/' || item.also.includes(route.path);
-
-    return route.path === item.to || item.also.includes(route.path);
-}
-
-/** Signing in keeps what the visitor did as a guest (FR-032), then refreshes everything shown. */
-async function signIn() {
-    if (await signInWithGoogle()) await claim();
+async function logout() {
+    drawer.value = false;
+    await signOut();
+    // Pages for members only have nothing left to show
+    await navigateTo('/');
 }
 
 // Whoever is looking changes when the sign-in state does: reload what belongs to them.
@@ -187,9 +219,5 @@ watch(initialized, async (ready) => {
 
 .page {
     max-width: 960px;
-}
-
-.page--with-nav {
-    padding-bottom: 88px;
 }
 </style>

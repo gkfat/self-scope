@@ -16,6 +16,9 @@ type AuthState = {
     initialized: boolean;
 };
 
+/** Points the server granted at this sign-in (first login only); the layout shows it once, then resets it. */
+const welcomePoints = ref(0);
+
 const authState = ref<AuthState>({
     user: null,
     idToken: null,
@@ -112,10 +115,12 @@ export const useAuth = () => {
             const { user } = await signInWithPopup(auth, provider);
             const idToken = await user.getIdToken();
 
-            await $fetch<LoginResponse>('/api/auth/login', {
+            const login = await $fetch<LoginResponse>('/api/auth/login', {
                 method: 'POST',
                 body: { idToken },
             });
+
+            welcomePoints.value = login.welcomePointsGranted;
 
             authState.value.idToken = idToken;
             return true;
@@ -182,6 +187,10 @@ export const useAuth = () => {
         initialized: computed(() => authState.value.initialized),
         isAuthenticated: computed(() => !!authState.value.user && !!authState.value.idToken),
 
+        welcomePoints: computed(() => welcomePoints.value),
+        dismissWelcome: () => {
+            welcomePoints.value = 0;
+        },
         signInWithGoogle,
         signOut,
         refreshToken,
