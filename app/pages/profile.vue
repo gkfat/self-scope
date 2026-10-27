@@ -1,13 +1,8 @@
 <template>
     <div>
-        <h1 class="text-h5 mb-1">
+        <h1 class="text-h5 mb-4">
             我的資料
         </h1>
-        <p class="text-body-2 text-medium-emphasis mb-4">
-            填一次，星座、血型、人類圖與合成分析都會用這份資料。
-        </p>
-
-        <GuestNotice />
 
         <v-card class="mb-4">
             <v-card-title>出生日期</v-card-title>
@@ -81,12 +76,6 @@
                 @click="save"
             >
                 儲存資料
-            </v-btn>
-            <v-btn
-                to="/"
-                variant="text"
-            >
-                回探索
             </v-btn>
         </div>
 

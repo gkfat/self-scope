@@ -6,13 +6,13 @@
                 aria-hidden="true"
             />
             <p class="hero__eyebrow">
-                自我分析 · 自我覺察 · 自我了解
+                自我探索 · 自我覺察 · 更了解自己
             </p>
             <h1 class="hero__title">
-                一個你，四種看見的方式
+                我是誰？
             </h1>
             <p class="hero__lead">
-                星座、血型、人類圖、MBTI，每個角度都照見你的一部分。把它們放在一起，從自我覺察開始，慢慢拼出對自己的了解。
+                這個問題沒有單一答案。這裡提供星座、血型、人類圖、MBTI、生命靈數等不同角度，每一個都照見你的一部分；從你好奇的那個開始，慢慢拼出一個更完整、更了解的自己。
             </p>
             <p class="hero__badge">
                 <v-icon size="18">
@@ -20,63 +20,93 @@
                 </v-icon>
                 不用登入，就能做單一維度的簡易分析
             </p>
+            <div
+                v-if="initialized && !isAuthenticated"
+                class="pass"
+            >
+                <v-btn
+                    to="/login"
+                    color="primary"
+                    size="large"
+                    rounded="lg"
+                    class="pass__btn"
+                >
+                    立即登入
+                    <v-icon
+                        icon="mdi-arrow-right"
+                        end
+                        class="pass__arrow"
+                    />
+                </v-btn>
+                <ul class="pass__perks">
+                    <li>
+                        <v-icon
+                            icon="mdi-check-circle-outline"
+                            size="18"
+                        />
+                        保存你的資料與結果
+                    </li>
+                    <li>
+                        <v-icon
+                            icon="mdi-check-circle-outline"
+                            size="18"
+                        />
+                        解鎖多維度分析
+                    </li>
+                </ul>
+                <span class="pass__coin">
+                    <span
+                        class="pass__coin-mark"
+                        aria-hidden="true"
+                    >3</span>
+                    首次登入贈 3 點
+                </span>
+            </div>
         </section>
 
-        <v-row class="mb-2" dense>
-            <v-col
-                v-for="layer in layers"
-                :key="layer.key"
-                cols="12"
-                sm="6"
-                md="3"
-            >
-                <v-card
-                    :to="layer.to"
-                    height="100%"
-                    variant="outlined"
-                    class="dimension"
-                    :style="{ '--tone': layer.tone }"
+        <v-card
+            class="angles mb-6"
+            variant="outlined"
+        >
+            <v-card-text class="pa-5 pa-sm-6">
+                <h2 class="angles__title">
+                    從不同的角度，認識自己
+                </h2>
+                <p class="angles__lead">
+                    一個人很難用單一說法說完。這裡把可以用來認識自己的方法分成兩類，每一類都從不同的方向照見你的一部分。
+                </p>
+
+                <section
+                    v-for="system in systems"
+                    :key="system.key"
+                    class="system"
                 >
-                    <v-card-text class="d-flex flex-column ga-2 h-100">
-                        <div class="d-flex align-center justify-space-between">
-                            <span class="dimension__icon">
-                                <v-icon size="28">{{ layer.icon }}</v-icon>
-                            </span>
-                            <v-chip
-                                v-if="layer.done"
-                                size="small"
-                                color="success"
-                                variant="tonal"
-                                prepend-icon="mdi-check"
-                            >
-                                {{ layer.result }}
-                            </v-chip>
+                    <div class="system__head">
+                        <v-icon
+                            :icon="system.icon"
+                            color="primary"
+                        />
+                        <h3 class="system__title">
+                            {{ system.title }}
+                        </h3>
+                    </div>
+                    <p class="system__purpose">
+                        目的：{{ system.purpose }}
+                    </p>
+                    <div class="system__grid">
+                        <div
+                            v-for="item in system.items"
+                            :key="item.title"
+                            class="angle"
+                            :style="{ '--tone': item.tone }"
+                        >
+                            <span class="angle__title">{{ item.title }}</span>
+                            <span class="angle__text">{{ item.text }}</span>
                         </div>
-
-                        <div class="text-h6 mt-1">
-                            {{ layer.title }}
-                        </div>
-                        <p class="text-body-2 mb-0">
-                            {{ layer.description }}
-                        </p>
-                        <p class="dimension__need text-body-2 mb-0">
-                            <v-icon size="16">
-                                mdi-pencil-outline
-                            </v-icon>
-                            {{ layer.need }}
-                        </p>
-
-                        <v-spacer />
-                        <div class="dimension__action text-body-2 font-weight-medium">
-                            {{ layer.action }}
-                            <v-icon size="16">
-                                mdi-arrow-right
-                            </v-icon>
-                        </div>
-                    </v-card-text>
-                </v-card>
-            </v-col>
-        </v-row>
+                    </div>
+                </section>
+            </v-card-text>
+        </v-card>
 
         <v-card
             id="fill"
@@ -85,7 +115,7 @@
         >
             <v-card-title>現在就填寫，馬上看分析</v-card-title>
             <v-card-subtitle class="text-wrap">
-                填好一項，就能立刻看那一項的分析，不用登入。
+                填好資料，就能到下方「可做的分析」查看，不用登入。
             </v-card-subtitle>
             <v-card-text>
                 <v-row>
@@ -97,22 +127,6 @@
                             出生日期
                         </div>
                         <ProfileBirthDateSelect v-model="birthDateInput" />
-                        <div class="mt-3">
-                            <v-btn
-                                v-if="zodiacSign"
-                                :to="`/analysis/zodiac/${zodiacSign}`"
-                                color="primary"
-                                prepend-icon="mdi-star-four-points-outline"
-                            >
-                                看星座分析（{{ ZODIAC_LABELS[zodiacSign] }}）
-                            </v-btn>
-                            <p
-                                v-else
-                                class="text-body-2 text-medium-emphasis mb-0"
-                            >
-                                選好年、月、日，這裡會出現「看星座分析」。
-                            </p>
-                        </div>
                     </v-col>
                     <v-col
                         cols="12"
@@ -127,22 +141,6 @@
                             label="選擇血型"
                             hide-details
                         />
-                        <div class="mt-3">
-                            <v-btn
-                                v-if="analysableBloodType"
-                                :to="`/analysis/blood/${analysableBloodType}`"
-                                color="primary"
-                                prepend-icon="mdi-water-outline"
-                            >
-                                看血型分析（{{ BLOOD_TYPE_LABELS[analysableBloodType] }}）
-                            </v-btn>
-                            <p
-                                v-else
-                                class="text-body-2 text-medium-emphasis mb-0"
-                            >
-                                選好血型，這裡會出現「看血型分析」。
-                            </p>
-                        </div>
                     </v-col>
                 </v-row>
                 <v-divider class="my-5" />
@@ -175,60 +173,6 @@
                     </v-col>
                 </v-row>
 
-                <v-divider class="my-5" />
-
-                <div class="text-subtitle-2 mb-1">
-                    分析得更深入一點
-                </div>
-                <p class="text-body-2 text-medium-emphasis mb-3">
-                    一個生日，就能看見你的星座特質。再多告訴我們出生的時間和城市，會多出一層只屬於你的細節。想知道最近的你正在經歷什麼，還有跟著現在時間變化的即時分析。
-                </p>
-                <v-row>
-                    <v-col
-                        v-for="tier in tiers"
-                        :key="tier.key"
-                        cols="12"
-                        md="6"
-                    >
-                        <v-card
-                            variant="outlined"
-                            height="100%"
-                        >
-                            <v-card-text class="d-flex flex-column ga-2 h-100">
-                                <div class="d-flex align-center ga-2">
-                                    <v-icon :color="tier.unlocked ? 'primary' : 'grey'">
-                                        {{ tier.unlocked ? tier.icon : 'mdi-lock-outline' }}
-                                    </v-icon>
-                                    <span class="text-subtitle-1 font-weight-medium">{{ tier.title }}</span>
-                                    <v-chip
-                                        v-if="tier.paid"
-                                        size="x-small"
-                                        color="warning"
-                                        variant="tonal"
-                                    >
-                                        點數
-                                    </v-chip>
-                                </div>
-                                <p class="text-body-2 mb-0">
-                                    {{ tier.description }}
-                                </p>
-                                <v-spacer />
-                                <v-btn
-                                    :color="tier.unlocked ? 'primary' : undefined"
-                                    :variant="tier.unlocked ? 'flat' : 'tonal'"
-                                    :disabled="!tier.unlocked"
-                                    :prepend-icon="tier.paid ? 'mdi-circle-multiple-outline' : tier.icon"
-                                    :to="tier.unlocked ? tier.to : undefined"
-                                    class="align-self-start"
-                                    @click="openTier(tier)"
-                                >
-                                    {{ tier.unlocked ? tier.action : tier.lockedHint }}
-                                </v-btn>
-                            </v-card-text>
-                        </v-card>
-                    </v-col>
-                </v-row>
-
                 <p
                     v-if="savedNote"
                     class="text-caption text-medium-emphasis mt-4 mb-0"
@@ -237,6 +181,158 @@
                 </p>
             </v-card-text>
         </v-card>
+
+        <v-card
+            class="mb-6"
+            variant="outlined"
+        >
+            <v-card-title>可做的分析</v-card-title>
+            <v-card-subtitle class="text-wrap">
+                依你填好的資料，這裡列出所有提供的分析。
+            </v-card-subtitle>
+            <v-card-text>
+                <section
+                    v-for="system in systems"
+                    :key="system.key"
+                    class="mb-5"
+                >
+                    <div class="d-flex align-center ga-2 mb-3">
+                        <v-icon
+                            :icon="system.icon"
+                            color="primary"
+                            size="20"
+                        />
+                        <h3 class="system__title">
+                            {{ system.title }}
+                        </h3>
+                    </div>
+                    <v-row>
+                        <v-col
+                            v-for="analysis in analysesOf(system.key)"
+                            :key="analysis.key"
+                            cols="12"
+                            md="6"
+                        >
+                            <v-card
+                                variant="outlined"
+                                height="100%"
+                                class="analysis"
+                                :class="{ 'analysis--off': !analysis.ready }"
+                                :style="{ '--tone': analysis.tone }"
+                            >
+                                <v-card-text class="d-flex flex-column ga-2 h-100">
+                                    <div class="d-flex align-center ga-2">
+                                        <span class="analysis__icon">
+                                            <v-icon :icon="analysis.ready ? analysis.icon : 'mdi-lock-outline'" />
+                                        </span>
+                                        <span class="text-subtitle-1 font-weight-medium">{{ analysis.title }}</span>
+                                        <v-chip
+                                            v-if="analysis.paid"
+                                            size="x-small"
+                                            color="warning"
+                                            variant="tonal"
+                                        >
+                                            點數
+                                        </v-chip>
+                                    </div>
+                                    <p class="text-body-2 mb-0">
+                                        {{ analysis.description }}
+                                    </p>
+                                    <p class="analysis__need">
+                                        <v-icon
+                                            icon="mdi-pencil-outline"
+                                            size="16"
+                                        />
+                                        {{ analysis.need }}
+                                    </p>
+                                    <v-spacer />
+                                    <v-btn
+                                        :color="analysis.ready ? 'primary' : undefined"
+                                        :variant="analysis.ready ? 'flat' : 'tonal'"
+                                        :disabled="!analysis.ready"
+                                        :prepend-icon="analysis.paid ? 'mdi-circle-multiple-outline' : analysis.icon"
+                                        :to="analysis.ready ? analysis.to : undefined"
+                                        class="align-self-start"
+                                        @click="openAnalysis(analysis)"
+                                    >
+                                        {{ analysis.ready ? analysis.action : analysis.lockedHint }}
+                                    </v-btn>
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+                    </v-row>
+                </section>
+            </v-card-text>
+        </v-card>
+
+        <div class="locked mb-6">
+            <v-card
+                variant="outlined"
+                :class="{ 'locked__content': gated }"
+                :aria-hidden="gated"
+                :inert="gated"
+            >
+                <v-card-title>從多個角度綜觀自己</v-card-title>
+                <v-card-subtitle class="text-wrap">
+                    單一角度看到的是一部分。挑選兩個以上的維度放在一起，由 AI 比對它們互相呼應、彼此拉扯的地方，寫成一份只屬於你的完整報告。
+                </v-card-subtitle>
+                <v-card-text class="d-flex flex-column flex-sm-row align-sm-center ga-3">
+                    <div class="d-flex align-center ga-2 flex-grow-1">
+                        <v-icon :color="progress.multiDimensionUnlocked ? 'primary' : 'grey'">
+                            {{ progress.multiDimensionUnlocked ? 'mdi-layers-outline' : 'mdi-lock-outline' }}
+                        </v-icon>
+                        <div>
+                            <div class="d-flex align-center ga-2">
+                                <span class="text-subtitle-1 font-weight-medium">多維度分析</span>
+                                <v-chip
+                                    size="x-small"
+                                    color="warning"
+                                    variant="tonal"
+                                >
+                                    點數
+                                </v-chip>
+                            </div>
+                            <p class="text-body-2 mb-0">
+                                自選至少 2 個維度來產生多維度交叉比較分析報告。
+                            </p>
+                        </div>
+                    </div>
+                    <v-btn
+                        :color="progress.multiDimensionUnlocked ? 'primary' : undefined"
+                        :variant="progress.multiDimensionUnlocked ? 'flat' : 'tonal'"
+                        :disabled="!progress.multiDimensionUnlocked"
+                        :to="progress.multiDimensionUnlocked ? '/report' : undefined"
+                        prepend-icon="mdi-circle-multiple-outline"
+                        class="align-self-start align-self-sm-center"
+                    >
+                        {{ progress.multiDimensionUnlocked ? '開始多維度分析' : '先完成 2 個維度' }}
+                    </v-btn>
+                </v-card-text>
+            </v-card>
+
+            <div
+                v-if="gated"
+                class="locked__cta"
+            >
+                <v-icon
+                    icon="mdi-lock-outline"
+                    size="28"
+                />
+                <p class="locked__title">
+                    登入即可解鎖多維度分析
+                </p>
+                <p class="locked__note">
+                    把幾個維度放在一起看，首次登入贈 3 點。
+                </p>
+                <v-btn
+                    to="/login"
+                    color="primary"
+                    prepend-icon="mdi-login"
+                >
+                    立即登入
+                </v-btn>
+            </div>
+        </div>
 
         <v-dialog
             :model-value="comingSoon !== null"
@@ -265,34 +361,16 @@ import { BLOOD_TYPES } from '../../shared/schemas/common';
 import type {
     BloodType, Zodiac,
 } from '../../shared/schemas/common';
-import type { ExplorationLayer } from '../../shared/utils/explorationProgress';
 import { zodiacFromIsoDate } from '../../shared/utils/zodiac';
 
 useHead({ title: '多維度自我分析' });
 
-type LayerCard = {
-    key: ExplorationLayer;
-    title: string;
-    icon: string;
-    /** The accent of this dimension: its icon tile and top edge */
-    tone: string;
-    /** Which side of yourself this dimension looks at */
-    description: string;
-    /** What the visitor has to provide */
-    need: string;
-    done: boolean;
-    /** What the finished dimension shows, e.g. the sign or the type */
-    result: string;
-    to: string;
-    action: string;
-};
-
-const { isAuthenticated } = useAuth();
+const { isAuthenticated, initialized } = useAuth();
+/** Multi-dimension analysis is for members: a visitor sees it blurred with a way to sign in */
+const gated = computed(() => initialized.value && !isAuthenticated.value);
 const {
     state, progress, save,
 } = useExploration();
-
-const birthDate = computed(() => state.value.birthData?.birthDate ?? null);
 
 // What the visitor is typing right now; saved a moment after they stop, once there is a full date.
 const birthDateInput = ref('');
@@ -315,59 +393,180 @@ const analysableBloodType = computed(() => (bloodTypeInput.value && bloodTypeInp
 /** Unlocked once the birth date, time and city are all there: what a birth chart needs. */
 const advancedUnlocked = computed(() => Boolean(zodiacSign.value && birthTimeInput.value && birthPlaceInput.value));
 
-type Tier = {
+type SystemKey = 'symbolic' | 'personality';
+
+type Analysis = {
     key: string;
+    system: SystemKey;
     title: string;
     icon: string;
+    /** The accent of this analysis */
+    tone: string;
     description: string;
+    /** What the visitor has to provide */
+    need: string;
     action: string;
+    /** Shown on the disabled button */
     lockedHint: string;
-    unlocked: boolean;
+    /** Whether the data it needs is there */
+    ready: boolean;
     paid: boolean;
-    /** Where an unlocked tier leads; without one the content is still being planned. */
+    /** Where it leads; without one the content is still being planned. */
     to?: string;
 };
 
-// The real-time tier is a placeholder for now: the button exists, the content is still to be planned.
-const tiers = computed<Tier[]>(() => [
+/** The two ways of getting to know yourself that the app offers, with what each one is for. */
+const systems = [
     {
-        key: 'humanDesign',
-        title: '人類圖分析',
-        icon: 'mdi-vector-triangle',
-        description: '依出生當下的星體位置，看你的能量怎麼運作、怎樣做決定最順。',
-        action: '看人類圖分析',
-        lockedHint: '填寫出生時間與城市，解鎖這一層',
-        unlocked: advancedUnlocked.value,
-        paid: false,
-        to: '/human-design',
+        key: 'symbolic' as const,
+        title: '命理與象徵系統',
+        icon: 'mdi-star-four-points-outline',
+        purpose: '娛樂、文化探索、象徵性解讀',
+        items: [
+            {
+                title: '星座', tone: '#b7791f', text: '出生時太陽所在的位置，看天生的性格傾向與行事風格',
+            },
+            {
+                title: '血型', tone: '#c94f4f', text: '常見的血型性格說法，看與人相處和面對事情的習慣',
+            },
+            {
+                title: '生命靈數', tone: '#7a5aa6', text: '把出生日期化成數字，看天賦傾向與今年的節奏',
+            },
+            {
+                title: '人類圖', tone: '#2e7d5b', text: '依出生當下的星體位置，看能量如何運作、怎樣做決定最順',
+            },
+        ],
     },
     {
-        key: 'advanced',
-        title: '進階星座分析',
-        icon: 'mdi-star-circle-outline',
-        description: '同樣是這個星座，你和別人還是不一樣。多給出生時間與城市，看見更貼近你自己的那一層。',
-        action: zodiacSign.value ? `看星座進階分析（${ZODIAC_LABELS[zodiacSign.value]}）` : '看星座進階分析',
-        lockedHint: '填寫出生時間與城市，解鎖這一層',
-        unlocked: advancedUnlocked.value,
-        paid: false,
-        // The same report as the button under the birth date: its advanced part is what the time and city unlock.
-        to: zodiacSign.value ? `/analysis/zodiac/${zodiacSign.value}` : undefined,
+        key: 'personality' as const,
+        title: '人格與心理特質',
+        icon: 'mdi-head-cog-outline',
+        purpose: '了解特質傾向與個人差異',
+        items: [
+            {
+                title: 'MBTI', tone: '#2f5d8a', text: '16 型人格，從回答問題的方式看如何獲取能量、接收資訊與做決定',
+            },
+        ],
     },
-    {
-        key: 'realtime',
-        title: '即時星象分析',
-        icon: 'mdi-clock-outline',
-        description: '你現在正走在什麼樣的節奏？看看此刻的星象，怎麼和你的出生資料互相呼應。',
-        action: '用點數解鎖',
-        lockedHint: '填寫出生時間與城市，解鎖這一層',
-        unlocked: advancedUnlocked.value,
-        paid: true,
-    },
-]);
+];
 
-function openTier(tier: Tier) {
-    // A tier with a destination is a plain link; the others only announce that they are coming.
-    if (!tier.to) comingSoon.value = tier.title;
+// Every analysis the app offers; the ones whose data is missing stay disabled.
+// The real-time one is a placeholder for now: the button exists, the content is still to be planned.
+const analyses = computed<Analysis[]>(() => {
+    const sign = zodiacSign.value;
+    const bloodType = analysableBloodType.value;
+    const mbti = state.value.mbti;
+
+    return [
+        {
+            key: 'zodiac',
+            system: 'symbolic',
+            title: '星座分析',
+            icon: 'mdi-star-four-points-outline',
+            tone: '#b7791f',
+            description: '從出生時太陽所在的位置，看你天生的性格傾向與行事風格。',
+            need: '需要：出生日期',
+            action: sign ? `看星座分析（${ZODIAC_LABELS[sign]}）` : '看星座分析',
+            lockedHint: '先填寫出生日期',
+            ready: sign !== null,
+            paid: false,
+            to: sign ? `/analysis/zodiac/${sign}` : undefined,
+        },
+        {
+            key: 'blood',
+            system: 'symbolic',
+            title: '血型分析',
+            icon: 'mdi-water-outline',
+            tone: '#c94f4f',
+            description: '用常見的血型性格說法，看你與人相處和面對事情的習慣。',
+            need: '需要：血型',
+            action: bloodType ? `看血型分析（${BLOOD_TYPE_LABELS[bloodType]}）` : '看血型分析',
+            lockedHint: '先選擇血型',
+            ready: bloodType !== null,
+            paid: false,
+            to: bloodType ? `/analysis/blood/${bloodType}` : undefined,
+        },
+        {
+            key: 'numerology',
+            system: 'symbolic',
+            title: '生命靈數',
+            icon: 'mdi-numeric',
+            tone: '#7a5aa6',
+            description: '把出生日期化成數字，看你的天賦傾向與今年的節奏。',
+            need: '需要：出生日期',
+            action: '看生命靈數',
+            lockedHint: '先填寫出生日期',
+            ready: sign !== null,
+            paid: false,
+            to: '/analysis/numerology',
+        },
+        {
+            key: 'humanDesign',
+            system: 'symbolic',
+            title: '人類圖分析',
+            icon: 'mdi-vector-triangle',
+            tone: '#2e7d5b',
+            description: '依出生當下的星體位置，看你的能量怎麼運作、怎樣做決定最順。',
+            need: '需要：出生日期、時間與城市',
+            action: '看人類圖分析',
+            lockedHint: '先填寫出生時間與城市',
+            ready: advancedUnlocked.value,
+            paid: false,
+            to: '/human-design',
+        },
+        {
+            key: 'advanced',
+            system: 'symbolic',
+            title: '進階星座分析',
+            icon: 'mdi-star-circle-outline',
+            tone: '#b7791f',
+            description: '同樣是這個星座，你和別人還是不一樣。多給出生時間與城市，看見更貼近你自己的那一層。',
+            need: '需要：出生日期、時間與城市',
+            action: sign ? `看星座進階分析（${ZODIAC_LABELS[sign]}）` : '看星座進階分析',
+            lockedHint: '先填寫出生時間與城市',
+            ready: advancedUnlocked.value,
+            paid: false,
+            // The same report as the plain zodiac analysis: its advanced part is what the time and city unlock.
+            to: sign ? `/analysis/zodiac/${sign}` : undefined,
+        },
+        {
+            key: 'realtime',
+            system: 'symbolic',
+            title: '即時星象分析',
+            icon: 'mdi-clock-outline',
+            tone: '#b7791f',
+            description: '你現在正走在什麼樣的節奏？看看此刻的星象，怎麼和你的出生資料互相呼應。',
+            need: '需要：出生日期、時間與城市',
+            action: '用點數解鎖',
+            lockedHint: '先填寫出生時間與城市',
+            ready: advancedUnlocked.value,
+            paid: true,
+        },
+        {
+            key: 'mbti',
+            system: 'personality',
+            title: 'MBTI 人格分析',
+            icon: 'mdi-head-cog-outline',
+            tone: '#2f5d8a',
+            description: '從回答問題的方式，看你如何獲取能量、接收資訊與做決定。',
+            need: mbti ? '需要：16 型人格測驗（已完成）' : '需要：回答 48 題，約 10 分鐘',
+            action: mbti ? `看 MBTI 分析（${mbti}）` : '開始測驗',
+            lockedHint: '開始測驗',
+            // The test is the way in, so it is always open
+            ready: true,
+            paid: false,
+            to: mbti ? `/analysis/mbti/${mbti}` : '/test',
+        },
+    ];
+});
+
+function analysesOf(system: SystemKey): Analysis[] {
+    return analyses.value.filter((analysis) => analysis.system === system);
+}
+
+function openAnalysis(analysis: Analysis) {
+    // An analysis with a destination is a plain link; the others only announce that they are coming.
+    if (analysis.ready && !analysis.to) comingSoon.value = analysis.title;
 }
 
 async function saveEntered() {
@@ -414,57 +613,6 @@ watch(() => state.value.loaded, async (loaded) => {
     await nextTick();
     hydrating = false;
 }, { immediate: true });
-
-const layers = computed<LayerCard[]>(() => [
-    {
-        key: 'ZODIAC',
-        title: '星座',
-        icon: 'mdi-star-four-points-outline',
-        tone: '#b7791f',
-        description: '從出生時太陽所在的位置，看你天生的性格傾向與行事風格。',
-        need: '需要：出生日期',
-        done: progress.value.done.ZODIAC,
-        result: birthDate.value ? ZODIAC_LABELS[zodiacFromIsoDate(birthDate.value)] : '',
-        to: '/#fill',
-        action: birthDate.value ? '修改出生日期' : '填寫出生日期',
-    },
-    {
-        key: 'BLOOD',
-        title: '血型',
-        icon: 'mdi-water-outline',
-        tone: '#c94f4f',
-        description: '用常見的血型性格說法，看你與人相處和面對事情的習慣。',
-        need: '需要：血型',
-        done: progress.value.done.BLOOD,
-        result: BLOOD_TYPE_LABELS[state.value.bloodType],
-        to: '/#fill',
-        action: progress.value.done.BLOOD ? '修改血型' : '選擇血型',
-    },
-    {
-        key: 'HUMAN_DESIGN',
-        title: '人類圖',
-        icon: 'mdi-vector-triangle',
-        tone: '#2e7d5b',
-        description: '依出生當下的星體位置，看你的能量如何運作、怎樣做決定最順。',
-        need: '需要：出生日期、時間與地點',
-        done: progress.value.done.HUMAN_DESIGN,
-        result: '已計算',
-        to: '/#fill',
-        action: progress.value.done.HUMAN_DESIGN ? '查看人類圖' : '計算人類圖',
-    },
-    {
-        key: 'MBTI',
-        title: 'MBTI',
-        icon: 'mdi-head-cog-outline',
-        tone: '#2f5d8a',
-        description: '從回答問題的方式，看你如何獲取能量、接收資訊與做決定。',
-        need: '需要：回答 32 題，約 8 分鐘',
-        done: progress.value.done.MBTI,
-        result: state.value.mbti ?? '',
-        to: state.value.mbti ? `/analysis/mbti/${state.value.mbti}` : '/test',
-        action: state.value.mbti ? '查看 MBTI 分析' : '開始測驗',
-    },
-]);
 </script>
 
 <style scoped>
@@ -539,6 +687,163 @@ const layers = computed<LayerCard[]>(() => [
     color: rgba(0, 0, 0, 0.7);
 }
 
+/*
+ * The sign-in call to action reads like a ticket: the button is the stub, a dashed
+ * perforation separates it from what signing in gives you, and the welcome points sit on the end.
+ */
+.locked {
+    position: relative;
+}
+
+/* Room for the sign-in prompt over the blurred card */
+.locked:has(.locked__cta) {
+    min-height: 240px;
+}
+
+.locked:has(.locked__cta) > .v-card {
+    height: 100%;
+    min-height: 240px;
+}
+
+.locked__content {
+    filter: blur(5px);
+    opacity: 0.7;
+    pointer-events: none;
+    user-select: none;
+}
+
+.locked__cta {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 16px;
+    border-radius: 4px;
+    text-align: center;
+    background: rgba(244, 246, 249, 0.45);
+}
+
+.locked__title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.locked__note {
+    max-width: 28em;
+    margin: 0 0 8px;
+    font-size: 0.875rem;
+    color: rgba(var(--v-theme-on-surface), 0.7);
+}
+
+.pass {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    width: fit-content;
+    max-width: 100%;
+    margin-top: 18px;
+    border: 1px solid rgba(47, 93, 138, 0.18);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: 0 6px 22px rgba(47, 93, 138, 0.12);
+    backdrop-filter: blur(6px);
+}
+
+.pass__btn {
+    margin: 8px;
+    letter-spacing: 0.12em;
+    box-shadow: 0 4px 12px rgba(47, 93, 138, 0.35);
+}
+
+.pass__arrow {
+    transition: transform 0.2s;
+}
+
+.pass__btn:hover .pass__arrow,
+.pass__btn:focus-visible .pass__arrow {
+    transform: translateX(4px);
+}
+
+.pass__perks {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    margin: 8px 0;
+    padding: 0 20px;
+    border-left: 2px dashed rgba(47, 93, 138, 0.25);
+    list-style: none;
+    font-size: 0.875rem;
+    color: rgba(var(--v-theme-on-surface), 0.78);
+}
+
+.pass__perks li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pass__perks .v-icon {
+    color: rgb(var(--v-theme-success));
+}
+
+.pass__coin {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 18px 0 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #8a5a12;
+}
+
+.pass__coin-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #f6d98a, #d9a441);
+    box-shadow: inset 0 0 0 2px rgba(138, 90, 18, 0.35);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #6b4509;
+}
+
+/* On a narrow screen the pieces stack, so the perforation turns horizontal */
+@media (max-width: 599px) {
+    .pass {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .pass__btn {
+        margin: 8px 8px 0;
+    }
+
+    .pass__perks {
+        margin: 8px 8px 0;
+        padding: 12px 8px 0;
+        border-top: 2px dashed rgba(47, 93, 138, 0.25);
+        border-left: 0;
+    }
+
+    .pass__coin {
+        padding: 8px 12px 12px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pass__arrow {
+        transition: none;
+    }
+}
+
 .hero__badge {
     display: inline-flex;
     align-items: center;
@@ -557,67 +862,122 @@ const layers = computed<LayerCard[]>(() => [
     background: rgb(var(--v-theme-surface));
 }
 
-.dimension {
-    position: relative;
-    overflow: hidden;
+.angles__title {
+    margin: 0 0 6px;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.angles__lead {
+    max-width: 40em;
+    margin: 0 0 16px;
+    line-height: 1.8;
+    color: rgba(var(--v-theme-on-surface), 0.75);
+}
+
+.angles {
     border-color: rgba(0, 0, 0, 0.12);
-    background: rgb(var(--v-theme-surface));
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* The accent along the top edge belongs to this dimension. */
-.dimension::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
-    background: var(--tone);
+.system + .system {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-/* A large, faint ring of the same accent behind the content. */
-.dimension::after {
-    content: '';
-    position: absolute;
-    right: -34px;
-    bottom: -34px;
-    width: 110px;
-    height: 110px;
-    border-radius: 50%;
-    border: 14px solid var(--tone);
-    opacity: 0.07;
-    pointer-events: none;
+.system__title {
+    margin: 0;
+    font-size: 1.0625rem;
+    font-weight: 700;
 }
 
-.dimension__icon {
+.system__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.system__purpose {
+    margin: 2px 0 12px 32px;
+    font-size: 0.875rem;
+    color: rgba(var(--v-theme-on-surface), 0.6);
+}
+
+/* One row per system, at most five small cards across */
+.system__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+@media (min-width: 600px) {
+    .system__grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 960px) {
+    .system__grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
+.angle {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+    border-top: 3px solid var(--tone);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--tone) 7%, rgb(var(--v-theme-surface)));
+}
+
+.angle__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--tone);
+}
+
+.angle__text {
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: rgba(var(--v-theme-on-surface), 0.75);
+}
+
+/* An analysis card: lit in its own color when its data is there, quiet when it is not. */
+.analysis {
+    border-color: rgba(0, 0, 0, 0.12);
+    border-left: 4px solid var(--tone);
+}
+
+.analysis--off {
+    border-left-color: rgba(var(--v-theme-on-surface), 0.15);
+    opacity: 0.75;
+}
+
+.analysis__icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
     color: var(--tone);
     background: color-mix(in srgb, var(--tone) 12%, white);
 }
 
-.dimension__need {
+.analysis--off .analysis__icon {
+    color: rgba(var(--v-theme-on-surface), 0.5);
+    background: rgba(var(--v-theme-on-surface), 0.06);
+}
+
+.analysis__need {
     display: flex;
     align-items: center;
     gap: 4px;
+    margin: 0;
+    font-size: 0.875rem;
     color: rgba(0, 0, 0, 0.6);
-}
-
-.dimension__action {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    color: var(--tone);
-}
-
-@media (hover: hover) {
-    .dimension:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 18px rgba(20, 38, 58, 0.1);
-    }
 }
 
 @media (prefers-reduced-motion: reduce) {
