@@ -1089,7 +1089,7 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/DailyDrawState"
+                "$ref": "#/components/schemas/DailyRuneState"
         "401":
           "$ref": "#/components/responses/Unauthorized"
     post:
@@ -1103,7 +1103,7 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/DailyDrawState"
+                "$ref": "#/components/schemas/DailyRuneState"
         "401":
           "$ref": "#/components/responses/Unauthorized"
         "404":
@@ -2407,6 +2407,43 @@ components:
           "$ref": "#/components/schemas/FixedResultContent"
       required: [date, drawn]
       description: "drawn 為 false 時只有 date；為 true 時含 card 與 content"
+    RuneCard:
+      type: object
+      properties:
+        index:
+          type: integer
+          minimum: 0
+          maximum: 23
+        name:
+          type: string
+        glyph:
+          type: string
+          description: "Unicode 符文字元"
+        meaning:
+          type: string
+        orientation:
+          type: string
+          enum: [upright, reversed]
+          description: "9 枚上下顛倒後外觀不變的符文只有 upright（RULE-037）"
+        illustration:
+          type: string
+          nullable: true
+          description: "插畫來源；尚無插畫時為 null"
+      required: [index, name, glyph, meaning, orientation, illustration]
+    DailyRuneState:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        drawn:
+          type: boolean
+        rune:
+          "$ref": "#/components/schemas/RuneCard"
+        content:
+          "$ref": "#/components/schemas/FixedResultContent"
+      required: [date, drawn]
+      description: "drawn 為 false 時只有 date；為 true 時含 rune 與 content"
     KinResult:
       type: object
       properties:

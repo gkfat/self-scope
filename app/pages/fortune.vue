@@ -12,6 +12,7 @@
                 :key="entry.value"
                 cols="12"
                 sm="6"
+                :md="entries.length > 2 ? 4 : 6"
             >
                 <v-card
                     variant="outlined"
@@ -57,19 +58,21 @@
                 <span class="text-subtitle-1 font-weight-medium">{{ selectedLabel }}</span>
             </div>
             <FortuneTarotPanel v-if="selected === 'tarot'" />
-            <FortuneKinPanel v-else />
+            <FortuneKinPanel v-else-if="selected === 'kin'" />
+            <FortuneRunePanel v-else />
         </template>
     </div>
 </template>
 
 <script lang="ts" setup>
 import { KIN_ENTRY_ENABLED } from '../../shared/constants/mayaKin';
+import { RUNE_ENTRY_ENABLED } from '../../shared/constants/runes';
 import { TAROT_ENTRY_ENABLED } from '../../shared/constants/tarot';
 
 definePageMeta({ middleware: 'member' });
 useHead({ title: '今日運勢' });
 
-type FortuneView = 'tarot' | 'kin';
+type FortuneView = 'tarot' | 'kin' | 'rune';
 
 const route = useRoute();
 const router = useRouter();
@@ -86,9 +89,14 @@ const entries = computed(() => [
             value: 'kin' as const, label: '瑪雅 Kin', icon: 'mdi-calendar-star', hint: '每天算一次今日 Kin',
         }]
         : []),
+    ...(RUNE_ENTRY_ENABLED
+        ? [{
+            value: 'rune' as const, label: '盧恩符文', icon: 'mdi-alpha-r-circle-outline', hint: '每天抽一枚符文',
+        }]
+        : []),
 ]);
 
-// Which one is open lives in the address (/fortune#tarot, /fortune#kin), so the browser's back button, a
+// Which one is open lives in the address (/fortune#tarot, #kin, #rune), so the browser's back button, a
 // reload and the links from the home page and the old /tarot and /kin addresses all work.
 const selected = computed<FortuneView | null>(() => {
     const wanted = route.hash.slice(1);

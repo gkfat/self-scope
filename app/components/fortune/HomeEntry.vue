@@ -20,7 +20,7 @@
                     v-if="!initialized || !isAuthenticated"
                     class="text-body-2 text-medium-emphasis mb-0"
                 >
-                    每天翻一張塔羅、算一次今日 Kin，看看今天給你的提醒。登入後就能使用。
+                    每天翻塔羅、算今日 Kin、抽盧恩符文，看看今天給你的提醒。登入後就能使用。
                 </p>
                 <template v-else>
                     <p
@@ -55,6 +55,9 @@
 <script lang="ts" setup>
 import { KIN_ENTRY_ENABLED } from '../../../shared/constants/mayaKin';
 import {
+    RUNE_ENTRY_ENABLED, RUNE_ORIENTATION_LABELS,
+} from '../../../shared/constants/runes';
+import {
     TAROT_ENTRY_ENABLED, TAROT_ORIENTATION_LABELS,
 } from '../../../shared/constants/tarot';
 import { kinName } from '../../../shared/utils/mayaKin';
@@ -68,9 +71,13 @@ const {
 const {
     today: kinToday, load: loadKin,
 } = useKinToday();
+const {
+    today: runeToday, load: loadRune,
+} = useDailyRune();
 
 const tarotDrawn = computed(() => (tarotToday.value?.drawn ? tarotToday.value : null));
 const kinUnlocked = computed(() => (kinToday.value?.unlocked ? kinToday.value : null));
+const runeDrawn = computed(() => (runeToday.value?.drawn ? runeToday.value : null));
 
 /** One line for each part that is switched on. */
 const entries = computed(() => [
@@ -92,6 +99,15 @@ const entries = computed(() => [
                 : '還沒計算，每天可以計算一次',
         }]
         : []),
+    ...(RUNE_ENTRY_ENABLED
+        ? [{
+            label: '盧恩符文',
+            done: Boolean(runeDrawn.value),
+            text: runeDrawn.value
+                ? `${runeDrawn.value.rune.glyph} ${runeDrawn.value.rune.name}（${RUNE_ORIENTATION_LABELS[runeDrawn.value.rune.orientation]}）`
+                : '還沒抽符，每天可以抽一枚',
+        }]
+        : []),
 ]);
 
 const allDone = computed(() => entries.value.every((entry) => entry.done));
@@ -101,5 +117,6 @@ watch(() => initialized.value && isAuthenticated.value, (member) => {
 
     if (TAROT_ENTRY_ENABLED) void loadTarot();
     if (KIN_ENTRY_ENABLED) void loadKin();
+    if (RUNE_ENTRY_ENABLED) void loadRune();
 }, { immediate: true });
 </script>

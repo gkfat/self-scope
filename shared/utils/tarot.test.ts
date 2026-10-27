@@ -4,6 +4,53 @@ import {
 import { drawDailyCard } from './tarot';
 import { TAROT_CARD_COUNT } from '../constants/tarot';
 
+describe('drawDailyCard regression', () => {
+    // Outputs recorded from the first implementation, before the draw logic was shared with the runes: a change
+    // here would change the card somebody has already been shown or is about to draw.
+    it.each([
+        [
+            'uid-a',
+            '2026-01-01',
+            4,
+            'reversed',
+        ],
+        [
+            'uid-a',
+            '2026-01-02',
+            14,
+            'upright',
+        ],
+        [
+            'uid-b',
+            '2026-01-01',
+            7,
+            'upright',
+        ],
+        [
+            'u1',
+            '2026-10-27',
+            11,
+            'upright',
+        ],
+        [
+            'user-123',
+            '2026-12-31',
+            17,
+            'upright',
+        ],
+        [
+            'QWERTY',
+            '2027-02-28',
+            7,
+            'upright',
+        ],
+    ] as const)('%s on %s draws card %s, %s', (uid, date, cardIndex, orientation) => {
+        expect(drawDailyCard(uid, date)).toEqual({
+            cardIndex, orientation,
+        });
+    });
+});
+
 describe('drawDailyCard', () => {
     it('gives the same card for the same account and day', () => {
         expect(drawDailyCard('user-1', '2026-10-27')).toEqual(drawDailyCard('user-1', '2026-10-27'));

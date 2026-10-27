@@ -181,6 +181,49 @@ describe('KIN keys', () => {
     });
 });
 
+describe('RUNE keys', () => {
+    it('accepts every rune upright, and reversed only for the ones that can be reversed', () => {
+        expect(isValidContentKey('RUNE', '0_upright')).toBe(true);
+        // Fehu can be reversed
+        expect(isValidContentKey('RUNE', '0_reversed')).toBe(true);
+        // Gebo looks the same upside down: upright only
+        expect(isValidContentKey('RUNE', '6_upright')).toBe(true);
+        expect(isValidContentKey('RUNE', '6_reversed')).toBe(false);
+        expect(isValidContentKey('RUNE', '23_reversed')).toBe(true);
+    });
+
+    it('rejects every reversed key of the nine symmetric runes', () => {
+        for (const index of [
+            6,
+            8,
+            9,
+            10,
+            11,
+            12,
+            15,
+            21,
+            22,
+        ]) {
+            expect(isValidContentKey('RUNE', `${index}_upright`), `${index} upright`).toBe(true);
+            expect(isValidContentKey('RUNE', `${index}_reversed`), `${index} reversed`).toBe(false);
+        }
+    });
+
+    it('rejects runes outside the 24 and malformed keys', () => {
+        for (const key of [
+            '24_upright',
+            '-1_upright',
+            '3_sideways',
+            '03_upright',
+            '3',
+            'upright',
+            '3_upright_extra',
+        ]) {
+            expect(isValidContentKey('RUNE', key), key).toBe(false);
+        }
+    });
+});
+
 describe('baziContentKeys', () => {
     const keys = baziContentKeys();
     const countOf = (prefix: string) => keys.filter((key) => key.startsWith(prefix)).length;
@@ -211,9 +254,9 @@ describe('baziContentKeys', () => {
 describe('expectedFixedContentIds', () => {
     const ids = expectedFixedContentIds();
 
-    it('lists 14320 summaries, 44 single results, 123 BaZi contents and 44 tarot contents and 520 Kin contents, all unique', () => {
-        expect(ids).toHaveLength(15051);
-        expect(new Set(ids).size).toBe(15051);
+    it('lists 14320 summaries, 44 single results, 123 BaZi contents and 44 tarot contents, 520 Kin contents and 39 rune contents, all unique', () => {
+        expect(ids).toHaveLength(15090);
+        expect(new Set(ids).size).toBe(15090);
         expect(ids.filter((id) => id.startsWith('SUMMARY_'))).toHaveLength(14320);
         expect(ids.filter((id) => id.startsWith('ZODIAC_'))).toHaveLength(12);
         expect(ids.filter((id) => id.startsWith('BLOOD_'))).toHaveLength(4);
@@ -223,6 +266,7 @@ describe('expectedFixedContentIds', () => {
         expect(ids.filter((id) => id.startsWith('TAROT_'))).toHaveLength(44);
         expect(ids.filter((id) => id.startsWith('KIN_BIRTH_'))).toHaveLength(260);
         expect(ids.filter((id) => id.startsWith('KIN_TODAY_'))).toHaveLength(260);
+        expect(ids.filter((id) => id.startsWith('RUNE_'))).toHaveLength(39);
     });
 
     it('splits summaries into 688 pairs, 4416 triples and 9216 with all four parts', () => {

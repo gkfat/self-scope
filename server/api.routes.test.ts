@@ -23,9 +23,8 @@ const NOT_BUILT_YET = [
     '/human-design',
     '/detailed-reports',
     '/admin',
-    // The "此刻／今日" capabilities (add-daily-rune-draw, add-transit-report, add-today-section)
+    // The "此刻／今日" capabilities (add-transit-report, add-today-section)
     '/today',
-    '/rune',
     '/transit-reports',
 ];
 
