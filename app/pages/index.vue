@@ -149,7 +149,7 @@
                     進階資料（選填）
                 </div>
                 <p class="text-body-2 text-medium-emphasis mb-3">
-                    再填出生時間與出生城市，可以解鎖進階星座分析，也能計算人類圖。
+                    再填出生時間與出生城市，可以計算人類圖，星座分析也會多一層進階內容。
                 </p>
                 <v-row>
                     <v-col
@@ -169,6 +169,20 @@
                             v-model="birthPlaceInput"
                             label="出生城市"
                             hint="輸入中文或英文即可搜尋"
+                <v-row>
+                    <v-col
+                        cols="12"
+                        md="7"
+                    >
+                        <v-select
+                            v-model="genderInput"
+                            :items="genderItems"
+                            label="性別（選填）"
+                            hint="只用來決定八字大運的排法"
+                            persistent-hint
+                        />
+                    </v-col>
+                </v-row>
                         />
                     </v-col>
                 </v-row>
@@ -226,14 +240,6 @@
                                             <v-icon :icon="analysis.ready ? analysis.icon : 'mdi-lock-outline'" />
                                         </span>
                                         <span class="text-subtitle-1 font-weight-medium">{{ analysis.title }}</span>
-                                        <v-chip
-                                            v-if="analysis.paid"
-                                            size="x-small"
-                                            color="warning"
-                                            variant="tonal"
-                                        >
-                                            點數
-                                        </v-chip>
                                     </div>
                                     <p class="text-body-2 mb-0">
                                         {{ analysis.description }}
@@ -250,10 +256,9 @@
                                         :color="analysis.ready ? 'primary' : undefined"
                                         :variant="analysis.ready ? 'flat' : 'tonal'"
                                         :disabled="!analysis.ready"
-                                        :prepend-icon="analysis.paid ? 'mdi-circle-multiple-outline' : analysis.icon"
+                                        :prepend-icon="analysis.icon"
                                         :to="analysis.ready ? analysis.to : undefined"
                                         class="align-self-start"
-                                        @click="openAnalysis(analysis)"
                                     >
                                         {{ analysis.ready ? analysis.action : analysis.lockedHint }}
                                     </v-btn>
@@ -333,36 +338,30 @@
                 </v-btn>
             </div>
         </div>
-
-        <v-dialog
-            :model-value="comingSoon !== null"
-            max-width="420"
-            @update:model-value="comingSoon = null"
-        >
-            <v-card>
-                <v-card-title>{{ comingSoon }}</v-card-title>
-                <v-card-text>這項分析正在準備中，很快就會開放，敬請期待。</v-card-text>
-                <v-card-actions>
-                    <v-spacer />
-                    <v-btn @click="comingSoon = null">
-                        知道了
-                    </v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
     </div>
 </template>
 
 <script lang="ts" setup>
 import {
-    BLOOD_TYPE_LABELS, ZODIAC_LABELS,
+    BAZI_ENTRY_ENABLED, ELEMENT_LABELS,
+} from '../../shared/constants/bazi';
+import {
+    BLOOD_TYPE_LABELS, GENDER_LABELS, ZODIAC_LABELS,
 } from '../../shared/constants/zodiacLabels';
-import { BLOOD_TYPES } from '../../shared/schemas/common';
+import {
+    BLOOD_TYPES, GENDERS,
+} from '../../shared/schemas/common';
+import { HUMAN_DESIGN_TYPE_LABELS } from '../../shared/constants/humanDesignLabels';
+import type { HumanDesignResponse } from '../../shared/schemas/api/humanDesign.schema';
+import { dayPillarOf } from '../../shared/utils/bazi/dayPillar';
+import { stemElement } from '../../shared/utils/bazi/ganzhi';
+import { lifePathNumber } from '../../shared/utils/numerology';
 import type {
-    BloodType, Zodiac,
+    BloodType, Gender, Zodiac,
 } from '../../shared/schemas/common';
 import { zodiacFromIsoDate } from '../../shared/utils/zodiac';
 
+const { get } = useApi();
 useHead({ title: '多維度自我分析' });
 
 const { isAuthenticated, initialized } = useAuth();
@@ -372,17 +371,26 @@ const {
     state, progress, save,
 } = useExploration();
 
+const genderInput = ref<Gender | null>(null);
 // What the visitor is typing right now; saved a moment after they stop, once there is a full date.
 const birthDateInput = ref('');
 const bloodTypeInput = ref<BloodType | null>(null);
 const birthTimeInput = ref('');
 const birthPlaceInput = ref<string | null>(null);
-const comingSoon = ref<string | null>(null);
 const savedNote = ref('');
 const AUTOSAVE_DELAY_MS = 800;
 let autosaveTimer: ReturnType<typeof setTimeout> | null = null;
 
 const bloodTypeItems = BLOOD_TYPES.map((value) => ({
+const genderItems = [
+    {
+        title: '不提供', value: null,
+    },
+    ...GENDERS.map((value) => ({
+        title: GENDER_LABELS[value], value,
+    })),
+];
+
     title: BLOOD_TYPE_LABELS[value], value,
 }));
 
@@ -410,7 +418,6 @@ type Analysis = {
     lockedHint: string;
     /** Whether the data it needs is there */
     ready: boolean;
-    paid: boolean;
     /** Where it leads; without one the content is still being planned. */
     to?: string;
 };
@@ -432,6 +439,11 @@ const systems = [
             {
                 title: '生命靈數', tone: '#7a5aa6', text: '把出生日期化成數字，看天賦傾向與今年的節奏',
             },
+            ...(BAZI_ENTRY_ENABLED
+                ? [{
+                    title: '八字', tone: '#8c5e34', text: '由出生的年、月、日、時排出四柱，看五行的分布與日主的特質',
+                }]
+                : []),
             {
                 title: '人類圖', tone: '#2e7d5b', text: '依出生當下的星體位置，看能量如何運作、怎樣做決定最順',
             },
@@ -447,11 +459,36 @@ const systems = [
                 title: 'MBTI', tone: '#2f5d8a', text: '16 型人格，從回答問題的方式看如何獲取能量、接收資訊與做決定',
             },
         ],
+/** The human design type a member's saved chart has, for the button; guests only know that a chart exists */
+const humanDesignType = ref<string | null>(null);
+
+watch(() => [state.value.hasHumanDesign, isAuthenticated.value], async ([has, signedIn]) => {
+    humanDesignType.value = null;
+
+    if (!has || !signedIn) return;
+
+    try {
+        const chart = await get<HumanDesignResponse>('/api/human-design');
+
+        humanDesignType.value = HUMAN_DESIGN_TYPE_LABELS[chart.type];
+    } catch (error) {
+        console.error('[home] human design type failed:', error);
+    }
+}, { immediate: true });
+
+function dayMasterLabel(isoDate: string): string {
+    const { stem } = dayPillarOf(isoDate);
+
+    return `${stem}${ELEMENT_LABELS[stemElement(stem)]}日主`;
+}
+
     },
 ];
+    const baziReady = Boolean(zodiacSign.value && birthTimeInput.value);
+    // The day stem only needs the date, so the label can be worked out here without calling the server
+    const baziDayMaster = baziReady && birthDateInput.value ? dayMasterLabel(birthDateInput.value) : '';
 
 // Every analysis the app offers; the ones whose data is missing stay disabled.
-// The real-time one is a placeholder for now: the button exists, the content is still to be planned.
 const analyses = computed<Analysis[]>(() => {
     const sign = zodiacSign.value;
     const bloodType = analysableBloodType.value;
@@ -469,7 +506,6 @@ const analyses = computed<Analysis[]>(() => {
             action: sign ? `看星座分析（${ZODIAC_LABELS[sign]}）` : '看星座分析',
             lockedHint: '先填寫出生日期',
             ready: sign !== null,
-            paid: false,
             to: sign ? `/analysis/zodiac/${sign}` : undefined,
         },
         {
@@ -483,7 +519,6 @@ const analyses = computed<Analysis[]>(() => {
             action: bloodType ? `看血型分析（${BLOOD_TYPE_LABELS[bloodType]}）` : '看血型分析',
             lockedHint: '先選擇血型',
             ready: bloodType !== null,
-            paid: false,
             to: bloodType ? `/analysis/blood/${bloodType}` : undefined,
         },
         {
@@ -494,10 +529,9 @@ const analyses = computed<Analysis[]>(() => {
             tone: '#7a5aa6',
             description: '把出生日期化成數字，看你的天賦傾向與今年的節奏。',
             need: '需要：出生日期',
-            action: '看生命靈數',
+            action: birthDateInput.value && sign ? `看生命靈數（數字 ${lifePathNumber(birthDateInput.value)}）` : '看生命靈數',
             lockedHint: '先填寫出生日期',
             ready: sign !== null,
-            paid: false,
             to: '/analysis/numerology',
         },
         {
@@ -508,40 +542,26 @@ const analyses = computed<Analysis[]>(() => {
             tone: '#2e7d5b',
             description: '依出生當下的星體位置，看你的能量怎麼運作、怎樣做決定最順。',
             need: '需要：出生日期、時間與城市',
-            action: '看人類圖分析',
+            action: state.value.hasHumanDesign ? `看人類圖分析（${humanDesignType.value ?? '已計算'}）` : '看人類圖分析',
             lockedHint: '先填寫出生時間與城市',
             ready: advancedUnlocked.value,
-            paid: false,
             to: '/human-design',
         },
-        {
-            key: 'advanced',
-            system: 'symbolic',
-            title: '進階星座分析',
-            icon: 'mdi-star-circle-outline',
-            tone: '#b7791f',
-            description: '同樣是這個星座，你和別人還是不一樣。多給出生時間與城市，看見更貼近你自己的那一層。',
-            need: '需要：出生日期、時間與城市',
-            action: sign ? `看星座進階分析（${ZODIAC_LABELS[sign]}）` : '看星座進階分析',
-            lockedHint: '先填寫出生時間與城市',
-            ready: advancedUnlocked.value,
-            paid: false,
-            // The same report as the plain zodiac analysis: its advanced part is what the time and city unlock.
-            to: sign ? `/analysis/zodiac/${sign}` : undefined,
-        },
-        {
-            key: 'realtime',
-            system: 'symbolic',
-            title: '即時星象分析',
-            icon: 'mdi-clock-outline',
-            tone: '#b7791f',
-            description: '你現在正走在什麼樣的節奏？看看此刻的星象，怎麼和你的出生資料互相呼應。',
-            need: '需要：出生日期、時間與城市',
-            action: '用點數解鎖',
-            lockedHint: '先填寫出生時間與城市',
-            ready: advancedUnlocked.value,
-            paid: true,
-        },
+        ...(BAZI_ENTRY_ENABLED
+            ? [{
+                key: 'bazi',
+                system: 'symbolic' as const,
+                title: '八字命盤',
+                icon: 'mdi-yin-yang',
+                tone: '#8c5e34',
+                description: '由出生的年、月、日、時排出四柱，看五行的分布、日主的強弱與每十年的節奏。',
+                need: '需要：出生日期與時間',
+                action: baziReady ? `看八字命盤（${baziDayMaster}）` : '看八字命盤',
+                lockedHint: '先填寫出生日期與時間',
+                ready: baziReady,
+                to: '/bazi',
+            }]
+            : []),
         {
             key: 'mbti',
             system: 'personality',
@@ -554,7 +574,6 @@ const analyses = computed<Analysis[]>(() => {
             lockedHint: '開始測驗',
             // The test is the way in, so it is always open
             ready: true,
-            paid: false,
             to: mbti ? `/analysis/mbti/${mbti}` : '/test',
         },
     ];
@@ -564,17 +583,13 @@ function analysesOf(system: SystemKey): Analysis[] {
     return analyses.value.filter((analysis) => analysis.system === system);
 }
 
-function openAnalysis(analysis: Analysis) {
-    // An analysis with a destination is a plain link; the others only announce that they are coming.
-    if (analysis.ready && !analysis.to) comingSoon.value = analysis.title;
-}
-
 async function saveEntered() {
     if (!birthDateInput.value) return;
 
     try {
         await save({
             birthDate: birthDateInput.value,
+            gender: genderInput.value,
             birthTime: birthTimeInput.value,
             birthPlace: birthPlaceInput.value,
             bloodType: bloodTypeInput.value ?? 'UNKNOWN',
@@ -589,7 +604,13 @@ async function saveEntered() {
 // Filling the inputs from what was saved earlier is not an edit and must not be saved back.
 let hydrating = false;
 
-watch([birthDateInput, bloodTypeInput, birthTimeInput, birthPlaceInput], () => {
+watch([
+    birthDateInput,
+    bloodTypeInput,
+    birthTimeInput,
+    birthPlaceInput,
+    genderInput,
+], () => {
     if (hydrating) return;
 
     if (autosaveTimer) clearTimeout(autosaveTimer);
@@ -607,6 +628,7 @@ watch(() => state.value.loaded, async (loaded) => {
 
     hydrating = true;
     birthDateInput.value = state.value.birthData?.birthDate ?? '';
+    genderInput.value = state.value.gender;
     bloodTypeInput.value = state.value.bloodType === 'UNKNOWN' ? null : state.value.bloodType;
     birthTimeInput.value = state.value.birthData?.birthTime ?? '';
     birthPlaceInput.value = state.value.birthData?.birthPlace ?? null;

@@ -4,62 +4,83 @@
             自我分析報告
         </h1>
 
-        <v-row>
-            <v-col
-                v-for="item in items"
-                :key="item.key"
-                cols="12"
-                sm="6"
-            >
-                <v-card
-                    variant="outlined"
-                    height="100%"
-                    :class="['report-card d-flex flex-column', { 'report-card--done': item.done }]"
-                    :style="{ '--tone': item.tone }"
+        <section
+            v-for="system in systems"
+            :key="system.key"
+            class="mb-6"
+        >
+            <div class="d-flex align-center ga-2 mb-1">
+                <v-icon
+                    :icon="system.icon"
+                    color="primary"
+                    size="20"
+                />
+                <h2 class="system__title">
+                    {{ system.title }}
+                </h2>
+            </div>
+            <p class="text-body-2 text-medium-emphasis mb-3">
+                {{ system.purpose }}
+            </p>
+            <v-row>
+                <v-col
+                    v-for="item in itemsOf(system.key)"
+                    :key="item.key"
+                    cols="12"
+                    sm="6"
+                    md="4"
                 >
-                    <v-card-text class="flex-grow-1">
-                        <div class="d-flex align-center justify-space-between mb-2">
-                            <v-avatar
-                                :color="item.done ? item.tone : 'grey'"
-                                variant="tonal"
-                                size="40"
+                    <v-card
+                        variant="outlined"
+                        height="100%"
+                        :class="['report-card d-flex flex-column', { 'report-card--done': item.done }]"
+                        :style="{ '--tone': item.tone }"
+                    >
+                        <v-card-text class="flex-grow-1">
+                            <div class="d-flex align-center justify-space-between mb-2">
+                                <v-avatar
+                                    :color="item.done ? item.tone : 'grey'"
+                                    variant="tonal"
+                                    size="40"
+                                >
+                                    <v-icon :icon="item.icon" />
+                                </v-avatar>
+                                <v-chip
+                                    v-if="item.done"
+                                    size="small"
+                                    color="success"
+                                    variant="tonal"
+                                    prepend-icon="mdi-check"
+                                >
+                                    {{ item.result }}
+                                </v-chip>
+                            </div>
+                            <div class="text-subtitle-1 font-weight-medium mb-1">
+                                {{ item.title }}
+                            </div>
+                            <p class="text-body-2 text-medium-emphasis mb-0">
+                                {{ item.description }}
+                            </p>
+                        </v-card-text>
+                        <v-card-actions>
+                            <v-btn
+                                :to="item.to"
+                                :variant="item.done ? 'tonal' : 'text'"
+                                :color="item.done ? item.tone : undefined"
+                                append-icon="mdi-arrow-right"
                             >
-                                <v-icon :icon="item.icon" />
-                            </v-avatar>
-                            <v-chip
-                                v-if="item.done"
-                                size="small"
-                                color="success"
-                                variant="tonal"
-                                prepend-icon="mdi-check"
-                            >
-                                {{ item.result }}
-                            </v-chip>
-                        </div>
-                        <div class="text-subtitle-1 font-weight-medium mb-1">
-                            {{ item.title }}
-                        </div>
-                        <p class="text-body-2 text-medium-emphasis mb-0">
-                            {{ item.description }}
-                        </p>
-                    </v-card-text>
-                    <v-card-actions>
-                        <v-btn
-                            :to="item.to"
-                            :variant="item.done ? 'tonal' : 'text'"
-                            :color="item.done ? item.tone : undefined"
-                            append-icon="mdi-arrow-right"
-                        >
-                            {{ item.action }}
-                        </v-btn>
-                    </v-card-actions>
-                </v-card>
-            </v-col>
-        </v-row>
+                                {{ item.action }}
+                            </v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-col>
+            </v-row>
+        </section>
     </div>
 </template>
 
 <script lang="ts" setup>
+import { BAZI_ENTRY_ENABLED } from '../../shared/constants/bazi';
 import {
     BLOOD_TYPE_LABELS, ZODIAC_LABELS,
 } from '../../shared/constants/zodiacLabels';
@@ -68,8 +89,11 @@ import { zodiacFromIsoDate } from '../../shared/utils/zodiac';
 
 useHead({ title: '自我分析報告' });
 
+type SystemKey = 'symbolic' | 'personality';
+
 type ReportCard = {
     key: string;
+    system: SystemKey;
     title: string;
     icon: string;
     tone: string;
@@ -95,10 +119,12 @@ const items = computed<ReportCard[]>(() => {
     const sign = birthDate.value ? zodiacFromIsoDate(birthDate.value) : null;
     const blood = bloodType.value;
     const mbti = state.value.mbti;
+    const baziReady = Boolean(state.value.birthData?.birthDate && state.value.birthData.birthTime);
 
     return [
         {
             key: 'ZODIAC',
+            system: 'symbolic',
             title: '星座',
             icon: 'mdi-star-four-points-outline',
             tone: '#b7791f',
@@ -110,6 +136,7 @@ const items = computed<ReportCard[]>(() => {
         },
         {
             key: 'BLOOD',
+            system: 'symbolic',
             title: '血型',
             icon: 'mdi-water-outline',
             tone: '#c94f4f',
@@ -121,6 +148,7 @@ const items = computed<ReportCard[]>(() => {
         },
         {
             key: 'MBTI',
+            system: 'personality',
             title: 'MBTI',
             icon: 'mdi-head-cog-outline',
             tone: '#2f5d8a',
@@ -132,6 +160,7 @@ const items = computed<ReportCard[]>(() => {
         },
         {
             key: 'HUMAN_DESIGN',
+            system: 'symbolic',
             title: '人類圖',
             icon: 'mdi-vector-triangle',
             tone: '#2e7d5b',
@@ -141,8 +170,23 @@ const items = computed<ReportCard[]>(() => {
             to: progress.value.done.HUMAN_DESIGN ? '/human-design' : '/#fill',
             action: progress.value.done.HUMAN_DESIGN ? '查看人類圖' : '填寫出生時間與地點',
         },
+        ...(BAZI_ENTRY_ENABLED
+            ? [{
+                key: 'BAZI',
+            system: 'symbolic',
+                title: '八字命盤',
+                icon: 'mdi-yin-yang',
+                tone: '#8c5e34',
+                description: '由出生的年、月、日、時排出四柱，看五行的分布、日主的強弱與每十年的節奏。',
+                done: baziReady,
+                result: '可查看',
+                to: baziReady ? '/bazi' : '/#fill',
+                action: baziReady ? '查看八字命盤' : '填寫出生日期與時間',
+            }]
+            : []),
         {
             key: 'NUMEROLOGY',
+            system: 'symbolic',
             title: '生命靈數',
             icon: 'mdi-numeric',
             tone: '#7a5aa6',
@@ -154,9 +198,32 @@ const items = computed<ReportCard[]>(() => {
         },
     ];
 });
+
+/** The two ways of getting to know yourself, in the same words as the home page */
+const systems = [
+    {
+        key: 'symbolic' as const,
+        title: '命理與象徵系統',
+        icon: 'mdi-star-four-points-outline',
+        purpose: '娛樂、文化探索、象徵性解讀',
+    },
+    {
+        key: 'personality' as const,
+        title: '人格與心理特質',
+        icon: 'mdi-head-cog-outline',
+        purpose: '了解特質傾向與個人差異',
+    },
+];
+
+const itemsOf = (system: SystemKey) => items.value.filter((item) => item.system === system);
 </script>
 
 <style scoped>
+.system__title {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
 /* A card without a result yet stays quiet; one with a result lights up in its own color. */
 .report-card {
     border-top: 3px solid rgba(var(--v-theme-on-surface), 0.12);
