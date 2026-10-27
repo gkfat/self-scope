@@ -49,6 +49,9 @@ const RULES: readonly Rule[] = [
         method: 'POST', pattern: /^\/api\/zodiac\/natal-chart$/, access: 'public',
     },
     {
+        method: 'POST', pattern: /^\/api\/bazi\/calculations$/, access: 'public',
+    },
+    {
         method: 'POST', pattern: /^\/api\/share-cards$/, access: 'optional',
     },
     {

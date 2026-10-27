@@ -224,6 +224,30 @@ paths:
           "$ref": "#/components/responses/ValidationError"
   "/fixed-results/blood-types/{bloodType}":
     get:
+  "/bazi/calculations":
+    post:
+      operationId: calculateBazi
+      summary: "計算八字命盤（四柱、日主、五行、十神、命盤事實、強弱與喜用神、稱骨、大運與流年）"
+      description: "依出生日期（必填）、時間、城市與性別算出固定的命盤，並附事先寫好的固定內容解讀；不呼叫 AI、不扣點、不儲存。沒有時間只算年、月、日三柱；沒有城市以 Asia/Taipei 計算；沒有性別或時間時沒有大運（luckStatus 說明原因）。年柱以立春換年、月柱以十二個節換月、日柱以當地 00:00 換日、晚子時日柱不換，使用出生地的標準時間（含歷史夏令時間）。結果需要的解讀內容有任一筆尚未發佈時回 404。"
+      tags: [FixedResults]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/BaziRequest"
+      responses:
+        "200":
+          description: "八字命盤"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/BaziChart"
+        "400":
+          "$ref": "#/components/responses/ValidationError"
+        "404":
+          "$ref": "#/components/responses/NotFound"
       operationId: getBloodTypeResult
       summary: "取得血型單項分析"
       description: "UNKNOWN 不提供分析（RULE-002），回傳 404。"
@@ -1342,6 +1366,10 @@ components:
             - type: string
             - type: number
         responseTimeMs:
+    Gender:
+      type: string
+      description: "選填；只用來決定八字大運的排法（男命、女命順逆不同），不用於其他分析或顯示"
+      enum: [MALE, FEMALE]
           type: integer
           minimum: 0
           nullable: true
@@ -1381,6 +1409,9 @@ components:
           nullable: true
       required: [testVersion, result, content, persisted]
     TestAttempt:
+        gender:
+          "$ref": "#/components/schemas/Gender"
+          nullable: true
       type: object
       properties:
         attemptId:
@@ -1396,6 +1427,9 @@ components:
           format: date-time
         expiresAt:
           type: string
+        gender:
+          "$ref": "#/components/schemas/Gender"
+          nullable: true
           format: date-time
       required: [attemptId, testId, testVersion, result, completedAt, expiresAt]
     CombinationKey:
@@ -1471,7 +1505,7 @@ components:
           nullable: true
         hasHumanDesign:
           type: boolean
-      required: [birthData, bloodType, mbti, hasHumanDesign]
+      required: [birthData, bloodType, mbti, gender, hasHumanDesign]
     NatalChartRequest:
       type: object
       properties:
@@ -1696,6 +1730,9 @@ components:
         pointsDeducted:
           type: integer
       required: [reportId, status, pointsDeducted]
+        gender:
+          "$ref": "#/components/schemas/Gender"
+          nullable: true
     PointBatch:
       type: object
       properties:
@@ -1756,6 +1793,151 @@ components:
       required: [items]
     Money:
       type: object
+    BaziRequest:
+      type: object
+      properties:
+        birthDate:
+          type: string
+          format: date
+          description: "真實且不在未來的日期"
+        birthTime:
+          type: string
+          pattern: "^([01]\\d|2[0-3]):[0-5]\\d$"
+          nullable: true
+          description: "出生地的當地時間；沒有時只算三柱"
+        birthPlace:
+          type: string
+          nullable: true
+          description: "預設城市清單的代碼；沒有時以 Asia/Taipei 計算"
+        gender:
+          "$ref": "#/components/schemas/Gender"
+          nullable: true
+          description: "只用來決定大運的排法；沒有時不輸出大運與流年"
+      required: [birthDate]
+    BaziPillar:
+      type: object
+      properties:
+        stem:
+          type: string
+          description: "天干"
+        branch:
+          type: string
+          description: "地支"
+      required: [stem, branch]
+    BaziFlowYear:
+      type: object
+      properties:
+        year:
+          type: integer
+        pillar:
+          "$ref": "#/components/schemas/BaziPillar"
+        tenGod:
+          type: string
+          description: "對日干的十神"
+      required: [year, pillar, tenGod]
+    BaziChart:
+      type: object
+      properties:
+        timeZone:
+          type: string
+        timeZoneAssumed:
+          type: boolean
+          description: "沒有提供出生城市而以預設時區計算"
+        hasTime:
+          type: boolean
+        baziYear:
+          type: integer
+          description: "年柱所屬的年（立春之前為前一年）"
+        pillars:
+          type: object
+          properties:
+            year:
+              "$ref": "#/components/schemas/BaziPillar"
+            month:
+              "$ref": "#/components/schemas/BaziPillar"
+            day:
+              "$ref": "#/components/schemas/BaziPillar"
+            hour:
+              "$ref": "#/components/schemas/BaziPillar"
+              nullable: true
+          required: [year, month, day, hour]
+        dayMaster:
+          type: object
+          properties:
+            stem:
+              type: string
+            element:
+              type: string
+              enum: [wood, fire, earth, metal, water]
+            polarity:
+              type: string
+              enum: [YANG, YIN]
+          required: [stem, element, polarity]
+        chart:
+          type: array
+          description: "每柱的十神、五行與藏干（含藏干的十神）"
+          items:
+            type: object
+            additionalProperties: true
+        elementCounts:
+          type: object
+          description: "八個字（三柱為六個）的五行數量，不加權"
+          additionalProperties:
+            type: integer
+        tenGodCounts:
+          type: object
+          additionalProperties:
+            type: integer
+        groupCounts:
+          type: object
+          description: "比劫 peer、食傷 output、財 wealth、官殺 power、印 resource"
+          additionalProperties:
+            type: integer
+        facts:
+          type: object
+          description: "地勢與自坐、空亡、納音、命宮與胎元、生肖、節氣與季節、合沖關係；只列事實，不附吉凶"
+          additionalProperties: true
+        strength:
+          type: object
+          description: "幫扶分、強弱分級、五行旺衰、命格與喜用神（以十神類別表示；中和時 useful 為 null）"
+          additionalProperties: true
+        bone:
+          type: object
+          nullable: true
+          description: "稱骨骨重；沒有出生時間時為 null"
+          additionalProperties: true
+        lateZi:
+          type: boolean
+        borderline:
+          type: array
+          description: "距離節或時辰界線 30 分鐘內的交界提示"
+          items:
+            type: object
+            additionalProperties: true
+        termDay:
+          type: object
+          nullable: true
+          description: "沒有時間且出生日剛好有節時，月柱（或年柱）可能不同"
+          additionalProperties: true
+        luckStatus:
+          type: string
+          enum: [OK, NEEDS_GENDER, NEEDS_TIME]
+        luck:
+          type: object
+          nullable: true
+          description: "大運：順逆、起運歲數、8 步大運（含起訖歲數與年份、十神）、目前的大運與各步的十個流年"
+          additionalProperties: true
+        flowYears:
+          type: array
+          nullable: true
+          description: "今年（立春換年）與接下來 4 年；沒有性別時為 null"
+          items:
+            "$ref": "#/components/schemas/BaziFlowYear"
+        interpretation:
+          type: object
+          description: "事先寫好的固定內容（日主、五行、十神群組、月令、強弱、命格、喜用神、稱骨、目前的大運）"
+          additionalProperties: true
+      required: [timeZone, timeZoneAssumed, hasTime, baziYear, pillars, dayMaster, chart, elementCounts, tenGodCounts, groupCounts, facts, strength, bone, lateZi, borderline, termDay, luckStatus, luck, flowYears, interpretation]
       properties:
         amount:
           type: number
