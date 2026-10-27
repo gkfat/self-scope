@@ -11,6 +11,7 @@ import {
 const input: AnalysisInput = {
     inputVersion: 'abc123',
     bazi: null,
+    mayaKin: null,
     profile: {
         zodiac: 'aries', bloodType: 'O', mbti: 'INTJ', numerology: null,
     },

@@ -20,3 +20,12 @@ export function addMonths(from: number, months: number): number {
 
     return date.getTime();
 }
+
+const taipeiDateFormat = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit',
+});
+
+/** The calendar date in Taipei (UTC+8, the day changes at 00:00 there) as `YYYY-MM-DD`. */
+export function taipeiDateKey(now: Date): string {
+    return taipeiDateFormat.format(now);
+}

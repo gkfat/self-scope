@@ -11,6 +11,9 @@ import {
     buildBaziReportFacts, type BaziReportFacts,
 } from '../bazi/reportFacts';
 import {
+    buildMayaKinReportFacts, type MayaKinReportFacts,
+} from '../mayaKin/reportFacts';
+import {
     AiOutputError, type AiReportProvider, 
 } from '../ai/provider';
 import { PROMPT_VERSION } from '../ai/prompt';
@@ -154,6 +157,7 @@ export class DetailedReportService extends BaseService {
         if (combinationKey.humanDesignType !== null) dimensions.push('HUMAN_DESIGN');
         if (combinationKey.numerology !== null) dimensions.push('NUMEROLOGY');
         if (combinationKey.baziDayMaster !== null) dimensions.push('BAZI');
+        if (combinationKey.kinNumber !== null) dimensions.push('MAYA_KIN');
 
         return this.start(uid, { dimensions }, idempotencyKey, {
             reason: 'REGENERATE', supersedesReportId: sourceReportId,
@@ -214,7 +218,7 @@ export class DetailedReportService extends BaseService {
 
         const cost = multiDimensionCost(request.dimensions);
 
-        // Only choices that include the human design or the BaZi chart are generated; the rest are written content (SummaryService)
+        // Only choices that include the human design, the BaZi chart or the Maya Kin are generated; the rest are written content (SummaryService)
         if (cost === null || !isGeneratedAnalysis(request.dimensions)) {
             throw new UnprocessableError('This choice of dimensions is not offered here', 'DIMENSIONS_NOT_OFFERED');
         }
@@ -309,7 +313,7 @@ export class DetailedReportService extends BaseService {
         const chosen = new Set(request.dimensions);
         const now = this.clock();
 
-        if ((chosen.has('ZODIAC') || chosen.has('NUMEROLOGY')) && !user.birthData) {
+        if ((chosen.has('ZODIAC') || chosen.has('NUMEROLOGY') || chosen.has('MAYA_KIN')) && !user.birthData) {
             throw new UnprocessableError('Fill in your birth date and zodiac first', 'PROFILE_REQUIRED');
         }
 
@@ -362,6 +366,11 @@ export class DetailedReportService extends BaseService {
             });
         }
 
+        // The Kin follows from the birth date, which the check above has made sure is there
+        const mayaKin: MayaKinReportFacts | null = chosen.has('MAYA_KIN') && user.birthData
+            ? buildMayaKinReportFacts(user.birthData.birthDate)
+            : null;
+
         const mbti = chosen.has('MBTI') ? user.mbti : null;
         const input = buildAnalysisInput({
             zodiac: chosen.has('ZODIAC') ? user.birthData?.zodiac ?? null : null,
@@ -374,6 +383,7 @@ export class DetailedReportService extends BaseService {
             test: mbti ? await this.latestTest(uid) : null,
             humanDesign,
             bazi,
+            mayaKin,
         });
 
         return {
@@ -385,6 +395,7 @@ export class DetailedReportService extends BaseService {
                 humanDesignType: typeof humanDesign?.type === 'string' ? humanDesign.type : null,
                 numerology: input.profile.numerology,
                 baziDayMaster: bazi ? bazi.dayMaster.slice(0, 1) : null,
+                kinNumber: mayaKin?.kinNumber ?? null,
             },
         };
     }

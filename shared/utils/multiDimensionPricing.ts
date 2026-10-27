@@ -8,6 +8,8 @@ const DIMENSION_BASE_PRICE: Readonly<Record<ReportDimension, number>> = {
     NUMEROLOGY: 1,
     HUMAN_DESIGN: 2,
     BAZI: 3,
+    // Like the life path number, it comes from the birth date alone
+    MAYA_KIN: 1,
 };
 
 /**
@@ -20,6 +22,7 @@ const COUNT_WEIGHT_HALVES: Readonly<Record<number, number>> = {
     4: 4,
     5: 5,
     6: 5,
+    7: 5,
 };
 
 /** An analysis the model generates costs 1.5 times as much; both factors are written as halves. */
@@ -32,9 +35,13 @@ const MAX_COST = 30;
 /** Two factors in halves multiply to quarters. */
 const QUARTERS = 4;
 
-/** Whether this choice of dimensions is generated (it includes the human design or the BaZi chart) or written content. */
+/**
+ * Whether this choice of dimensions is generated (it includes the human design, the BaZi chart or the Maya Kin) or
+ * written content. The written summaries cover only zodiac, MBTI, blood type and life path number: a Kin would multiply
+ * their 14320 combinations by 260.
+ */
 export function isGeneratedAnalysis(dimensions: readonly ReportDimension[]): boolean {
-    return dimensions.includes('HUMAN_DESIGN') || dimensions.includes('BAZI');
+    return dimensions.includes('HUMAN_DESIGN') || dimensions.includes('BAZI') || dimensions.includes('MAYA_KIN');
 }
 
 /**

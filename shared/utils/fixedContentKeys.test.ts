@@ -6,6 +6,7 @@ import {
     expectedFixedContentIds,
     fixedContentId,
     isValidContentKey,
+    kinContentKeys,
     parseSummaryKey,
     summaryKey,
     tarotContentKeys,
@@ -153,6 +154,33 @@ describe('TAROT keys', () => {
     });
 });
 
+describe('KIN keys', () => {
+    it.each(['KIN_BIRTH', 'KIN_TODAY'] as const)('%s accepts 1 to 260', (type) => {
+        expect(kinContentKeys()).toHaveLength(260);
+        expect(isValidContentKey(type, '1')).toBe(true);
+        expect(isValidContentKey(type, '207')).toBe(true);
+        expect(isValidContentKey(type, '260')).toBe(true);
+
+        for (const key of kinContentKeys()) expect(isValidContentKey(type, key), key).toBe(true);
+    });
+
+    it.each(['KIN_BIRTH', 'KIN_TODAY'] as const)('%s rejects keys outside 1 to 260 and malformed ones', (type) => {
+        for (const key of [
+            '0',
+            '261',
+            '-1',
+            '01',
+            '1.5',
+            '',
+            'one',
+            '1_upright',
+            ' 7',
+        ]) {
+            expect(isValidContentKey(type, key), key).toBe(false);
+        }
+    });
+});
+
 describe('baziContentKeys', () => {
     const keys = baziContentKeys();
     const countOf = (prefix: string) => keys.filter((key) => key.startsWith(prefix)).length;
@@ -183,9 +211,9 @@ describe('baziContentKeys', () => {
 describe('expectedFixedContentIds', () => {
     const ids = expectedFixedContentIds();
 
-    it('lists 14320 summaries, 44 single results, 123 BaZi contents and 44 tarot contents, all unique', () => {
-        expect(ids).toHaveLength(14531);
-        expect(new Set(ids).size).toBe(14531);
+    it('lists 14320 summaries, 44 single results, 123 BaZi contents and 44 tarot contents and 520 Kin contents, all unique', () => {
+        expect(ids).toHaveLength(15051);
+        expect(new Set(ids).size).toBe(15051);
         expect(ids.filter((id) => id.startsWith('SUMMARY_'))).toHaveLength(14320);
         expect(ids.filter((id) => id.startsWith('ZODIAC_'))).toHaveLength(12);
         expect(ids.filter((id) => id.startsWith('BLOOD_'))).toHaveLength(4);
@@ -193,6 +221,8 @@ describe('expectedFixedContentIds', () => {
         expect(ids.filter((id) => id.startsWith('NUMEROLOGY_'))).toHaveLength(12);
         expect(ids.filter((id) => id.startsWith('BAZI_'))).toHaveLength(123);
         expect(ids.filter((id) => id.startsWith('TAROT_'))).toHaveLength(44);
+        expect(ids.filter((id) => id.startsWith('KIN_BIRTH_'))).toHaveLength(260);
+        expect(ids.filter((id) => id.startsWith('KIN_TODAY_'))).toHaveLength(260);
     });
 
     it('splits summaries into 688 pairs, 4416 triples and 9216 with all four parts', () => {

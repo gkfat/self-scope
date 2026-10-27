@@ -12,6 +12,7 @@ import {
     BONE_MAX_QIAN,
     BONE_MIN_QIAN,
 } from '../constants/bazi.ts';
+import { KIN_COUNT } from '../constants/mayaKin.ts';
 import {
     TAROT_CARD_COUNT, TAROT_ORIENTATIONS,
 } from '../constants/tarot.ts';
@@ -32,6 +33,8 @@ export const FIXED_CONTENT_TYPES = [
     'NUMEROLOGY',
     'BAZI',
     'TAROT',
+    'KIN_BIRTH',
+    'KIN_TODAY',
 ] as const;
 
 export type FixedContentType = typeof FIXED_CONTENT_TYPES[number];
@@ -153,6 +156,13 @@ export function tarotContentKeys(): string[] {
 
 const TAROT_KEY_SET: ReadonlySet<string> = new Set(tarotContentKeys());
 
+/** The 260 Kin content keys: the Kin number as text, `"1"` to `"260"`. */
+export function kinContentKeys(): string[] {
+    return Array.from({ length: KIN_COUNT }, (_, index) => String(index + 1));
+}
+
+const KIN_KEY_SET: ReadonlySet<string> = new Set(kinContentKeys());
+
 export function fixedContentId(type: FixedContentType, key: string): string {
     return `${type}_${key}`;
 }
@@ -167,13 +177,15 @@ export function isValidContentKey(type: FixedContentType, key: string): boolean 
     case 'NUMEROLOGY': return (NUMEROLOGY_NUMBERS as readonly string[]).includes(key);
     case 'BAZI': return BAZI_KEY_SET.has(key);
     case 'TAROT': return TAROT_KEY_SET.has(key);
+    case 'KIN_BIRTH':
+    case 'KIN_TODAY': return KIN_KEY_SET.has(key);
     }
 }
 
 /**
  * Every document id that must exist before launch:
  * every summary combination (2 to 4 of zodiac, MBTI, blood type and life path number), 12 + 4 + 16 + 12 single results,
- * the 123 BaZi contents and the 44 tarot contents.
+ * the 123 BaZi contents, the 44 tarot contents and the 260 + 260 Kin contents.
  */
 export function expectedFixedContentIds(): string[] {
     const ids: string[] = [];
@@ -209,6 +221,7 @@ export function expectedFixedContentIds(): string[] {
     for (const number of NUMEROLOGY_NUMBERS) ids.push(fixedContentId('NUMEROLOGY', number));
     for (const key of baziContentKeys()) ids.push(fixedContentId('BAZI', key));
     for (const key of tarotContentKeys()) ids.push(fixedContentId('TAROT', key));
+    for (const key of kinContentKeys()) ids.push(fixedContentId('KIN_BIRTH', key), fixedContentId('KIN_TODAY', key));
 
     return ids;
 }

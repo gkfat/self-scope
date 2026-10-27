@@ -252,8 +252,12 @@ import type { HumanDesignResponse } from '../../../shared/schemas/api/humanDesig
 import {
     BLOOD_TYPE_LABELS, ZODIAC_LABELS,
 } from '../../../shared/constants/zodiacLabels';
+import {
+    kinName, kinOf,
+} from '../../../shared/utils/mayaKin';
 import { lifePathNumber } from '../../../shared/utils/numerology';
 import { ELEMENT_LABELS } from '../../../shared/constants/bazi';
+import { KIN_ENTRY_ENABLED } from '../../../shared/constants/mayaKin';
 import { HUMAN_DESIGN_TYPE_LABELS } from '../../../shared/constants/humanDesignLabels';
 import type { BaziResponse } from '../../../shared/schemas/api/bazi.schema';
 
@@ -294,7 +298,8 @@ const {
     progress, state, load,
 } = useExploration();
 
-const dimensionOptions = DIMENSION_META;
+// A Kin can be chosen only while the Kin is switched on; reports that already used it are still shown in full
+const dimensionOptions = DIMENSION_META.filter((option) => option.value !== 'MAYA_KIN' || KIN_ENTRY_ENABLED);
 
 const selected = ref<ReportDimension[]>([]);
 const starting = ref(false);
@@ -320,6 +325,7 @@ const results = computed<Record<ReportDimension, string>>(() => ({
     HUMAN_DESIGN: humanDesignType.value ?? '已計算',
     NUMEROLOGY: state.value.birthData ? `數字 ${lifePathNumber(state.value.birthData.birthDate)}` : '',
     BAZI: baziDayMaster.value ?? '',
+    MAYA_KIN: state.value.birthData ? kinName(kinOf(state.value.birthData.birthDate)) : '',
 }));
 
 const dimensionChoices = computed(() => dimensionOptions.map((option) => ({
@@ -460,7 +466,7 @@ function entryOf(
         key,
         at,
         state,
-        generated: parts.some((part) => part.value === 'HUMAN_DESIGN' || part.value === 'BAZI'),
+        generated: parts.some((part) => part.value === 'HUMAN_DESIGN' || part.value === 'BAZI' || part.value === 'MAYA_KIN'),
         dimensionCount: parts.length,
         parts,
         result: combinationResult(combination),
@@ -495,8 +501,13 @@ function startTicker() {
         if (needsPoll && now.value - lastPoll >= POLL_INTERVAL_MS) {
             lastPoll = now.value;
 
+            const generatingBefore = new Set(reports.value.filter((item) => item.status === 'GENERATING').map((item) => item.reportId));
+
             try {
                 await refreshList();
+
+                // A report that failed has been refunded by the server, so the balance in the app bar is out of date
+                if (reports.value.some((item) => generatingBefore.has(item.reportId) && item.status === 'FAILED')) await refreshPoints();
             } catch (error) {
                 console.error('[report] refresh failed:', error);
             }
@@ -578,10 +589,10 @@ async function start() {
 
 // Start with every finished dimension ticked; the member can narrow it down
 watch(() => progress.value.done, (done) => {
-    // Written content is the cheapest: start with up to three finished dimensions that are not generated (human design, BaZi)
+    // Written content is the cheapest: start with up to three finished dimensions that are not generated (human design, BaZi, Maya Kin)
     selected.value = dimensionOptions
         .map((option) => option.value)
-        .filter((value) => done[value] && value !== 'HUMAN_DESIGN' && value !== 'BAZI')
+        .filter((value) => done[value] && value !== 'HUMAN_DESIGN' && value !== 'BAZI' && value !== 'MAYA_KIN')
         .slice(0, 3);
 }, { immediate: true });
 

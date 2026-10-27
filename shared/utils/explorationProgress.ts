@@ -7,6 +7,7 @@ export const EXPLORATION_LAYERS = [
     'HUMAN_DESIGN',
     'NUMEROLOGY',
     'BAZI',
+    'MAYA_KIN',
 ] as const;
 
 export type ExplorationLayer = typeof EXPLORATION_LAYERS[number];
@@ -51,6 +52,8 @@ export function explorationProgress(facts: ExplorationFacts): ExplorationProgres
         NUMEROLOGY: facts.birthDate !== null,
         // The four pillars need the birth hour
         BAZI: facts.birthDate !== null && facts.birthTime !== null,
+        // The Kin comes from the birth date alone
+        MAYA_KIN: facts.birthDate !== null,
     };
 
     return {

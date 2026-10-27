@@ -105,60 +105,7 @@
             </v-card-text>
         </v-card>
 
-        <v-card
-            v-if="tarotEntryEnabled"
-            class="tarot-block mb-6"
-            variant="outlined"
-        >
-            <v-card-text class="d-flex flex-wrap align-center ga-4">
-                <v-avatar
-                    color="primary"
-                    variant="tonal"
-                    size="48"
-                >
-                    <v-icon icon="mdi-cards-playing-outline" />
-                </v-avatar>
-                <div class="flex-grow-1">
-                    <div class="text-subtitle-1 font-weight-medium">
-                        每日塔羅
-                    </div>
-                    <p
-                        v-if="!initialized || !isAuthenticated"
-                        class="text-body-2 text-medium-emphasis mb-0"
-                    >
-                        每天翻一張牌，看看今天給你的提醒。登入後就能翻牌。
-                    </p>
-                    <p
-                        v-else-if="tarotDrawn"
-                        class="text-body-2 mb-0"
-                    >
-                        今天的牌：{{ tarotDrawn.card.name }}（{{ TAROT_ORIENTATION_LABELS[tarotDrawn.card.orientation] }}）
-                    </p>
-                    <p
-                        v-else
-                        class="text-body-2 text-medium-emphasis mb-0"
-                    >
-                        今天還沒翻牌，每天可以翻一張。
-                    </p>
-                </div>
-                <v-btn
-                    v-if="initialized && !isAuthenticated"
-                    to="/login"
-                    color="primary"
-                >
-                    立即登入
-                </v-btn>
-                <v-btn
-                    v-else-if="initialized"
-                    to="/tarot"
-                    :color="tarotDrawn ? undefined : 'primary'"
-                    :variant="tarotDrawn ? 'tonal' : 'flat'"
-                    :loading="tarotStatus === 'loading' && !tarotToday"
-                >
-                    {{ tarotDrawn ? '看今天的牌' : '翻今天的牌' }}
-                </v-btn>
-            </v-card-text>
-        </v-card>
+        <FortuneHomeEntry />
 
         <v-card
             id="fill"
@@ -397,9 +344,7 @@
 import {
     BAZI_ENTRY_ENABLED, ELEMENT_LABELS,
 } from '../../shared/constants/bazi';
-import {
-    TAROT_ENTRY_ENABLED, TAROT_ORIENTATION_LABELS,
-} from '../../shared/constants/tarot';
+import { KIN_ENTRY_ENABLED } from '../../shared/constants/mayaKin';
 import {
     BLOOD_TYPE_LABELS, GENDER_LABELS, ZODIAC_LABELS,
 } from '../../shared/constants/zodiacLabels';
@@ -411,6 +356,7 @@ import { HUMAN_DESIGN_TYPE_LABELS } from '../../shared/constants/humanDesignLabe
 import type { HumanDesignResponse } from '../../shared/schemas/api/humanDesign.schema';
 import { dayPillarOf } from '../../shared/utils/bazi/dayPillar';
 import { stemElement } from '../../shared/utils/bazi/ganzhi';
+import { kinName, kinOf } from '../../shared/utils/mayaKin';
 import { lifePathNumber } from '../../shared/utils/numerology';
 import { zodiacFromIsoDate } from '../../shared/utils/zodiac';
 
@@ -418,16 +364,6 @@ useHead({ title: '多維度自我分析' });
 
 const { isAuthenticated, initialized } = useAuth();
 const { get } = useApi();
-const {
-    today: tarotToday, status: tarotStatus, load: loadTarot,
-} = useDailyTarot();
-const tarotEntryEnabled = TAROT_ENTRY_ENABLED;
-const tarotDrawn = computed(() => (tarotToday.value?.drawn ? tarotToday.value : null));
-
-// Only a member's card is asked for; a visitor sees the invitation and no card content.
-watch(() => TAROT_ENTRY_ENABLED && initialized.value && isAuthenticated.value, (member) => {
-    if (member) void loadTarot();
-}, { immediate: true });
 /** Multi-dimension analysis is for members: a visitor sees it blurred with a way to sign in */
 const gated = computed(() => initialized.value && !isAuthenticated.value);
 const {
@@ -509,6 +445,11 @@ const systems = [
             ...(BAZI_ENTRY_ENABLED
                 ? [{
                     title: '八字', tone: '#8c5e34', text: '由出生的年、月、日、時排出四柱，看五行的分布與日主的特質',
+                }]
+                : []),
+            ...(KIN_ENTRY_ENABLED
+                ? [{
+                    title: '瑪雅 Kin', tone: '#c94f4f', text: '依出生日期以 Dreamspell 曆法算出圖騰與調性，看你的本質與象徵',
                 }]
                 : []),
         ],
@@ -624,6 +565,21 @@ const analyses = computed<Analysis[]>(() => {
                 lockedHint: '先填寫出生日期與時間',
                 ready: baziReady,
                 to: '/bazi',
+            }]
+            : []),
+        ...(KIN_ENTRY_ENABLED
+            ? [{
+                key: 'mayaKin',
+                system: 'symbolic' as const,
+                title: '瑪雅 Kin',
+                icon: 'mdi-calendar-star',
+                tone: '#c94f4f',
+                description: '依出生日期以 Dreamspell 曆法算出你的圖騰與調性，看你的本質與象徵。',
+                need: '需要：出生日期',
+                action: birthDateInput.value && sign ? `看瑪雅 Kin（${kinName(kinOf(birthDateInput.value))}）` : '看瑪雅 Kin',
+                lockedHint: '先填寫出生日期',
+                ready: sign !== null,
+                to: '/analysis/maya-kin',
             }]
             : []),
         {

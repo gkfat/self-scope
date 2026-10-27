@@ -3,6 +3,9 @@ import {
 } from '../../shared/constants/zodiacLabels';
 import { HUMAN_DESIGN_TYPE_LABELS } from '../../shared/constants/humanDesignLabels';
 import type { ReportDimension } from '../../shared/schemas/firestore/detailedReport.schema';
+import {
+    kinFromNumber, kinName,
+} from '../../shared/utils/mayaKin';
 
 /** What a stored analysis was made from: a written-content one has no human design field */
 export type CombinationLike = {
@@ -13,6 +16,8 @@ export type CombinationLike = {
     numerology?: string | null;
     /** Day-master stem of the BaZi chart, for reports that used it */
     baziDayMaster?: string | null;
+    /** Kin number (1 to 260) of the birth date, for reports that used the Maya Kin */
+    kinNumber?: number | null;
 };
 
 export type DimensionMeta = {
@@ -42,6 +47,9 @@ export const DIMENSION_META: DimensionMeta[] = [
     {
         value: 'BAZI', label: '八字', icon: 'mdi-yin-yang', tone: '#8c5e34',
     },
+    {
+        value: 'MAYA_KIN', label: '瑪雅 Kin', icon: 'mdi-calendar-star', tone: '#c94f4f',
+    },
 ];
 
 /** The dimensions a stored combination was made from, in display order */
@@ -54,6 +62,7 @@ export function dimensionsOf(combination: CombinationLike): ReportDimension[] {
     if ((combination.humanDesignType ?? null) !== null) dimensions.push('HUMAN_DESIGN');
     if ((combination.numerology ?? null) !== null) dimensions.push('NUMEROLOGY');
     if ((combination.baziDayMaster ?? null) !== null) dimensions.push('BAZI');
+    if ((combination.kinNumber ?? null) !== null) dimensions.push('MAYA_KIN');
 
     return dimensions;
 }
@@ -70,6 +79,8 @@ function resultOf(value: ReportDimension, combination: CombinationLike): string 
         return combination.numerology ? `數字 ${combination.numerology}` : '';
     case 'BAZI':
         return combination.baziDayMaster ? `${combination.baziDayMaster}日主` : '';
+    case 'MAYA_KIN':
+        return combination.kinNumber ? kinName(kinFromNumber(combination.kinNumber)) : '';
     case 'HUMAN_DESIGN':
         return HUMAN_DESIGN_TYPE_LABELS[combination.humanDesignType as keyof typeof HUMAN_DESIGN_TYPE_LABELS] ?? combination.humanDesignType ?? '';
     }

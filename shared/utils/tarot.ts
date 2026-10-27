@@ -11,15 +11,6 @@ export type DailyCard = {
     orientation: TarotOrientation;
 };
 
-const taipeiDateFormat = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit',
-});
-
-/** The calendar date in Taipei (UTC+8, the day changes at 00:00 there) as `YYYY-MM-DD`. */
-export function taipeiDateKey(now: Date): string {
-    return taipeiDateFormat.format(now);
-}
-
 /**
  * The card of one account on one day. Deterministic on purpose: retries, concurrent requests and other
  * devices all get the same card. First 4 bytes of SHA-256(`uid|date|version`) pick the card, the lowest

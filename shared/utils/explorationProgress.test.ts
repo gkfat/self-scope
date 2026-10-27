@@ -13,10 +13,10 @@ describe('explorationProgress', () => {
     it('starts with nothing done and suggests the zodiac first', () => {
         expect(explorationProgress(none)).toEqual({
             done: {
-                ZODIAC: false, BLOOD: false, MBTI: false, HUMAN_DESIGN: false, NUMEROLOGY: false, BAZI: false,
+                ZODIAC: false, BLOOD: false, MBTI: false, HUMAN_DESIGN: false, NUMEROLOGY: false, BAZI: false, MAYA_KIN: false,
             },
             completed: 0,
-            total: 6,
+            total: 7,
             multiDimensionUnlocked: false,
             next: 'ZODIAC',
         });
@@ -29,6 +29,13 @@ describe('explorationProgress', () => {
         expect(explorationProgress({
             ...none, birthDate: '1990-01-01', birthTime: '12:00',
         }).done.BAZI).toBe(true);
+    });
+
+    it('finishes the Maya Kin from the birth date alone', () => {
+        expect(explorationProgress(none).done.MAYA_KIN).toBe(false);
+        expect(explorationProgress({
+            ...none, birthDate: '1990-01-01',
+        }).done.MAYA_KIN).toBe(true);
     });
 
     it('treats an unknown blood type as not done', () => {
@@ -72,7 +79,7 @@ describe('explorationProgress', () => {
             birthDate: '1990-01-01', birthTime: '12:00', bloodType: 'O', mbti: 'INTJ', hasHumanDesign: true,
         });
 
-        expect(all.completed).toBe(6);
+        expect(all.completed).toBe(7);
         expect(all.next).toBeNull();
     });
 });

@@ -12,6 +12,7 @@ describe('classifyRoute', () => {
         expect(classifyRoute('POST', '/api/zodiac/natal-chart')).toBe('public');
         expect(classifyRoute('POST', '/api/bazi/calculations')).toBe('public');
         expect(classifyRoute('GET', '/api/fixed-results/zodiac?birthDate=2000-01-01')).toBe('public');
+        expect(classifyRoute('GET', '/api/fixed-results/maya-kin?birthDate=2000-01-01')).toBe('public');
         expect(classifyRoute('GET', '/api/tests')).toBe('public');
         expect(classifyRoute('GET', '/api/tests/mbti')).toBe('public');
     });
@@ -32,6 +33,8 @@ describe('classifyRoute', () => {
         expect(classifyRoute('POST', '/api/summaries')).toBe('required');
         expect(classifyRoute('DELETE', '/api/account')).toBe('required');
         expect(classifyRoute('GET', '/api/unknown')).toBe('required');
+        expect(classifyRoute('GET', '/api/kin/today')).toBe('required');
+        expect(classifyRoute('POST', '/api/kin/today')).toBe('required');
         expect(classifyRoute('GET', '/api/tarot/daily')).toBe('required');
         expect(classifyRoute('POST', '/api/tarot/daily')).toBe('required');
     });

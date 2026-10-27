@@ -206,7 +206,7 @@ describe('computeCoverage', () => {
         })));
 
         expect(report).toMatchObject({
-            expected: 14531, published: 14531, complete: true,
+            expected: 15051, published: 15051, complete: true,
         });
     });
 
@@ -227,6 +227,6 @@ describe('computeCoverage', () => {
         expect(report.missing).toEqual(all.slice(0, 2));
         expect(report.unpublished).toHaveLength(1);
         expect(report.unexpected).toEqual(['SUMMARY_aries_XXXX']);
-        expect(report.published).toBe(14531 - 2 - 1);
+        expect(report.published).toBe(15051 - 2 - 1);
     });
 });

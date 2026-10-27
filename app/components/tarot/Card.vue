@@ -1,7 +1,7 @@
 <template>
     <div
         class="tarot"
-        :class="{ 'tarot--flipped': flipped }"
+        :class="{ 'tarot--flipped': flipped, 'tarot--compact': compact }"
     >
         <div class="tarot__inner">
             <!-- Back: the face-down card, the way in when it has not been drawn -->
@@ -24,7 +24,7 @@
                     />
                 </span>
                 <span
-                    v-if="interactive"
+                    v-if="interactive && !compact"
                     class="tarot__hint"
                 >
                     {{ busy ? '翻牌中…' : '點一下翻牌' }}
@@ -69,9 +69,12 @@ withDefaults(defineProps<{
     interactive?: boolean;
     /** A draw is in progress */
     busy?: boolean;
+    /** A small face-down card, as in a spread: no hint text and a smaller sigil. Its width is `--tarot-width`. */
+    compact?: boolean;
 }>(), {
     interactive: false,
     busy: false,
+    compact: false,
 });
 
 const emit = defineEmits<{ reveal: [] }>();
@@ -79,7 +82,7 @@ const emit = defineEmits<{ reveal: [] }>();
 
 <style scoped>
 .tarot {
-    width: min(220px, 60vw);
+    width: var(--tarot-width, min(220px, 60vw));
     aspect-ratio: 7 / 12;
     margin: 0 auto;
     perspective: 1000px;
@@ -138,6 +141,17 @@ button.tarot__back:focus-visible {
     height: 84px;
     border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 50%;
+}
+
+.tarot--compact .tarot__sigil {
+    width: 55%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+}
+
+/* The icon's size is set inline, so the scaled size has to override it */
+.tarot--compact .tarot__sigil .v-icon {
+    font-size: calc(var(--tarot-width) * 0.28) !important;
 }
 
 .tarot__hint {

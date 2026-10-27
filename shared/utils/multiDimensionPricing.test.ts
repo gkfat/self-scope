@@ -57,6 +57,27 @@ describe('multiDimensionCost', () => {
         ])).toBe(30);
     });
 
+    it('prices the Maya Kin at one point and makes the choice generated', () => {
+        // (1 + 1) x 1 x 1.5 = 3
+        expect(multiDimensionCost(['ZODIAC', 'MAYA_KIN'])).toBe(3);
+        // (1 + 1 + 1) x 1.5 x 1.5 = 6.75
+        expect(multiDimensionCost([
+            'ZODIAC',
+            'MBTI',
+            'MAYA_KIN',
+        ])).toBe(6);
+        // Seven dimensions keep the weight of five, and the cap still holds
+        expect(multiDimensionCost([
+            'ZODIAC',
+            'BLOOD',
+            'MBTI',
+            'NUMEROLOGY',
+            'HUMAN_DESIGN',
+            'BAZI',
+            'MAYA_KIN',
+        ])).toBe(30);
+    });
+
     it('does not depend on the order or on repeats', () => {
         expect(multiDimensionCost(['HUMAN_DESIGN', 'ZODIAC'])).toBe(multiDimensionCost(['ZODIAC', 'HUMAN_DESIGN']));
         expect(multiDimensionCost([
@@ -106,9 +127,10 @@ describe('multiDimensionCost', () => {
 });
 
 describe('isGeneratedAnalysis', () => {
-    it('is true with the human design or the BaZi chart, false without', () => {
+    it('is true with the human design, the BaZi chart or the Maya Kin, false without', () => {
         expect(isGeneratedAnalysis(['ZODIAC', 'HUMAN_DESIGN'])).toBe(true);
         expect(isGeneratedAnalysis(['ZODIAC', 'BAZI'])).toBe(true);
+        expect(isGeneratedAnalysis(['ZODIAC', 'MAYA_KIN'])).toBe(true);
         expect(isGeneratedAnalysis(['ZODIAC', 'MBTI'])).toBe(false);
     });
 });

@@ -1,4 +1,7 @@
 import {
+    kinName, kinOf,
+} from '../../shared/utils/mayaKin';
+import {
     beforeEach, describe, expect, it, vi,
 } from 'vitest';
 import definition from '../../content/tests/personality16-v1.json';
@@ -209,6 +212,45 @@ describe('DetailedReportService', () => {
             expect(ai.calls[0]?.test).toBeNull();
             expect((await report('key-aaaaaaaa'))?.combinationKey).toMatchObject({
                 zodiac: null, bloodType: 'O', mbti: null, humanDesignType: chart.type,
+            });
+        });
+
+        describe('with the Maya Kin', () => {
+            const kin = kinOf('1995-03-25');
+
+            it('generates a choice with the Kin and no human design, from the birth date alone', async () => {
+                // (1 + 1) x 1 x 1.5 = 3 points
+                const created = await service.create('u1', { dimensions: ['ZODIAC', 'MAYA_KIN'] }, 'key-kinkinki');
+
+                await settle();
+
+                expect(created.pointsDeducted).toBe(3);
+                expect(ai.calls[0]?.mayaKin).toMatchObject({
+                    kinNumber: kin.kinNumber, name: kinName(kin),
+                });
+                // Only the Kin goes to the model, not the date it came from
+                expect(JSON.stringify(ai.calls[0]?.mayaKin)).not.toContain('1995');
+                expect((await report('key-kinkinki'))?.combinationKey).toMatchObject({
+                    kinNumber: kin.kinNumber, humanDesignType: null, baziDayMaster: null,
+                });
+            });
+
+            it('gives the model no Kin when it is not chosen', async () => {
+                await service.create('u1', { dimensions: ['BLOOD', 'HUMAN_DESIGN'] }, 'key-aaaaaaaa');
+                await settle();
+
+                expect(ai.calls[0]?.mayaKin).toBeNull();
+                expect((await report('key-aaaaaaaa'))?.combinationKey).toMatchObject({ kinNumber: null });
+            });
+
+            it('asks for the birth date when the Kin is chosen without a profile', async () => {
+                await db.doc('users/u1').update({ birthData: null });
+
+                await expect(service.create('u1', { dimensions: ['BLOOD', 'MAYA_KIN'] }, 'key-kinkinki')).rejects.toMatchObject({
+                    statusCode: 422, code: 'PROFILE_REQUIRED',
+                });
+                expect(await points()).toBe(60);
+                expect(ai.calls).toHaveLength(0);
             });
         });
 

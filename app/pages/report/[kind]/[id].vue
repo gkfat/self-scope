@@ -268,6 +268,8 @@ function statusOf(error: unknown): number | undefined {
 }
 
 async function load() {
+    const wasGenerating = report.value?.status === 'GENERATING';
+
     try {
         if (kind.value === 'summary') {
             summary.value = await get<SummaryItem>(`/api/summaries/${id.value}`);
@@ -280,6 +282,9 @@ async function load() {
         }
 
         status.value = 'ready';
+
+        // A report that failed has been refunded by the server, so the balance in the app bar is out of date
+        if (wasGenerating && report.value?.status === 'FAILED') await refreshPoints();
 
         if (report.value?.status === 'GENERATING') pollTimer = setTimeout(load, POLL_INTERVAL_MS);
     } catch (error) {

@@ -34,12 +34,11 @@
                         variant="outlined"
                         height="100%"
                         :class="['report-card d-flex flex-column', { 'report-card--done': item.done }]"
-                        :style="{ '--tone': item.tone }"
                     >
                         <v-card-text class="flex-grow-1">
                             <div class="d-flex align-center justify-space-between mb-2">
                                 <v-avatar
-                                    :color="item.done ? item.tone : 'grey'"
+                                    :color="item.done ? 'primary' : 'grey'"
                                     variant="tonal"
                                     size="40"
                                 >
@@ -48,7 +47,7 @@
                                 <v-chip
                                     v-if="item.done"
                                     size="small"
-                                    color="success"
+                                    color="primary"
                                     variant="tonal"
                                     prepend-icon="mdi-check"
                                 >
@@ -66,7 +65,7 @@
                             <v-btn
                                 :to="item.to"
                                 :variant="item.done ? 'tonal' : 'text'"
-                                :color="item.done ? item.tone : undefined"
+                                :color="item.done ? 'primary' : undefined"
                                 append-icon="mdi-arrow-right"
                             >
                                 {{ item.action }}
@@ -81,9 +80,13 @@
 
 <script lang="ts" setup>
 import { BAZI_ENTRY_ENABLED } from '../../shared/constants/bazi';
+import { HUMAN_DESIGN_TYPE_LABELS } from '../../shared/constants/humanDesignLabels';
+import { KIN_ENTRY_ENABLED } from '../../shared/constants/mayaKin';
 import {
     BLOOD_TYPE_LABELS, ZODIAC_LABELS,
 } from '../../shared/constants/zodiacLabels';
+import type { HumanDesignResponse } from '../../shared/schemas/api/humanDesign.schema';
+import { kinName, kinOf } from '../../shared/utils/mayaKin';
 import { lifePathNumber } from '../../shared/utils/numerology';
 import { zodiacFromIsoDate } from '../../shared/utils/zodiac';
 
@@ -96,7 +99,6 @@ type ReportCard = {
     system: SystemKey;
     title: string;
     icon: string;
-    tone: string;
     description: string;
     done: boolean;
     /** What the finished analysis is about, e.g. the sign or the type */
@@ -111,6 +113,26 @@ const {
 
 // Something may have changed since the last screen (a finished test, a saved profile)
 onMounted(load);
+
+const { isAuthenticated } = useAuth();
+const { get } = useApi();
+
+/** The human design type of a member's saved chart; the progress facts only know that a chart exists. */
+const humanDesignType = ref<string | null>(null);
+
+watch(() => [progress.value.done.HUMAN_DESIGN, isAuthenticated.value], async ([done, signedIn]) => {
+    humanDesignType.value = null;
+
+    if (!done || !signedIn) return;
+
+    try {
+        const chart = await get<HumanDesignResponse>('/api/human-design');
+
+        humanDesignType.value = HUMAN_DESIGN_TYPE_LABELS[chart.type];
+    } catch (error) {
+        console.error('[self-reports] human design type failed:', error);
+    }
+}, { immediate: true });
 
 const birthDate = computed(() => state.value.birthData?.birthDate ?? null);
 const bloodType = computed(() => (state.value.bloodType === 'UNKNOWN' ? null : state.value.bloodType));
@@ -127,7 +149,6 @@ const items = computed<ReportCard[]>(() => {
             system: 'symbolic',
             title: '星座',
             icon: 'mdi-star-four-points-outline',
-            tone: '#b7791f',
             description: '從出生時太陽所在的位置，看你天生的性格傾向與行事風格。',
             done: sign !== null,
             result: sign ? ZODIAC_LABELS[sign] : '',
@@ -139,7 +160,6 @@ const items = computed<ReportCard[]>(() => {
             system: 'symbolic',
             title: '血型',
             icon: 'mdi-water-outline',
-            tone: '#c94f4f',
             description: '用常見的血型性格說法，看你與人相處和面對事情的習慣。',
             done: blood !== null,
             result: blood ? BLOOD_TYPE_LABELS[blood] : '',
@@ -151,7 +171,6 @@ const items = computed<ReportCard[]>(() => {
             system: 'personality',
             title: 'MBTI',
             icon: 'mdi-head-cog-outline',
-            tone: '#2f5d8a',
             description: '從回答問題的方式，看你如何獲取能量、接收資訊與做決定。',
             done: mbti !== null,
             result: mbti ?? '',
@@ -163,10 +182,9 @@ const items = computed<ReportCard[]>(() => {
             system: 'symbolic',
             title: '人類圖',
             icon: 'mdi-vector-triangle',
-            tone: '#2e7d5b',
             description: '依出生當下的星體位置，看你的能量如何運作、怎樣做決定最順。',
             done: progress.value.done.HUMAN_DESIGN,
-            result: '已計算',
+            result: humanDesignType.value ?? '已計算',
             to: progress.value.done.HUMAN_DESIGN ? '/human-design' : '/#fill',
             action: progress.value.done.HUMAN_DESIGN ? '查看人類圖' : '填寫出生時間與地點',
         },
@@ -176,7 +194,6 @@ const items = computed<ReportCard[]>(() => {
             system: 'symbolic',
                 title: '八字命盤',
                 icon: 'mdi-yin-yang',
-                tone: '#8c5e34',
                 description: '由出生的年、月、日、時排出四柱，看五行的分布、日主的強弱與每十年的節奏。',
                 done: baziReady,
                 result: '可查看',
@@ -189,13 +206,25 @@ const items = computed<ReportCard[]>(() => {
             system: 'symbolic',
             title: '生命靈數',
             icon: 'mdi-numeric',
-            tone: '#7a5aa6',
             description: '把出生日期化成數字，看你的天賦傾向與今年的節奏。',
             done: birthDate.value !== null,
             result: birthDate.value ? `數字 ${lifePathNumber(birthDate.value)}` : '',
             to: birthDate.value ? '/analysis/numerology' : '/#fill',
             action: birthDate.value ? '查看生命靈數' : '填寫出生日期',
         },
+        ...(KIN_ENTRY_ENABLED
+            ? [{
+                key: 'MAYA_KIN',
+                system: 'symbolic' as const,
+                title: '瑪雅 Kin',
+                icon: 'mdi-calendar-star',
+                description: '依出生日期以 Dreamspell 曆法算出你的圖騰與調性，看你的本質與象徵。',
+                done: birthDate.value !== null,
+                result: birthDate.value ? kinName(kinOf(birthDate.value)) : '',
+                to: birthDate.value ? '/analysis/maya-kin' : '/#fill',
+                action: birthDate.value ? '查看瑪雅 Kin' : '填寫出生日期',
+            }]
+            : []),
     ];
 });
 
@@ -224,17 +253,15 @@ const itemsOf = (system: SystemKey) => items.value.filter((item) => item.system 
     font-weight: 700;
 }
 
-/* A card without a result yet stays quiet; one with a result lights up in its own color. */
+/* One quiet look for every card: a plain outline, and the theme color only once the analysis has a result. */
 .report-card {
-    border-top: 3px solid rgba(var(--v-theme-on-surface), 0.12);
-    opacity: 0.65;
-    transition: opacity 0.2s, box-shadow 0.2s;
+    border-color: rgba(var(--v-theme-on-surface), 0.12);
+    opacity: 0.7;
+    transition: opacity 0.2s, border-color 0.2s;
 }
 
 .report-card--done {
-    border-top-color: var(--tone);
-    background: color-mix(in srgb, var(--tone) 7%, rgb(var(--v-theme-surface)));
+    border-color: rgb(var(--v-theme-primary));
     opacity: 1;
-    box-shadow: 0 2px 10px color-mix(in srgb, var(--tone) 22%, transparent);
 }
 </style>
