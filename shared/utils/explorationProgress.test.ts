@@ -13,11 +13,11 @@ describe('explorationProgress', () => {
     it('starts with nothing done and suggests the zodiac first', () => {
         expect(explorationProgress(none)).toEqual({
             done: {
-                ZODIAC: false, BLOOD: false, MBTI: false, HUMAN_DESIGN: false,
+                ZODIAC: false, BLOOD: false, MBTI: false, HUMAN_DESIGN: false, NUMEROLOGY: false,
             },
             completed: 0,
-            total: 4,
-            synthesisUnlocked: false,
+            total: 5,
+            multiDimensionUnlocked: false,
             next: 'ZODIAC',
         });
     });
@@ -31,16 +31,17 @@ describe('explorationProgress', () => {
         }).done.BLOOD).toBe(true);
     });
 
-    it('unlocks the paid layer only with both a zodiac sign and an MBTI result', () => {
-        expect(explorationProgress({
-            ...none, birthDate: '1990-01-01',
-        }).synthesisUnlocked).toBe(false);
+    it('unlocks the multi-dimension analysis from two finished dimensions', () => {
         expect(explorationProgress({
             ...none, mbti: 'INTJ',
-        }).synthesisUnlocked).toBe(false);
+        }).multiDimensionUnlocked).toBe(false);
+        // The birth date alone finishes the zodiac and the life path number
         expect(explorationProgress({
-            ...none, birthDate: '1990-01-01', mbti: 'INTJ',
-        }).synthesisUnlocked).toBe(true);
+            ...none, birthDate: '1990-01-01',
+        }).multiDimensionUnlocked).toBe(true);
+        expect(explorationProgress({
+            ...none, birthDate: '1990-01-01', bloodType: 'O',
+        }).multiDimensionUnlocked).toBe(true);
     });
 
     it('suggests the quickest unfinished layer: MBTI, then blood type, then human design', () => {
@@ -62,7 +63,7 @@ describe('explorationProgress', () => {
             birthDate: '1990-01-01', bloodType: 'O', mbti: 'INTJ', hasHumanDesign: true,
         });
 
-        expect(all.completed).toBe(4);
+        expect(all.completed).toBe(5);
         expect(all.next).toBeNull();
     });
 });

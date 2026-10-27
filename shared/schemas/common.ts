@@ -42,11 +42,29 @@ export const MBTI_TYPES = [
     'ESFP',
 ] as const;
 
+/** Life path numbers: 1-9 plus the master numbers 11, 22 and 33. */
+export const NUMEROLOGY_NUMBERS = [
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    '11',
+    '22',
+    '33',
+] as const;
+
 export const zodiacSchema = z.enum(ZODIACS);
+export const numerologySchema = z.enum(NUMEROLOGY_NUMBERS);
 export const bloodTypeSchema = z.enum(BLOOD_TYPES);
 export const mbtiTypeSchema = z.enum(MBTI_TYPES);
 
 export type Zodiac = z.infer<typeof zodiacSchema>;
+export type NumerologyNumber = z.infer<typeof numerologySchema>;
 export type BloodType = z.infer<typeof bloodTypeSchema>;
 export type MbtiType = z.infer<typeof mbtiTypeSchema>;
 

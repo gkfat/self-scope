@@ -5,6 +5,7 @@ export const EXPLORATION_LAYERS = [
     'BLOOD',
     'MBTI',
     'HUMAN_DESIGN',
+    'NUMEROLOGY',
 ] as const;
 
 export type ExplorationLayer = typeof EXPLORATION_LAYERS[number];
@@ -21,13 +22,15 @@ export type ExplorationProgress = {
     done: Record<ExplorationLayer, boolean>;
     completed: number;
     total: number;
-    /** The summary and the detailed report both need a zodiac sign and an MBTI result (RULE-033). */
-    synthesisUnlocked: boolean;
-    /** The layer to suggest next, or null when all four are done. */
+    /** A multi-dimension analysis combines at least two dimensions. */
+    multiDimensionUnlocked: boolean;
+    /** The layer to suggest next, or null when everything is done. */
     next: ExplorationLayer | null;
 };
 
-/** Order in which layers are suggested: quickest first. */
+const MIN_ANALYSIS_DIMENSIONS = 2;
+
+/** Order in which layers are suggested: quickest first. The life path number is not suggested: the birth date gives it. */
 const SUGGESTION_ORDER: readonly ExplorationLayer[] = [
     'ZODIAC',
     'MBTI',
@@ -41,13 +44,15 @@ export function explorationProgress(facts: ExplorationFacts): ExplorationProgres
         BLOOD: facts.bloodType !== 'UNKNOWN',
         MBTI: facts.mbti !== null,
         HUMAN_DESIGN: facts.hasHumanDesign,
+        // The life path number comes from the birth date alone
+        NUMEROLOGY: facts.birthDate !== null,
     };
 
     return {
         done,
         completed: EXPLORATION_LAYERS.filter((layer) => done[layer]).length,
         total: EXPLORATION_LAYERS.length,
-        synthesisUnlocked: done.ZODIAC && done.MBTI,
+        multiDimensionUnlocked: EXPLORATION_LAYERS.filter((layer) => done[layer]).length >= MIN_ANALYSIS_DIMENSIONS,
         next: SUGGESTION_ORDER.find((layer) => !done[layer]) ?? null,
     };
 }
