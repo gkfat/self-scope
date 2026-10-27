@@ -31,7 +31,7 @@ stories:
   - id: STORY-005
     actor: CTX-ACTOR-001
     want: "完成 MBTI 測驗"
-    benefit: "取得 MBTI 結果並作為 summary 的輸入"
+    benefit: "取得 MBTI 結果並作為多維度分析報告的輸入"
     requirements: ["FR-003", "FR-004", "FR-024", "FR-005"]
     useCases: ["UC-005"]
   - id: STORY-006
@@ -42,7 +42,7 @@ stories:
     useCases: ["UC-006"]
   - id: STORY-007
     actor: CTX-ACTOR-001
-    want: "用 1 點取得簡易 summary"
+    want: "用 1 點取得多維度分析報告"
     benefit: "快速看到綜合分析且不重複花點"
     requirements: ["FR-006", "FR-038", "FR-041", "FR-014", "FR-042"]
     useCases: ["UC-007"]
@@ -254,7 +254,7 @@ useCases:
       - "當次結果歸屬登入帳號，保存 3 個月；該 session 的暫存結果已清除"
     note: "暫存機制已定：session id + Firestore TTL 1 天（FR-032）"
   - id: UC-007
-    title: "取得簡易 summary"
+    title: "取得多維度分析報告"
     actor: CTX-ACTOR-001
     requirements: ["FR-006", "FR-007", "FR-038", "FR-041", "FR-014", "FR-042", "FR-032", "FR-040"]
     stories: ["STORY-007"]
@@ -262,7 +262,7 @@ useCases:
       - "使用者已登入"
       - "已提供星座與 MBTI（血型選填）"
     mainFlow:
-      - { step: 1, action: "使用者選擇取得簡易 summary" }
+      - { step: 1, action: "使用者選擇取得多維度分析報告" }
       - { step: 2, action: "後端驗證登入身分", constraints: ["NFR-003"] }
       - { step: 3, action: "後端依有無血型決定組合：星座+MBTI 或 星座+MBTI+血型（血型未知則用前者）" }
       - { step: 4, action: "後端檢查該會員是否已生成過此組合；若已生成則直接回傳已存 summary，不扣點", constraints: ["NFR-017"] }
@@ -276,7 +276,7 @@ useCases:
       - { condition: "並行重複請求", handling: "僅扣一次點，其餘回傳已生成結果" }
       - { condition: "讀取組合內容失敗", handling: "不扣點，回傳明確錯誤", constraints: ["NFR-011"] }
     postconditions:
-      - "會員取得該組 summary 並保存 3 個月；已扣 1 點（首次）；重複取得不再扣點"
+      - "會員取得該組多維度分析報告並保存 3 個月；已扣 1 點（首次）；重複取得不再扣點"
   - id: UC-008
     title: "計算並檢視人類圖"
     actor: CTX-ACTOR-001
@@ -470,10 +470,10 @@ useCases:
     stories: ["STORY-017"]
     preconditions:
       - "排程觸發"
-      - "存在已到期的測驗結果、簡易 summary、MBTI 欄位與人類圖結果（3 個月）或詳細分析（6 個月）"
+      - "存在已到期的測驗結果、多維度分析報告、MBTI 欄位與人類圖結果（3 個月）或詳細分析（6 個月）"
     mainFlow:
       - { step: 1, action: "排程啟動並驗證排程身分", constraints: ["NFR-002"] }
-      - { step: 2, action: "系統找出自產生時間起滿 3 個月的測驗結果、簡易 summary、MBTI 欄位與人類圖結果，以及滿 6 個月的詳細分析", constraints: ["NFR-005"] }
+      - { step: 2, action: "系統找出自產生時間起滿 3 個月的測驗結果、多維度分析報告、MBTI 欄位與人類圖結果，以及滿 6 個月的詳細分析", constraints: ["NFR-005"] }
       - { step: 3, action: "系統刪除這些資料並記錄刪除數量", constraints: ["NFR-006"] }
       - { step: 4, action: "付款紀錄不納入刪除" }
     alternateFlows:
@@ -507,7 +507,7 @@ useCases:
     preconditions:
       - "編輯者具備內容管理權限"
     mainFlow:
-      - { step: 1, action: "編輯者新增或修改簡易 summary、單項結果等固定內容", constraints: ["NFR-012", "NFR-014"] }
+      - { step: 1, action: "編輯者新增或修改多維度分析報告、單項結果等固定內容", constraints: ["NFR-012", "NFR-014"] }
       - { step: 2, action: "系統驗證組合唯一並記錄 content_version", constraints: ["NFR-001"] }
       - { step: 3, action: "內容經審核後發布，無需重新部署" }
       - { step: 4, action: "系統檢查 960 種 summary 組合的覆蓋完整性並列出缺漏" }

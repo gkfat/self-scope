@@ -268,6 +268,31 @@ paths:
           "$ref": "#/components/responses/ValidationError"
         "404":
           "$ref": "#/components/responses/NotFound"
+  "/fixed-results/numerology/{number}":
+    get:
+      operationId: getNumerologyResult
+      summary: "取得生命靈數單項分析"
+      description: "number 為 1-9、11、22、33（主命數）。"
+      tags: [FixedResults]
+      security: []
+      parameters:
+        - name: number
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "11", "22", "33"]
+      responses:
+        "200":
+          description: "生命靈數固定結果"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/FixedResultContent"
+        "400":
+          "$ref": "#/components/responses/ValidationError"
+        "404":
+          "$ref": "#/components/responses/NotFound"
   "/tests":
     get:
       operationId: listTests
@@ -387,7 +412,7 @@ paths:
   "/summaries":
     post:
       operationId: obtainSummary
-      summary: "取得簡易 summary"
+      summary: "取得多維度分析報告"
       description: "依我的個人資料決定組合鍵（星座+MBTI，或加血型）。首次取得扣 1 點；已取得過的組合直接回傳不再扣點。需帶 Idempotency-Key 防止重複扣點。"
       tags: [Summaries]
       parameters:
@@ -400,7 +425,7 @@ paths:
               "$ref": "#/components/schemas/SummaryRequest"
       responses:
         "201":
-          description: "首次取得（已扣 1 點）"
+          description: "首次取得（2 個維度扣 1 點、3 個維度扣 3 點、4 個維度扣 5 點）"
           content:
             application/json:
               schema:
@@ -918,7 +943,7 @@ paths:
     get:
       operationId: runDataExpiry
       summary: "排程清除到期資料"
-      description: "由 Vercel Cron 呼叫，以 CRON_SECRET 驗證；刪除滿 3 個月的測驗結果、簡易 summary、MBTI 欄位與人類圖結果，以及滿 6 個月的詳細分析，不影響付款紀錄。"
+      description: "由 Vercel Cron 呼叫，以 CRON_SECRET 驗證；刪除滿 3 個月的測驗結果、多維度分析報告、MBTI 欄位與人類圖結果，以及滿 6 個月的詳細分析，不影響付款紀錄。"
       tags: [Operations]
       security:
         - cronSecret: []
@@ -1098,7 +1123,7 @@ components:
       enum: [generator, manifesting_generator, projector, manifestor, reflector]
     ContentType:
       type: string
-      enum: [SUMMARY, ZODIAC, BLOOD, MBTI]
+      enum: [SUMMARY, ZODIAC, BLOOD, MBTI, NUMEROLOGY]
     ContentStatus:
       type: string
       enum: [DRAFT, REVIEWED, PUBLISHED]
@@ -1375,24 +1400,37 @@ components:
       required: [attemptId, testId, testVersion, result, completedAt, expiresAt]
     CombinationKey:
       type: object
+      description: "多維度分析用到的維度；沒選的維度為 null"
       properties:
         zodiac:
           "$ref": "#/components/schemas/Zodiac"
+          nullable: true
         mbti:
           "$ref": "#/components/schemas/MbtiType"
+          nullable: true
         bloodType:
           "$ref": "#/components/schemas/BloodType"
           nullable: true
         humanDesignType:
           "$ref": "#/components/schemas/HumanDesignType"
           nullable: true
+        numerology:
+          type: string
+          nullable: true
+          description: "生命靈數（1–9、11、22、33）；未選入此組合時為 null"
       required: [zodiac, mbti]
     SummaryRequest:
       type: object
       properties:
-        includeBloodType:
-          type: boolean
-          default: true
+        dimensions:
+          type: array
+          minItems: 2
+          uniqueItems: true
+          description: "固定內容分析：星座、血型、MBTI、生命靈數擇 2～4 個（含人類圖的組合走 /detailed-reports）。2 個維度 1 點、3 個維度 3 點、4 個維度 5 點。"
+          items:
+            type: string
+            enum: [ZODIAC, BLOOD, MBTI, NUMEROLOGY]
+      required: [dimensions]
     MemberSummary:
       type: object
       properties:
@@ -1574,13 +1612,15 @@ components:
     DetailedReportRequest:
       type: object
       properties:
-        includeBloodType:
-          type: boolean
-          default: true
-        includeHumanDesign:
-          type: boolean
-          default: false
-          description: "需個人資料含出生時間與地點"
+        dimensions:
+          type: array
+          minItems: 2
+          uniqueItems: true
+          description: "含人類圖的組合（由 AI 產生）：至少 2 個維度且必須包含 HUMAN_DESIGN；2 個維度 3 點、3 個維度 5 點、4 個維度 8 點、5 個維度 13 點。各維度需已完成。"
+          items:
+            type: string
+            enum: [ZODIAC, BLOOD, MBTI, HUMAN_DESIGN, NUMEROLOGY]
+      required: [dimensions]
     ReportSection:
       type: object
       properties:

@@ -1,14 +1,14 @@
 ## ADDED Requirements
 
 ### Requirement: 各類資料保存期限
-系統 SHALL 依下列期限強制保存：測驗作答與結果、簡易 summary、MBTI 欄位、人類圖結果 3 個月；詳細分析 6 個月；付款紀錄於帳號存續期間永久；訪客暫存 1 天；贈點紀錄 3 個月。期限 SHALL 以各筆產生時間起算。（FR-033、NFR-005、RULE-014、RULE-015、RULE-030）
+系統 SHALL 依下列期限強制保存：測驗作答與結果、多維度分析報告、MBTI 欄位、人類圖結果 3 個月；詳細分析 6 個月；付款紀錄於帳號存續期間永久；訪客暫存 1 天；贈點紀錄 3 個月。期限 SHALL 以各筆產生時間起算。（FR-033、NFR-005、RULE-014、RULE-015、RULE-030）
 
 #### Scenario: 設定到期時間
 - **WHEN** 系統建立上述任一類紀錄
 - **THEN** 紀錄帶有依其類別計算的到期時間
 
 ### Requirement: 排程清除到期資料
-系統 SHALL 每日執行排程，刪除已到期的測驗結果、簡易 summary、MBTI 欄位、人類圖結果與詳細分析；排程 MUST 以 `CRON_SECRET` 驗證身分；付款紀錄 MUST NOT 被清除。（UC-017）
+系統 SHALL 每日執行排程，刪除已到期的測驗結果、多維度分析報告、MBTI 欄位、人類圖結果與詳細分析；排程 MUST 以 `CRON_SECRET` 驗證身分；付款紀錄 MUST NOT 被清除。（UC-017）
 
 #### Scenario: 清除到期
 - **WHEN** 排程執行且存在已到期紀錄

@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: 匯入腳本維護固定內容
-系統 SHALL 提供匯入腳本，將固定內容（簡易 summary、單項結果）由 JSON 或 CSV 寫入 Firestore，更新內容 MUST NOT 需要重新部署。（FR-008、NFR-012）
+系統 SHALL 提供匯入腳本，將固定內容（多維度分析報告、單項結果）由 JSON 或 CSV 寫入 Firestore，更新內容 MUST NOT 需要重新部署。（FR-008、NFR-012）
 
 #### Scenario: 匯入新內容
 - **WHEN** 維護者執行匯入腳本
@@ -23,7 +23,7 @@
 - **THEN** 使用者端讀不到該內容
 
 ### Requirement: 覆蓋完整性檢查
-系統 SHALL 提供檢查，核對 960 種簡易 summary 組合（星座×MBTI 192、星座×MBTI×血型 768）與單項內容是否皆已發布，並列出缺漏。（FR-009、RULE-003）
+系統 SHALL 提供檢查，核對 960 種多維度分析報告 組合（星座×MBTI 192、星座×MBTI×血型 768）與單項內容是否皆已發布，並列出缺漏。（FR-009、RULE-003）
 
 #### Scenario: 有缺漏
 - **WHEN** 檢查發現某組合未發布

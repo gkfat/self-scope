@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: 產生分享卡
-系統 SHALL 依單項結果、簡易 summary 或人類圖產生分享卡內容（標題與摘要文字），分享卡 MUST NOT 含不必要的個人資料。（FR-010、RULE-026）
+系統 SHALL 依單項結果、多維度分析報告 或人類圖產生分享卡內容（標題與摘要文字），分享卡 MUST NOT 含不必要的個人資料。（FR-010、RULE-026）
 
 #### Scenario: 產生成功
 - **WHEN** 使用者要求分享某個結果

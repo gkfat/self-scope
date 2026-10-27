@@ -9,7 +9,7 @@
 | Test（ENT-003） | 測驗定義 | tests, testVersions | GET /tests<br/>GET /tests/{testId}<br/>POST /tests/{testId}/submissions |
 | TestAttempt（ENT-004） | 測驗作答紀錄 | testAttempts | DELETE /account<br/>DELETE /account/data<br/>GET /cron/data-expiry<br/>GET /test-attempts<br/>POST /guest-sessions/{sessionId}/claim<br/>POST /tests/{testId}/submissions |
 | FixedContent（ENT-005） | 固定內容 | fixedContents | GET /admin/fixed-contents<br/>GET /admin/fixed-contents/coverage<br/>GET /fixed-results/blood-types/{bloodType}<br/>GET /fixed-results/zodiac<br/>POST /admin/fixed-contents/{contentType}/{key}/publication<br/>POST /summaries<br/>… |
-| MemberSummary（ENT-006） | 會員簡易 summary | summaries | DELETE /account<br/>DELETE /account/data<br/>GET /cron/data-expiry<br/>GET /summaries<br/>GET /summaries/{summaryId}<br/>POST /summaries |
+| MemberSummary（ENT-006） | 會員多維度分析報告 | summaries | DELETE /account<br/>DELETE /account/data<br/>GET /cron/data-expiry<br/>GET /summaries<br/>GET /summaries/{summaryId}<br/>POST /summaries |
 | DetailedReport（ENT-007） | 詳細分析報告 | detailedReports | DELETE /account<br/>DELETE /account/data<br/>GET /cron/data-expiry<br/>GET /detailed-reports<br/>GET /detailed-reports/{reportId}<br/>POST /detailed-reports<br/>… |
 | PointAccount（ENT-008） | 點數帳戶 | pointAccount | DELETE /account<br/>GET /points<br/>GET /points/transactions<br/>POST /auth/login<br/>POST /detailed-reports<br/>POST /detailed-reports/{reportId}/downloads<br/>… |
 | PointBatch（ENT-009） | 點數批次 | pointBatches, pointPackages | DELETE /account<br/>GET /point-packages<br/>GET /points<br/>GET /points/transactions<br/>POST /auth/login<br/>POST /detailed-reports<br/>… |

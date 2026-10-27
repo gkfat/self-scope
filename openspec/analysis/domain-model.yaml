@@ -54,7 +54,7 @@ entities:
   - id: ENT-005
     name: FixedContent
     nameZh: "固定內容"
-    description: "事先算好的固定結果內容：單項（星座／血型／MBTI）與簡易 summary"
+    description: "事先算好的固定結果內容：單項（星座／血型／MBTI）與多維度分析報告"
     useCases: ["UC-004", "UC-005", "UC-007", "UC-019"]
     attributes:
       - { name: contentType, type: "enum", description: "SUMMARY｜ZODIAC｜BLOOD｜MBTI" }
@@ -64,8 +64,8 @@ entities:
       - { name: status, type: "enum", description: "DRAFT｜REVIEWED｜PUBLISHED" }
   - id: ENT-006
     name: MemberSummary
-    nameZh: "會員簡易 summary"
-    description: "會員已取得的某組簡易 summary 紀錄（用於避免重複扣點）"
+    nameZh: "會員多維度分析報告"
+    description: "會員已取得的某組多維度分析報告 紀錄（用於避免重複扣點）"
     useCases: ["UC-007", "UC-015", "UC-017"]
     attributes:
       - { name: userId, type: "string", description: "" }
@@ -415,7 +415,7 @@ domainEvents:
   - id: EVT-005
     name: SummaryObtained
     triggeredBy: AGG-006
-    description: "會員首次取得某組簡易 summary"
+    description: "會員首次取得某組多維度分析報告"
     useCases: ["UC-007"]
   - id: EVT-006
     name: PointsDeducted
@@ -493,15 +493,15 @@ businessRules:
     appliesTo: ["VO-004"]
     useCases: ["UC-004", "UC-007"]
   - id: RULE-003
-    description: "簡易 summary 的組合鍵只有「星座+MBTI」與「星座+MBTI+血型」兩種，缺 MBTI 不可取得；共 960 種"
+    description: "多維度分析報告 的組合鍵只有「星座+MBTI」與「星座+MBTI+血型」兩種，缺 MBTI 不可取得；共 960 種"
     appliesTo: ["VO-004"]
     useCases: ["UC-007", "UC-019"]
   - id: RULE-004
-    description: "訪客不可取得簡易 summary 與詳細分析，使用點數前必須已登入"
+    description: "訪客不可取得多維度分析報告 與詳細分析，使用點數前必須已登入"
     appliesTo: ["AGG-001"]
     useCases: ["UC-007", "UC-009"]
   - id: RULE-005
-    description: "會員首次取得某組簡易 summary 扣 1 點；同會員同組合已取得則不再扣點"
+    description: "會員首次取得某組多維度分析報告 扣 1 點；同會員同組合已取得則不再扣點"
     appliesTo: ["AGG-006"]
     useCases: ["UC-007"]
   - id: RULE-006
@@ -537,7 +537,7 @@ businessRules:
     appliesTo: ["VO-005"]
     useCases: ["UC-008", "UC-009"]
   - id: RULE-014
-    description: "會員的測驗結果、簡易 summary、MBTI 欄位與人類圖結果保存 3 個月，以各筆產生時間起算"
+    description: "會員的測驗結果、多維度分析報告、MBTI 欄位與人類圖結果保存 3 個月，以各筆產生時間起算"
     appliesTo: ["ENT-004"]
     useCases: ["UC-005", "UC-007", "UC-017"]
   - id: RULE-015

@@ -58,8 +58,8 @@ functional:
     source: "plan §7, §11 Phase 2, §15；user 補充"
     note: "保存每題作答（AI 引用依據所需）；作答時間僅在已告知時蒐集；詳細分析的輸入快照只存摘要（user 採納建議）"
   - id: FR-006
-    title: 簡易 summary 查詢
-    description: 系統 SHALL 在已登入使用者扣點後，依「星座+MBTI」或「星座+MBTI+血型」組合從 Firestore 查詢對應的事先算好的簡易 summary；血型「不知道」時 MUST 使用星座+MBTI 組合。查詢 MUST NOT 呼叫 AI API。
+    title: 多維度分析報告 查詢
+    description: 系統 SHALL 在已登入使用者扣點後，依「星座+MBTI」或「星座+MBTI+血型」組合從 Firestore 查詢對應的事先算好的多維度分析報告；血型「不知道」時 MUST 使用星座+MBTI 組合。查詢 MUST NOT 呼叫 AI API。
     priority: must
     phase: 1
     mvp: true
@@ -84,14 +84,14 @@ functional:
     source: "plan §5.2, §7.1, §11 Phase 2"
     note: "組合唯一性原以 SQL UNIQUE 約束表達，改用 Firestore 後以組合作為文件 ID。MVP 以匯入腳本（JSON／CSV）寫入 Firestore、審核用 Git，免重新部署；後台 API 延後（user 已確認）"
   - id: FR-009
-    title: 簡易 summary 組合覆蓋完整性
-    description: 系統 SHALL 使所有合法組合都有可查詢的簡易 summary：星座×MBTI 192 種，以及星座×MBTI×血型 768 種（共 960 種），且組合與內容 MUST 存放於 Firestore。
+    title: 多維度分析報告 組合覆蓋完整性
+    description: 系統 SHALL 使所有合法組合都有可查詢的多維度分析報告：星座×MBTI 192 種，以及星座×MBTI×血型 768 種（共 960 種），且組合與內容 MUST 存放於 Firestore。
     priority: must
     phase: 2
     mvp: true
     context: [CTX-ACTOR-003, CTX-ASM-005, CTX-EXT-005, CTX-CON-005]
     source: "plan §5.1, §11 Phase 2 完成標準；user 補充"
-    note: "簡易 summary 共 960 種（user 已確認）；含人類圖的組合屬詳細分析（FR-036）。產製方式：星座 12、MBTI 16、血型 4 各寫基礎描述，再補每組合的交叉洞察；先做約 20 個代表組合試讀再擴到 960；草稿可於上線前離線以 AI 產生並經人審，執行期不呼叫 AI"
+    note: "多維度分析報告 共 960 種（user 已確認）；含人類圖的組合屬詳細分析（FR-036）。產製方式：星座 12、MBTI 16、血型 4 各寫基礎描述，再補每組合的交叉洞察；先做約 20 個代表組合試讀再擴到 960；草稿可於上線前離線以 AI 產生並經人審，執行期不呼叫 AI"
   - id: FR-010
     title: 結果分享卡
     description: 系統 SHALL 依固定結果產生可分享的結果卡，並提供分享入口。
@@ -182,7 +182,7 @@ functional:
     mvp: true
     context: [CTX-ACTOR-002, CTX-CON-007, CTX-CON-014, CTX-CON-011]
     source: "plan §6.4, §8, §9.2；user 補充（重新生成同為 5 點、納入 MVP）"
-    note: "僅適用 AI 詳細分析；簡易 summary 已生成者不重複扣點（FR-041）"
+    note: "僅適用 AI 詳細分析；多維度分析報告 已生成者不重複扣點（FR-041）"
   - id: FR-021
     title: AI 報告存取控制
     description: 系統 SHALL 在每個報告 API 驗證請求者為該報告的擁有者，否則 MUST 拒絕存取。
@@ -277,7 +277,7 @@ functional:
 
   - id: FR-036
     title: 人類圖計算
-    description: 系統 SHALL 在使用者提供出生時間與出生地點時計算人類圖（固定結果，MUST NOT 呼叫 AI），結果包含 5 種能量類型之一、9 大能量中心、12 種人生角色組合之一、內在權威、策略、定義與通道、64 個閘門；未提供出生時間與地點時 MUST NOT 產生人類圖；已登入使用者計算出的人類圖結果 SHALL 儲存於其帳號（訪客僅暫存於 session，TTL 1 天），且 SHALL 可單獨檢視且不扣點，不需先生成詳細分析。人類圖納入詳細分析的輸入，不屬簡易 summary 的組合。
+    description: 系統 SHALL 在使用者提供出生時間與出生地點時計算人類圖（固定結果，MUST NOT 呼叫 AI），結果包含 5 種能量類型之一、9 大能量中心、12 種人生角色組合之一、內在權威、策略、定義與通道、64 個閘門；未提供出生時間與地點時 MUST NOT 產生人類圖；已登入使用者計算出的人類圖結果 SHALL 儲存於其帳號（訪客僅暫存於 session，TTL 1 天），且 SHALL 可單獨檢視且不扣點，不需先生成詳細分析。人類圖納入詳細分析的輸入，不屬多維度分析報告 的組合。
     priority: must
     phase: 3
     mvp: true
@@ -295,7 +295,7 @@ functional:
     note: "贈點紀錄獨立保存並於 3 個月後到期（RULE-031），以伺服器密鑰 HMAC 雜湊儲存、僅用於避免重複贈點；贈點效期 90 天（FR-042）"
   - id: FR-038
     title: 點數扣抵
-    description: 系統 SHALL 於會員首次取得某組簡易 summary 時扣 1 點、生成詳細分析時扣 5 點、下載報告書時每次扣 1 點（重複下載再扣）；餘額不足時 MUST 拒絕並引導購點；扣點與結果交付 MUST 一致；訪客 MUST NOT 可取得 summary。
+    description: 系統 SHALL 於會員首次取得某組多維度分析報告 時扣 1 點、生成詳細分析時扣 5 點、下載報告書時每次扣 1 點（重複下載再扣）；餘額不足時 MUST 拒絕並引導購點；扣點與結果交付 MUST 一致；訪客 MUST NOT 可取得多維度分析報告。
     priority: must
     phase: 3
     mvp: true
@@ -321,7 +321,7 @@ functional:
     note: "單項免費結果為固定內容，不儲存、每次重新取得（user 已確認）；MBTI 測驗作答與結果屬測驗結果，登入時儲存 3 個月（FR-005、FR-033）；保存每題作答供 AI 引用依據（FR-005）"
   - id: FR-041
     title: 避免重複扣點
-    description: 系統 SHALL 對同一會員已生成過的簡易 summary 組合直接回傳已存結果且 MUST NOT 再次扣點；重複點擊或並行請求 MUST NOT 造成重複扣點。
+    description: 系統 SHALL 對同一會員已生成過的多維度分析報告 組合直接回傳已存結果且 MUST NOT 再次扣點；重複點擊或並行請求 MUST NOT 造成重複扣點。
     priority: must
     phase: 3
     mvp: true
@@ -337,7 +337,7 @@ functional:
     source: "user 補充（點數需有效期）；user 採納建議（購買點數無限期、贈點 90 天）"
   - id: FR-033
     title: 資料到期刪除
-    description: 系統 SHALL 在會員的測驗作答與結果、簡易 summary、MBTI 欄位與人類圖結果滿 3 個月後、詳細分析滿 6 個月後（各以產生時間點起算）自動刪除；付款紀錄 MUST NOT 因保留期限被刪除。
+    description: 系統 SHALL 在會員的測驗作答與結果、多維度分析報告、MBTI 欄位與人類圖結果滿 3 個月後、詳細分析滿 6 個月後（各以產生時間點起算）自動刪除；付款紀錄 MUST NOT 因保留期限被刪除。
     priority: must
     phase: 2
     mvp: true
@@ -346,7 +346,7 @@ functional:
     note: "各項保存期限已全部確認"
   - id: FR-035
     title: 資料到期前通知
-    description: 系統 SHALL 以 email 在會員的測驗結果、簡易 summary、人類圖與詳細分析到期前 14 天與 3 天各通知一次；同一使用者同時有多筆到期時合併為一封。
+    description: 系統 SHALL 以 email 在會員的測驗結果、多維度分析報告、人類圖與詳細分析到期前 14 天與 3 天各通知一次；同一使用者同時有多筆到期時合併為一封。
     priority: should
     phase: 5
     mvp: false
@@ -411,7 +411,7 @@ nonFunctional:
     category: privacy
     title: 資料最小化與保留
     description: 系統只蒐集功能所需資料，並依保留政策決定測驗答案、輸入快照的保存期限，不無限期保留不必要個資。
-    metric: "測驗結果、簡易 summary、MBTI、人類圖保留 3 個月；詳細分析保留 6 個月；付款紀錄於帳號存續期間永久保存；刪除帳號時移除全部紀錄（贈點紀錄保留 3 個月）；訪客暫存結果 TTL 1 天"
+    metric: "測驗結果、多維度分析報告、MBTI、人類圖保留 3 個月；詳細分析保留 6 個月；付款紀錄於帳號存續期間永久保存；刪除帳號時移除全部紀錄（贈點紀錄保留 3 個月）；訪客暫存結果 TTL 1 天"
     priority: must
     context: [CTX-CON-006, CTX-CON-012]
     source: "plan §3.1, §7.2, §13.3；user 補充"

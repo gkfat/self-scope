@@ -45,7 +45,7 @@
 - **THEN** 不產生重複紀錄
 
 ### Requirement: 訪客限制
-系統 MUST NOT 讓訪客取得簡易 summary 或詳細分析，使用點數前 MUST 已登入。（FR-038、RULE-004）
+系統 MUST NOT 讓訪客取得多維度分析報告 或詳細分析，使用點數前 MUST 已登入。（FR-038、RULE-004）
 
 #### Scenario: 訪客要求 summary
 - **WHEN** 未登入請求取得 summary

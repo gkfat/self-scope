@@ -13,7 +13,7 @@ actors:
   - id: CTX-ACTOR-002
     name: 付費使用者
     type: human
-    description: 已購買點數的使用者，以點數取得 summary 與 AI 詳細分析（日後可能訂閱）
+    description: 已購買點數的使用者，以點數取得多維度分析報告與 AI 詳細分析（日後可能訂閱）
     source: "plan §3.3, §4, §9；user 補充（點數制）"
   - id: CTX-ACTOR-003
     name: 內容編輯/審核者
@@ -92,7 +92,7 @@ constraints:
     source: "plan §6.4, §9.4"
   - id: CTX-CON-008
     category: business
-    description: 第一版範圍限定 Web App、星座/（選填）血型/MBTI、人類圖、固定結果與分享、Google 登入與紀錄、點數制（註冊贈點 + 購點）取得 summary 與 AI 詳細分析；智力測驗、訂閱、歷史趨勢、AI 對話延後
+    description: 第一版範圍限定 Web App、星座/（選填）血型/MBTI、人類圖、固定結果與分享、Google 登入與紀錄、點數制（註冊贈點 + 購點）取得多維度分析報告與 AI 詳細分析；智力測驗、訂閱、歷史趨勢、AI 對話延後
     source: "plan §15；user 補充（點數制、人類圖）"
   - id: CTX-CON-010
     category: technical
@@ -104,7 +104,7 @@ constraints:
     source: "user 補充（對話）"
   - id: CTX-CON-012
     category: regulatory
-    description: 會員的測驗作答與結果、簡易 summary、MBTI、人類圖結果保存 3 個月；詳細分析保存 6 個月，到期前可用點數下載報告書；付款紀錄於帳號存續期間永久保存；使用者刪除帳號時移除全部紀錄（含付款），僅保留贈點紀錄 3 個月（user 已確認）。到期前通知使用者（通知系統後續實作）
+    description: 會員的測驗作答與結果、多維度分析報告、MBTI、人類圖結果保存 3 個月；詳細分析保存 6 個月，到期前可用點數下載報告書；付款紀錄於帳號存續期間永久保存；使用者刪除帳號時移除全部紀錄（含付款），僅保留贈點紀錄 3 個月（user 已確認）。到期前通知使用者（通知系統後續實作）
     source: "user 補充（對話）"
     note: "贈點紀錄僅用於避免重複贈點，不作他用；含 Google 帳號識別（雜湊），隱私政策須載明"
   - id: CTX-CON-013
@@ -113,7 +113,7 @@ constraints:
     source: "user 補充（對話）；參考專案 gkbot-adventure-run 的 CLAUDE.md、nuxt.config.ts、firestore.rules"
   - id: CTX-CON-014
     category: business
-    description: "點數規則（user 已確認）：每帳號註冊僅贈送一次 3 點，同一 Google 帳號於贈點後 3 個月內刪帳號再註冊不再贈點；取得簡易 summary 1 點；詳細分析 5 點；已生成過的詳細分析重新生成須扣點；每次下載詳細分析報告書扣 1 點（PDF 寄送 email，重複下載再扣點）；贈點有效期 90 天，購買的點數無限期；訪客不可取得 summary；定價規則：5 點售價 ≥ 單份 AI 報告成本約 3 倍加付款手續費，提供 3 個方案、大包有折扣，價格存於 pointPackages 可調整"
+    description: "點數規則（user 已確認）：每帳號註冊僅贈送一次 3 點，同一 Google 帳號於贈點後 3 個月內刪帳號再註冊不再贈點；取得多維度分析報告 1 點；詳細分析 5 點；已生成過的詳細分析重新生成須扣點；每次下載詳細分析報告書扣 1 點（PDF 寄送 email，重複下載再扣點）；贈點有效期 90 天，購買的點數無限期；訪客不可取得多維度分析報告；定價規則：5 點售價 ≥ 單份 AI 報告成本約 3 倍加付款手續費，提供 3 個方案、大包有折扣，價格存於 pointPackages 可調整"
     source: "user 補充（對話）"
     note: "實際價格待上線前量測單份 AI 報告成本後決定"
   - id: CTX-CON-015
@@ -147,7 +147,7 @@ assumptions:
     status: partially-confirmed
     confirmedBy: CTX-EXT-006
   - id: CTX-ASM-005
-    description: 血型選「不知道」時不計入分析。簡易 summary 以「星座+MBTI」或「星座+MBTI+血型」為組合，因此取得 summary 至少需提供 MBTI；未提供 MBTI 者僅能取得單項免費結果（user 已確認）
+    description: 血型選「不知道」時不計入分析。多維度分析報告 以「星座+MBTI」或「星座+MBTI+血型」為組合，因此取得多維度分析報告至少需提供 MBTI；未提供 MBTI 者僅能取得單項免費結果（user 已確認）
     impact: 影響固定 summary 組合範圍（見 FR-009）與結果頁分支
     status: confirmed
     confirmedBy: user 補充（對話）
@@ -172,7 +172,7 @@ assumptions:
     impact: 影響權限規則、查詢能力與資料模型
     status: confirmed
   - id: CTX-ASM-010
-    description: 簡易 summary 是事先算好的固定內容（無 AI 成本），取得時扣 1 點；未扣點時使用者可做單項測驗（星座、血型分析、MBTI），皆為固定結果（user 已確認）。同一會員已生成過的簡易 summary 組合不重複扣點；已生成過的詳細分析重新生成須扣點
+    description: 多維度分析報告 是事先算好的固定內容（無 AI 成本），取得時扣 1 點；未扣點時使用者可做單項測驗（星座、血型分析、MBTI），皆為固定結果（user 已確認）。同一會員已生成過的多維度分析報告 組合不重複扣點；已生成過的詳細分析重新生成須扣點
     impact: 影響結果頁分層、FR-006/FR-038/FR-040/FR-041 與資料模型
     status: partially-confirmed
     confirmedBy: user 補充（對話）
@@ -183,7 +183,7 @@ assumptions:
     status: confirmed
     confirmedBy: user 補充（對話）
   - id: CTX-ASM-012
-    description: 固定內容（簡易 summary 等）MVP 以匯入腳本維護，審核用 Git，免後台 API；editor 與 operator 角色以 Firebase custom claims 手動指派
+    description: 固定內容（多維度分析報告 等）MVP 以匯入腳本維護，審核用 Git，免後台 API；editor 與 operator 角色以 Firebase custom claims 手動指派
     impact: 後台 API（API-031 至 API-036）延後至 MVP 之後；UC-019、UC-020 的操作介面延後
     status: confirmed
     confirmedBy: user 採納建議

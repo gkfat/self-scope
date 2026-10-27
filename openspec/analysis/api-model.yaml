@@ -398,7 +398,7 @@ paths:
   "/summaries":
     post:
       operationId: obtainSummary
-      summary: "取得簡易 summary"
+      summary: "取得多維度分析報告"
       description: "依我的個人資料決定組合鍵（星座+MBTI，或加血型）。首次取得扣 1 點；已取得過的組合直接回傳不再扣點。需帶 Idempotency-Key 防止重複扣點。"
       tags: [Summaries]
       parameters:
@@ -1095,7 +1095,7 @@ paths:
     get:
       operationId: runDataExpiry
       summary: "排程清除到期資料"
-      description: "由 Vercel Cron 呼叫，以 CRON_SECRET 驗證；刪除滿 3 個月的測驗結果、簡易 summary、MBTI 欄位與人類圖結果，以及滿 6 個月的詳細分析，不影響付款紀錄。"
+      description: "由 Vercel Cron 呼叫，以 CRON_SECRET 驗證；刪除滿 3 個月的測驗結果、多維度分析報告、MBTI 欄位與人類圖結果，以及滿 6 個月的詳細分析，不影響付款紀錄。"
       tags: [Operations]
       security:
         - cronSecret: []

@@ -15,7 +15,7 @@
 - **WHEN** 固定內容讀取失敗
 - **THEN** 系統回傳明確錯誤，不以 AI 補足
 
-### Requirement: 簡易 summary 組合規則
+### Requirement: 多維度分析報告 組合規則
 系統 SHALL 以「星座+MBTI」或「星座+MBTI+血型」作為 summary 組合鍵；缺少 MBTI 時 MUST NOT 提供 summary；血型為未知時 MUST 使用星座+MBTI 組合。（FR-006、RULE-002、RULE-003）
 
 #### Scenario: 缺少 MBTI
