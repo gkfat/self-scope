@@ -9,6 +9,7 @@ import {
 } from '../../shared/schemas/firestore/guestSession.schema';
 import type { ProfileInput } from '../../shared/schemas/api/profile.schema';
 import type { TestResult } from '../../shared/schemas/firestore/testAttempt.schema';
+import { forFirestore } from '../humanDesign/stored';
 import type { GuestHumanDesign } from '../../shared/schemas/firestore/humanDesign.schema';
 import type {
     ClaimGuestSessionResponse, GuestProfileResponse,
@@ -217,7 +218,7 @@ export class GuestSessionService extends BaseService {
 
             if (humanDesign && !humanDesignSnap.exists) {
                 tx.set(repo.humanDesignRef(uid), {
-                    ...humanDesign,
+                    ...forFirestore(humanDesign),
                     expiresAt: addMonths(humanDesign.calculatedAt, HUMAN_DESIGN_VALID_MONTHS),
                 });
             }
@@ -273,7 +274,18 @@ export class GuestSessionService extends BaseService {
                 throw new NotFoundError('Guest session');
             }
 
-            tx.update(ref, buildPatch(session));
+            const patch = buildPatch(session);
+            const humanDesign = patch.tempResults?.humanDesign;
+
+            // Firestore holds no arrays inside arrays, and the patch re-writes what the session already held.
+            tx.update(ref, humanDesign
+                ? {
+                    ...patch,
+                    tempResults: {
+                        ...patch.tempResults, humanDesign: forFirestore(humanDesign),
+                    },
+                }
+                : patch);
         });
     }
 

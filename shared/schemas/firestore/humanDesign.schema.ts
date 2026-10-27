@@ -74,6 +74,18 @@ export const incarnationCrossSchema = z.object({
     ]),
 });
 
+/**
+ * A channel is a pair of gates. Firestore refuses arrays inside arrays, so it is stored as "36-35";
+ * both forms are read back as the pair.
+ */
+export const humanDesignChannelSchema = z.union([
+    z.tuple([z.number().int(), z.number().int()]), z.string().regex(/^\d+-\d+$/).transform((value): [number, number] => {
+        const [first = '', second = ''] = value.split('-');
+
+        return [Number(first), Number(second)];
+    }),
+]);
+
 export const humanDesignResultSchema = z.object({
     type: humanDesignTypeSchema,
     strategy: humanDesignStrategySchema,
@@ -83,7 +95,7 @@ export const humanDesignResultSchema = z.object({
     definition: humanDesignDefinitionSchema,
     incarnationCross: incarnationCrossSchema,
     definedCenters: z.array(z.enum(CENTERS)),
-    channels: z.array(z.tuple([z.number().int(), z.number().int()])),
+    channels: z.array(humanDesignChannelSchema),
     /** Gates activated at birth (conscious). */
     personality: z.array(humanDesignActivationSchema),
     /** Gates activated 88° of solar arc before birth (unconscious). */

@@ -3,6 +3,7 @@ import { GuestSessionService } from './guestSession.service';
 import { HumanDesignRepository } from '../repositories/humanDesign.repository';
 import { UserRepository } from '../repositories/user.repository';
 import { calculateHumanDesign } from '../humanDesign/calculate';
+import { forFirestore } from '../humanDesign/stored';
 import { describeLocalTime } from '../humanDesign/localTime';
 import {
     humanDesignInputDigest, type BirthInput,
@@ -79,13 +80,13 @@ export class HumanDesignService extends BaseService {
 
             const profileBirth = this.completeBirth(user.birthData);
 
-            await this.repository.ref(actor.uid).set({
+            await this.repository.ref(actor.uid).set(forFirestore({
                 result,
                 inputDigest: humanDesignInputDigest(input),
                 profileDigest: profileBirth ? humanDesignInputDigest(profileBirth) : null,
                 calculatedAt: now,
                 expiresAt,
-            } satisfies HumanDesignDoc);
+            } satisfies HumanDesignDoc));
 
             this.logInfo('human design saved', {
                 action: 'calculate',
@@ -162,13 +163,13 @@ export class HumanDesignService extends BaseService {
 
         const result = this.compute(profileBirth);
 
-        await this.repository.ref(uid).set({
+        await this.repository.ref(uid).set(forFirestore({
             ...doc,
             result,
             inputDigest: profileDigest,
             profileDigest,
             calculatedAt: this.clock(),
-        } satisfies HumanDesignDoc);
+        } satisfies HumanDesignDoc));
 
         this.logInfo('human design recalculated after birth data changed', {
             action: 'recalculate',

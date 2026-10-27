@@ -46,7 +46,7 @@ export const useExploration = () => {
     }));
     const { isAuthenticated } = useAuth();
     const {
-        get, put,
+        get, put, post,
     } = useApi();
     const {
         sessionId, restore, ensureSession, forget,
@@ -155,6 +155,20 @@ export const useExploration = () => {
             const id = await ensureSession();
 
             await put(`/api/guest-sessions/${id}/profile`, body, {}, 'optional');
+        }
+
+        // Time and place are all a chart needs, so it is ready as soon as they are saved.
+        if (form.birthTime && form.birthPlace) {
+            try {
+                await post('/api/human-design/calculations', {
+                    birthDate: form.birthDate,
+                    birthTime: form.birthTime,
+                    birthPlace: form.birthPlace,
+                }, {}, isAuthenticated.value ? 'required' : 'optional');
+            } catch (error) {
+                // The profile is already saved; the human design page can retry the calculation.
+                console.error('[useExploration] human design calculation failed:', error);
+            }
         }
 
         await load();
