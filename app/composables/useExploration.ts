@@ -29,6 +29,17 @@ type ExplorationState = {
     hasHumanDesign: boolean;
 };
 
+function emptyState(): ExplorationState {
+    return {
+        loaded: true,
+        birthData: null,
+        bloodType: 'UNKNOWN',
+        gender: null,
+        mbti: null,
+        hasHumanDesign: false,
+    };
+}
+
 function statusOf(error: unknown): number | undefined {
     if (typeof error !== 'object' || error === null) return undefined;
 
@@ -43,13 +54,14 @@ function statusOf(error: unknown): number | undefined {
  */
 export const useExploration = () => {
     const state = useState<ExplorationState>('exploration', () => ({
+        ...emptyState(),
         loaded: false,
-        birthData: null,
-        bloodType: 'UNKNOWN',
-        gender: null,
-        mbti: null,
-        hasHumanDesign: false,
     }));
+    /** Which load is the latest; an older one finishing late must not overwrite a newer answer. */
+    const loadSeq = useState<number>('explorationLoadSeq', () => 0);
+    /** Goes up each time a `load()` result lands, so a form can refill itself even though `loaded` stays true. */
+    const revision = useState<number>('explorationRevision', () => 0);
+    const hydratePending = useState<boolean>('explorationHydratePending', () => false);
     const { isAuthenticated } = useAuth();
     const {
         get, put, post,
@@ -68,17 +80,10 @@ export const useExploration = () => {
     const progress = computed(() => explorationProgress(facts.value));
 
     const reset = () => {
-        state.value = {
-            loaded: true,
-            birthData: null,
-            bloodType: 'UNKNOWN',
-            gender: null,
-            mbti: null,
-            hasHumanDesign: false,
-        };
+        state.value = emptyState();
     };
 
-    async function loadMember() {
+    async function loadMember(): Promise<ExplorationState> {
         const profile = await get<ProfileResponse>('/api/profile');
         let hasHumanDesign = false;
 
@@ -90,7 +95,7 @@ export const useExploration = () => {
             if (statusOf(error) !== 404) console.error('[useExploration] human design check failed:', error);
         }
 
-        state.value = {
+        return {
             loaded: true,
             birthData: profile.birthData,
             bloodType: profile.bloodType,
@@ -100,20 +105,16 @@ export const useExploration = () => {
         };
     }
 
-    async function loadGuest() {
+    async function loadGuest(): Promise<ExplorationState> {
         // After a page reload the id is only in sessionStorage until it is read back.
         restore();
 
-        if (!sessionId.value) {
-            reset();
-
-            return;
-        }
+        if (!sessionId.value) return emptyState();
 
         try {
             const profile = await get<GuestProfileResponse>(`/api/guest-sessions/${sessionId.value}/profile`, {}, 'optional');
 
-            state.value = {
+            return {
                 loaded: true,
                 birthData: profile.birthData,
                 bloodType: profile.bloodType,
@@ -125,26 +126,44 @@ export const useExploration = () => {
             // An expired session is gone: start over without it.
             if (statusOf(error) === 404) {
                 forget();
-                reset();
 
-                return;
+                return emptyState();
             }
 
             throw error;
         }
     }
 
-    const load = async (): Promise<void> => {
+    /**
+     * Read the current visitor's data into the shared state. Loads can overlap (sign-in changes who is looking
+     * while an earlier request is still out), so only the latest one may write: a slower, older answer is dropped.
+     */
+    async function refresh(): Promise<void> {
+        const seq = ++loadSeq.value;
+
         try {
-            if (isAuthenticated.value) {
-                await loadMember();
-            } else {
-                await loadGuest();
+            const next = isAuthenticated.value ? await loadMember() : await loadGuest();
+
+            if (seq !== loadSeq.value) return;
+
+            state.value = next;
+
+            // The form screens fill themselves from the state when this number changes.
+            if (hydratePending.value) {
+                hydratePending.value = false;
+                revision.value += 1;
             }
         } catch (error) {
             console.error('[useExploration] failed to load:', error);
-            state.value.loaded = true;
+
+            if (seq === loadSeq.value) state.value.loaded = true;
         }
+    }
+
+    /** Load for whoever is looking now; screens showing a form refill it from the result. */
+    const load = async (): Promise<void> => {
+        hydratePending.value = true;
+        await refresh();
     };
 
     /** Save the profile form for the member, or for the guest's session. */
@@ -182,11 +201,13 @@ export const useExploration = () => {
             }
         }
 
-        await load();
+        // Refresh without refilling any form: what was just saved came from the form, and the visitor may have typed more since.
+        await refresh();
     };
 
     return {
         state: computed(() => state.value),
+        revision: computed(() => revision.value),
         facts,
         progress,
         load,

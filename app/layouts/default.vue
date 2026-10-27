@@ -156,7 +156,7 @@ const accountItems: MenuItem[] = [
 
 const drawer = ref(false);
 const {
-    isAuthenticated, initialized, initAuthListener, signOut, welcomePoints, dismissWelcome,
+    isAuthenticated, initialized, user, initAuthListener, signOut, welcomePoints, dismissWelcome,
 } = useAuth();
 const {
     balance, refresh: refreshPoints, clear: clearPoints,
@@ -170,9 +170,23 @@ async function logout() {
     await navigateTo('/');
 }
 
-// Whoever is looking changes when the sign-in state does: reload what belongs to them.
-watch(isAuthenticated, async (signedIn) => {
-    if (signedIn) {
+/**
+ * Who is looking, once that is known. Firebase restores a session in two steps (the user first, the ID token a
+ * moment later), and a member's requests need the token, so until both are there nobody can be told apart
+ * from a visitor: treat that stretch as "unknown" rather than loading the visitor's data by mistake.
+ */
+const viewer = computed<'unknown' | 'member' | 'guest'>(() => {
+    if (!initialized.value) return 'unknown';
+    if (isAuthenticated.value) return 'member';
+
+    return user.value ? 'unknown' : 'guest';
+});
+
+// Reload what belongs to whoever is looking, once per change of viewer.
+watch(viewer, async (who) => {
+    if (who === 'unknown') return;
+
+    if (who === 'member') {
         await Promise.all([refreshPoints(), loadExploration()]);
 
         return;
@@ -180,15 +194,11 @@ watch(isAuthenticated, async (signedIn) => {
 
     clearPoints();
     await loadExploration();
-});
+}, { immediate: true });
 
 onMounted(() => {
     initAuthListener();
 });
-
-watch(initialized, async (ready) => {
-    if (ready && !isAuthenticated.value) await loadExploration();
-}, { immediate: true });
 </script>
 
 <style scoped>

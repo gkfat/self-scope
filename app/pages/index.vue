@@ -68,14 +68,11 @@
             class="angles mb-6"
             variant="outlined"
         >
-            <v-card-text class="pa-5 pa-sm-6">
-                <h2 class="angles__title">
-                    從不同的角度，認識自己
-                </h2>
-                <p class="angles__lead">
-                    一個人很難用單一說法說完。這裡把可以用來認識自己的方法分成兩類，每一類都從不同的方向照見你的一部分。
-                </p>
-
+            <v-card-title>從不同的角度，認識自己</v-card-title>
+            <v-card-subtitle class="text-wrap">
+                一個人很難用單一說法說完。這裡把可以用來認識自己的方法分成兩類，每一類都從不同的方向照見你的一部分。
+            </v-card-subtitle>
+            <v-card-text>
                 <section
                     v-for="system in systems"
                     :key="system.key"
@@ -169,6 +166,9 @@
                             v-model="birthPlaceInput"
                             label="出生城市"
                             hint="輸入中文或英文即可搜尋"
+                        />
+                    </v-col>
+                </v-row>
                 <v-row>
                     <v-col
                         cols="12"
@@ -180,9 +180,6 @@
                             label="性別（選填）"
                             hint="只用來決定八字大運的排法"
                             persistent-hint
-                        />
-                    </v-col>
-                </v-row>
                         />
                     </v-col>
                 </v-row>
@@ -351,37 +348,39 @@ import {
 import {
     BLOOD_TYPES, GENDERS,
 } from '../../shared/schemas/common';
+import type { Zodiac } from '../../shared/schemas/common';
 import { HUMAN_DESIGN_TYPE_LABELS } from '../../shared/constants/humanDesignLabels';
 import type { HumanDesignResponse } from '../../shared/schemas/api/humanDesign.schema';
 import { dayPillarOf } from '../../shared/utils/bazi/dayPillar';
 import { stemElement } from '../../shared/utils/bazi/ganzhi';
 import { lifePathNumber } from '../../shared/utils/numerology';
-import type {
-    BloodType, Gender, Zodiac,
-} from '../../shared/schemas/common';
 import { zodiacFromIsoDate } from '../../shared/utils/zodiac';
 
-const { get } = useApi();
 useHead({ title: '多維度自我分析' });
 
 const { isAuthenticated, initialized } = useAuth();
+const { get } = useApi();
 /** Multi-dimension analysis is for members: a visitor sees it blurred with a way to sign in */
 const gated = computed(() => initialized.value && !isAuthenticated.value);
 const {
-    state, progress, save,
+    state, progress,
 } = useExploration();
 
-const genderInput = ref<Gender | null>(null);
-// What the visitor is typing right now; saved a moment after they stop, once there is a full date.
-const birthDateInput = ref('');
-const bloodTypeInput = ref<BloodType | null>(null);
-const birthTimeInput = ref('');
-const birthPlaceInput = ref<string | null>(null);
-const savedNote = ref('');
-const AUTOSAVE_DELAY_MS = 800;
-let autosaveTimer: ReturnType<typeof setTimeout> | null = null;
+// What the visitor has entered: the member's saved profile when signed in, otherwise the guest session's.
+// Saved a moment after they stop typing, once there is a full date.
+const {
+    birthDate: birthDateInput,
+    bloodType: bloodTypeInput,
+    gender: genderInput,
+    birthTime: birthTimeInput,
+    birthPlace: birthPlaceInput,
+    savedNote,
+} = useProfile();
 
 const bloodTypeItems = BLOOD_TYPES.map((value) => ({
+    title: BLOOD_TYPE_LABELS[value], value,
+}));
+
 const genderItems = [
     {
         title: '不提供', value: null,
@@ -390,9 +389,6 @@ const genderItems = [
         title: GENDER_LABELS[value], value,
     })),
 ];
-
-    title: BLOOD_TYPE_LABELS[value], value,
-}));
 
 const zodiacSign = computed<Zodiac | null>(() => (birthDateInput.value ? zodiacFromIsoDate(birthDateInput.value) : null));
 /** An unknown blood type has nothing to analyse (RULE-002). */
@@ -439,14 +435,14 @@ const systems = [
             {
                 title: '生命靈數', tone: '#7a5aa6', text: '把出生日期化成數字，看天賦傾向與今年的節奏',
             },
+            {
+                title: '人類圖', tone: '#2e7d5b', text: '依出生當下的星體位置，看能量如何運作、怎樣做決定最順',
+            },
             ...(BAZI_ENTRY_ENABLED
                 ? [{
                     title: '八字', tone: '#8c5e34', text: '由出生的年、月、日、時排出四柱，看五行的分布與日主的特質',
                 }]
                 : []),
-            {
-                title: '人類圖', tone: '#2e7d5b', text: '依出生當下的星體位置，看能量如何運作、怎樣做決定最順',
-            },
         ],
     },
     {
@@ -459,6 +455,9 @@ const systems = [
                 title: 'MBTI', tone: '#2f5d8a', text: '16 型人格，從回答問題的方式看如何獲取能量、接收資訊與做決定',
             },
         ],
+    },
+];
+
 /** The human design type a member's saved chart has, for the button; guests only know that a chart exists */
 const humanDesignType = ref<string | null>(null);
 
@@ -482,14 +481,11 @@ function dayMasterLabel(isoDate: string): string {
     return `${stem}${ELEMENT_LABELS[stemElement(stem)]}日主`;
 }
 
-    },
-];
+// Every analysis the app offers; the ones whose data is missing stay disabled.
+const analyses = computed<Analysis[]>(() => {
     const baziReady = Boolean(zodiacSign.value && birthTimeInput.value);
     // The day stem only needs the date, so the label can be worked out here without calling the server
     const baziDayMaster = baziReady && birthDateInput.value ? dayMasterLabel(birthDateInput.value) : '';
-
-// Every analysis the app offers; the ones whose data is missing stay disabled.
-const analyses = computed<Analysis[]>(() => {
     const sign = zodiacSign.value;
     const bloodType = analysableBloodType.value;
     const mbti = state.value.mbti;
@@ -582,59 +578,6 @@ const analyses = computed<Analysis[]>(() => {
 function analysesOf(system: SystemKey): Analysis[] {
     return analyses.value.filter((analysis) => analysis.system === system);
 }
-
-async function saveEntered() {
-    if (!birthDateInput.value) return;
-
-    try {
-        await save({
-            birthDate: birthDateInput.value,
-            gender: genderInput.value,
-            birthTime: birthTimeInput.value,
-            birthPlace: birthPlaceInput.value,
-            bloodType: bloodTypeInput.value ?? 'UNKNOWN',
-        });
-        savedNote.value = isAuthenticated.value ? '已存到你的帳號。' : '已暫存 1 天，登入後可以長期保存。';
-    } catch (error) {
-        console.error('[home] autosave failed:', error);
-        savedNote.value = '這次沒有存起來，分析仍可查看。';
-    }
-}
-
-// Filling the inputs from what was saved earlier is not an edit and must not be saved back.
-let hydrating = false;
-
-watch([
-    birthDateInput,
-    bloodTypeInput,
-    birthTimeInput,
-    birthPlaceInput,
-    genderInput,
-], () => {
-    if (hydrating) return;
-
-    if (autosaveTimer) clearTimeout(autosaveTimer);
-
-    autosaveTimer = setTimeout(saveEntered, AUTOSAVE_DELAY_MS);
-});
-
-onBeforeUnmount(() => {
-    if (autosaveTimer) clearTimeout(autosaveTimer);
-});
-
-// Show what was saved earlier (this runs once the saved data has arrived).
-watch(() => state.value.loaded, async (loaded) => {
-    if (!loaded) return;
-
-    hydrating = true;
-    birthDateInput.value = state.value.birthData?.birthDate ?? '';
-    genderInput.value = state.value.gender;
-    bloodTypeInput.value = state.value.bloodType === 'UNKNOWN' ? null : state.value.bloodType;
-    birthTimeInput.value = state.value.birthData?.birthTime ?? '';
-    birthPlaceInput.value = state.value.birthData?.birthPlace ?? null;
-    await nextTick();
-    hydrating = false;
-}, { immediate: true });
 </script>
 
 <style scoped>
@@ -882,19 +825,6 @@ watch(() => state.value.loaded, async (loaded) => {
     scroll-margin-top: 80px;
     border-color: rgba(0, 0, 0, 0.12);
     background: rgb(var(--v-theme-surface));
-}
-
-.angles__title {
-    margin: 0 0 6px;
-    font-size: 1.25rem;
-    font-weight: 700;
-}
-
-.angles__lead {
-    max-width: 40em;
-    margin: 0 0 16px;
-    line-height: 1.8;
-    color: rgba(var(--v-theme-on-surface), 0.75);
 }
 
 .angles {

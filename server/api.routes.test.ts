@@ -23,6 +23,13 @@ const NOT_BUILT_YET = [
     '/human-design',
     '/detailed-reports',
     '/admin',
+    // The "此刻／今日" capabilities (add-daily-tarot-draw, add-daily-rune-draw, add-maya-kin, add-transit-report, add-today-section)
+    '/today',
+    '/tarot',
+    '/rune',
+    '/kin',
+    '/fixed-results/maya-kin',
+    '/transit-reports',
 ];
 
 const normalize = (path: string) => path.replace(/\{[^}]+\}/g, '{}');

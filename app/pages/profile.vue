@@ -126,7 +126,7 @@ const {
     isAuthenticated, initAuthListener,
 } = useAuth();
 const {
-    state, save: saveProfile,
+    state, revision, save: saveProfile,
 } = useExploration();
 
 const form = reactive({
@@ -197,8 +197,9 @@ onMounted(() => {
     initAuthListener();
 });
 
-// The saved data may arrive after the page opens (sign-in state and the request resolve asynchronously).
-watch(() => state.value.loaded, (loaded) => {
-    if (loaded) fillFromSaved();
+// The saved data may arrive after the page opens (sign-in state and the request resolve asynchronously), and
+// `loaded` is already true once the visitor's data has come in, so refill each time a load lands instead.
+watch(revision, () => {
+    if (state.value.loaded) fillFromSaved();
 }, { immediate: true });
 </script>
