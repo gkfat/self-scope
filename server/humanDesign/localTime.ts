@@ -22,7 +22,7 @@ function formatterFor(timeZone: string): Intl.DateTimeFormat {
 }
 
 /** Offset (ms) of the zone from UTC at the given instant, including daylight saving of that date. */
-function offsetAt(utcMs: number, timeZone: string): number {
+export function offsetAt(utcMs: number, timeZone: string): number {
     const parts = Object.fromEntries(
         formatterFor(timeZone).formatToParts(new Date(utcMs)).map((part) => [part.type, part.value]),
     );
