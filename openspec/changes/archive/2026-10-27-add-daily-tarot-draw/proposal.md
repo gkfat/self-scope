@@ -12,6 +12,7 @@
 - 新增 API：`GET /api/tarot/daily`（今天是否已翻、已翻則含牌與內容）與 `POST /api/tarot/daily`（翻牌；已翻過則回傳既有結果）。皆需登入。
 - 首頁新增**獨立的「每日塔羅」區塊**（與四張維度卡分開）：已登入顯示「翻今天的牌」或今天的牌；未登入顯示登入的提示與按鈕。
 - 側邊選單新增「每日塔羅」項目。
+- 翻開後的解讀分為今日主題、關鍵字、可以留意的地方（感情、工作、自我、人際）、今天可以試試，以及以卡片呈現的「進一步閱讀」（正逆位對照、光明面與陰影面、內在衝突與成長課題、反思問題、牌面象徵、傳統牌義與現代詮釋）；進一步閱讀為 22 張牌的固定文字。
 - 牌面先以文字與符號排版，**之後會補插畫**：牌面元件預留插畫欄位，本次不做。
 - 內容明確標示為娛樂與自我反思參考，不預測未來、不給醫療／法律／財務建議。
 
@@ -27,8 +28,8 @@
 
 ## Impact
 
-- **新增**：`app/pages/tarot.vue`、牌面元件、首頁區塊、`server/api/tarot/daily.get.ts` 與 `daily.post.ts`、`server/services/tarot.service.ts`、`server/repositories/tarot.repository.ts`、`shared/utils/tarot.ts`、`shared/constants/tarot.ts`、`shared/schemas/firestore/tarot.schema.ts`。
-- **修改**：`shared/utils/fixedContentKeys.ts`（加入 `TAROT`）、`server/utils/routeAccess.ts`、`openspec/analysis/render/api.yaml`、`server/services/dataExpiry.service.ts` 與 `scripts/provision-firebase.ts`（到期清除與索引例外）、`server/services/deletion.service.ts`（刪帳號）、側邊選單與首頁。
+- **新增**：`app/pages/tarot.vue`、牌面元件、首頁區塊、`server/api/tarot/daily.get.ts` 與 `daily.post.ts`、`server/services/tarot.service.ts`、`server/repositories/tarot.repository.ts`、`shared/utils/tarot.ts`、`shared/constants/tarot.ts`、`shared/schemas/firestore/tarot.schema.ts`、`shared/schemas/api/tarot.schema.ts`、`shared/constants/tarotMeanings.ts`（進階解讀，22 張）、`app/composables/useDailyTarot.ts`、`app/components/tarot/`（牌面與進一步閱讀）。
+- **修改**：`shared/utils/fixedContentKeys.ts`（加入 `TAROT`）、`server/utils/routeAccess.ts`、`openspec/analysis/render/api.yaml`、`server/services/dataExpiry.service.ts`（含 cron 結果的 `deletedTarotDraws`）與 `scripts/provision-firebase.ts`（到期清除與索引例外）、`server/services/deletion.service.ts`（刪帳號）、側邊選單與首頁。
 - **內容**：新增 `content/fixed/tarot.json`（44 筆，需撰寫與匯入）。
 - **依賴**：不新增套件。
 - **費用**：每位使用者每天最多 1 次寫入、少量讀取，在免費額度內。

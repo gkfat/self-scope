@@ -106,6 +106,61 @@
         </v-card>
 
         <v-card
+            v-if="tarotEntryEnabled"
+            class="tarot-block mb-6"
+            variant="outlined"
+        >
+            <v-card-text class="d-flex flex-wrap align-center ga-4">
+                <v-avatar
+                    color="primary"
+                    variant="tonal"
+                    size="48"
+                >
+                    <v-icon icon="mdi-cards-playing-outline" />
+                </v-avatar>
+                <div class="flex-grow-1">
+                    <div class="text-subtitle-1 font-weight-medium">
+                        每日塔羅
+                    </div>
+                    <p
+                        v-if="!initialized || !isAuthenticated"
+                        class="text-body-2 text-medium-emphasis mb-0"
+                    >
+                        每天翻一張牌，看看今天給你的提醒。登入後就能翻牌。
+                    </p>
+                    <p
+                        v-else-if="tarotDrawn"
+                        class="text-body-2 mb-0"
+                    >
+                        今天的牌：{{ tarotDrawn.card.name }}（{{ TAROT_ORIENTATION_LABELS[tarotDrawn.card.orientation] }}）
+                    </p>
+                    <p
+                        v-else
+                        class="text-body-2 text-medium-emphasis mb-0"
+                    >
+                        今天還沒翻牌，每天可以翻一張。
+                    </p>
+                </div>
+                <v-btn
+                    v-if="initialized && !isAuthenticated"
+                    to="/login"
+                    color="primary"
+                >
+                    立即登入
+                </v-btn>
+                <v-btn
+                    v-else-if="initialized"
+                    to="/tarot"
+                    :color="tarotDrawn ? undefined : 'primary'"
+                    :variant="tarotDrawn ? 'tonal' : 'flat'"
+                    :loading="tarotStatus === 'loading' && !tarotToday"
+                >
+                    {{ tarotDrawn ? '看今天的牌' : '翻今天的牌' }}
+                </v-btn>
+            </v-card-text>
+        </v-card>
+
+        <v-card
             id="fill"
             class="fill mb-6"
             variant="outlined"
@@ -343,6 +398,9 @@ import {
     BAZI_ENTRY_ENABLED, ELEMENT_LABELS,
 } from '../../shared/constants/bazi';
 import {
+    TAROT_ENTRY_ENABLED, TAROT_ORIENTATION_LABELS,
+} from '../../shared/constants/tarot';
+import {
     BLOOD_TYPE_LABELS, GENDER_LABELS, ZODIAC_LABELS,
 } from '../../shared/constants/zodiacLabels';
 import {
@@ -360,6 +418,16 @@ useHead({ title: '多維度自我分析' });
 
 const { isAuthenticated, initialized } = useAuth();
 const { get } = useApi();
+const {
+    today: tarotToday, status: tarotStatus, load: loadTarot,
+} = useDailyTarot();
+const tarotEntryEnabled = TAROT_ENTRY_ENABLED;
+const tarotDrawn = computed(() => (tarotToday.value?.drawn ? tarotToday.value : null));
+
+// Only a member's card is asked for; a visitor sees the invitation and no card content.
+watch(() => TAROT_ENTRY_ENABLED && initialized.value && isAuthenticated.value, (member) => {
+    if (member) void loadTarot();
+}, { immediate: true });
 /** Multi-dimension analysis is for members: a visitor sees it blurred with a way to sign in */
 const gated = computed(() => initialized.value && !isAuthenticated.value);
 const {

@@ -13,6 +13,9 @@ import {
     BONE_MIN_QIAN,
 } from '../constants/bazi.ts';
 import {
+    TAROT_CARD_COUNT, TAROT_ORIENTATIONS,
+} from '../constants/tarot.ts';
+import {
     MBTI_TYPES, NUMEROLOGY_NUMBERS, ZODIACS,
 } from '../schemas/common.ts';
 import type {
@@ -28,6 +31,7 @@ export const FIXED_CONTENT_TYPES = [
     'MBTI',
     'NUMEROLOGY',
     'BAZI',
+    'TAROT',
 ] as const;
 
 export type FixedContentType = typeof FIXED_CONTENT_TYPES[number];
@@ -136,6 +140,19 @@ export function baziContentKeys(): string[] {
 
 const BAZI_KEY_SET: ReadonlySet<string> = new Set(baziContentKeys());
 
+/** The 44 tarot content keys: card index 0 to 21 and orientation, as `<index>_<upright|reversed>`. */
+export function tarotContentKeys(): string[] {
+    const keys: string[] = [];
+
+    for (let index = 0; index < TAROT_CARD_COUNT; index++) {
+        for (const orientation of TAROT_ORIENTATIONS) keys.push(`${index}_${orientation}`);
+    }
+
+    return keys;
+}
+
+const TAROT_KEY_SET: ReadonlySet<string> = new Set(tarotContentKeys());
+
 export function fixedContentId(type: FixedContentType, key: string): string {
     return `${type}_${key}`;
 }
@@ -149,13 +166,14 @@ export function isValidContentKey(type: FixedContentType, key: string): boolean 
     case 'MBTI': return (MBTI_TYPES as readonly string[]).includes(key);
     case 'NUMEROLOGY': return (NUMEROLOGY_NUMBERS as readonly string[]).includes(key);
     case 'BAZI': return BAZI_KEY_SET.has(key);
+    case 'TAROT': return TAROT_KEY_SET.has(key);
     }
 }
 
 /**
  * Every document id that must exist before launch:
  * every summary combination (2 to 4 of zodiac, MBTI, blood type and life path number), 12 + 4 + 16 + 12 single results,
- * and the 123 BaZi contents.
+ * the 123 BaZi contents and the 44 tarot contents.
  */
 export function expectedFixedContentIds(): string[] {
     const ids: string[] = [];
@@ -190,6 +208,7 @@ export function expectedFixedContentIds(): string[] {
     for (const mbti of MBTI_TYPES) ids.push(fixedContentId('MBTI', mbti));
     for (const number of NUMEROLOGY_NUMBERS) ids.push(fixedContentId('NUMEROLOGY', number));
     for (const key of baziContentKeys()) ids.push(fixedContentId('BAZI', key));
+    for (const key of tarotContentKeys()) ids.push(fixedContentId('TAROT', key));
 
     return ids;
 }

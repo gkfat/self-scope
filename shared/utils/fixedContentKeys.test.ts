@@ -8,6 +8,7 @@ import {
     isValidContentKey,
     parseSummaryKey,
     summaryKey,
+    tarotContentKeys,
 } from './fixedContentKeys';
 
 describe('summary keys', () => {
@@ -126,6 +127,32 @@ describe('isValidContentKey', () => {
     });
 });
 
+describe('TAROT keys', () => {
+    it('accepts every card in both orientations', () => {
+        expect(tarotContentKeys()).toHaveLength(44);
+        expect(isValidContentKey('TAROT', '0_upright')).toBe(true);
+        expect(isValidContentKey('TAROT', '13_reversed')).toBe(true);
+        expect(isValidContentKey('TAROT', '21_upright')).toBe(true);
+
+        for (const key of tarotContentKeys()) expect(isValidContentKey('TAROT', key), key).toBe(true);
+    });
+
+    it('rejects cards outside the major arcana and malformed keys', () => {
+        for (const key of [
+            '22_upright',
+            '-1_upright',
+            '3_sideways',
+            '03_upright',
+            '3',
+            'upright',
+            '3_upright_extra',
+            'aries',
+        ]) {
+            expect(isValidContentKey('TAROT', key), key).toBe(false);
+        }
+    });
+});
+
 describe('baziContentKeys', () => {
     const keys = baziContentKeys();
     const countOf = (prefix: string) => keys.filter((key) => key.startsWith(prefix)).length;
@@ -156,15 +183,16 @@ describe('baziContentKeys', () => {
 describe('expectedFixedContentIds', () => {
     const ids = expectedFixedContentIds();
 
-    it('lists 14320 summaries, 44 single results and 123 BaZi contents, all unique', () => {
-        expect(ids).toHaveLength(14487);
-        expect(new Set(ids).size).toBe(14487);
+    it('lists 14320 summaries, 44 single results, 123 BaZi contents and 44 tarot contents, all unique', () => {
+        expect(ids).toHaveLength(14531);
+        expect(new Set(ids).size).toBe(14531);
         expect(ids.filter((id) => id.startsWith('SUMMARY_'))).toHaveLength(14320);
         expect(ids.filter((id) => id.startsWith('ZODIAC_'))).toHaveLength(12);
         expect(ids.filter((id) => id.startsWith('BLOOD_'))).toHaveLength(4);
         expect(ids.filter((id) => id.startsWith('MBTI_'))).toHaveLength(16);
         expect(ids.filter((id) => id.startsWith('NUMEROLOGY_'))).toHaveLength(12);
         expect(ids.filter((id) => id.startsWith('BAZI_'))).toHaveLength(123);
+        expect(ids.filter((id) => id.startsWith('TAROT_'))).toHaveLength(44);
     });
 
     it('splits summaries into 688 pairs, 4416 triples and 9216 with all four parts', () => {

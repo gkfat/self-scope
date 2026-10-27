@@ -47,18 +47,20 @@
 - `POST`：翻牌；交易建立當天紀錄並回傳 `{ date, drawn: true, card, content }`。已翻過再呼叫，回傳既有結果且不重新計算，所以可安全重試。
 - 皆由 `requireAuth` 取得 uid；不接受客戶端傳入身分或日期。回應設 `Cache-Control: private, no-store`。
 - 內容尚未發佈時回 404，且**不寫入紀錄**（先讀內容、確認可交付再寫入，與固定內容先確認再扣點的做法相同）。
-- 兩個端點都登記到 `openspec/analysis/render/api.yaml`。
+- 回應形狀為 `DailyTarotState`（`drawn: false` 只有 `date`；`drawn: true` 另含 `card` 與 `content`），`card` 含序號、羅馬數字、中文與英文牌名、正逆位與插畫來源。它與 analysis 內盧恩共用的 `DailyDrawState` 分開定義，塔羅兩個端點改指向 `DailyTarotState`。
+- 兩個端點與 `DailyTarotState` 都登記到 `openspec/analysis/render/api.yaml` 與 `api-model.yaml`。
 
 ### 6. 保留與刪除
 
 - `expiresAt = drawnAt + 3 個月`，與其他探索結果的保存期限一致（RULE-014）。
-- `scripts/provision-firebase.ts` 的 `EXPIRY_QUERY_GROUPS` 加入 `tarotDraws`（collection-group 的 `expiresAt` 索引例外）；`dataExpiry.service` 的到期清除納入 `tarotDraws`。
+- `scripts/provision-firebase.ts` 的 `EXPIRY_QUERY_GROUPS` 加入 `tarotDraws`（collection-group 的 `expiresAt` 索引例外）；`dataExpiry.service` 的到期清除納入 `tarotDraws`，cron 結果新增 `deletedTarotDraws`。
 - `deletion.service` 刪除帳號時移除該使用者的 `tarotDraws`。
 
 ### 7. 前端
 
 - `/tarot` 使用 `member` middleware；未登入導回首頁。
-- 頁面：Banner、牌背（尚未翻）→ 點擊呼叫 `POST` → 翻牌動畫 → 內容（沿用 `FixedResultView` 風格）；已翻過則載入時直接顯示牌面。逆位以牌面旋轉呈現，文字保持正向。動畫遵守 `prefers-reduced-motion`。
+- 頁面：Banner、牌背（尚未翻）→ 點擊呼叫 `POST` → 翻牌動畫 → 內容；已翻過則載入時直接顯示牌面。內容不沿用 `FixedResultView`（它的標題是「可能的優勢」等，與塔羅的「關鍵字」不符），改為依序：牌名與方向、今日主題、關鍵字、可以留意的地方（盲點與感情、工作、自我、人際四張小卡）、今天可以試試、進一步閱讀。
+- **進一步閱讀**：以外層卡片加小卡片排版（不用 accordion），包含正逆位對照、光明面與陰影面、內在衝突與成長課題、3 個反思問題、牌面象徵（人物、顏色、道具、構圖）、傳統牌義與現代詮釋。這些是每張牌共通的長文，放在 `shared/constants/tarotMeanings.ts`（22 張，寫死的固定文字，不呼叫 AI），不進 `fixedContents`，所以不用改共用的內容 schema，也不需重新匯入；短版的「今日內容」仍是 `TAROT` 固定內容。自我與人際來自這份檔案，感情與工作來自 `TAROT` 內容。逆位以牌面旋轉呈現，文字保持正向。動畫遵守 `prefers-reduced-motion`。
 - **插畫預留**：牌面元件接受選填的 `illustration` 圖片來源，`shared/constants/tarot.ts` 每張牌有 `illustration: null` 欄位；有圖時顯示圖，沒有就用羅馬數字與牌名排版。之後補圖只需放圖並填欄位。
 - **首頁**：新增獨立區塊（位於四張維度卡與「現在就填寫」之間或之後，與維度卡視覺分開）。已登入：今天還沒翻顯示「翻今天的牌」，已翻顯示今天的牌名與方位並連到 `/tarot`；未登入：顯示說明與「立即登入」按鈕，不載入任何牌的內容。
 - **側邊選單**：在「自我分析報告」之後新增「每日塔羅」項目。
@@ -73,14 +75,13 @@
 
 ## Migration Plan
 
-1. 合併程式（含 `TAROT` 類型、API、頁面），首頁區塊與選單項目先以旗標關閉。
+1. 合併程式（含 `TAROT` 類型、API、頁面），首頁區塊與選單項目先以旗標 `TAROT_ENTRY_ENABLED`（`shared/constants/tarot.ts` 的常數，沿用 `BAZI_ENTRY_ENABLED` 的做法）關閉。
 2. 執行 `scripts/provision-firebase.ts`，建立 `tarotDraws` 的 `expiresAt` 索引例外。
 3. 撰寫 `content/fixed/tarot.json`（44 筆，先 DRAFT 審稿），改為 `PUBLISHED` 後匯入。
-4. 確認覆蓋檢查完整、在瀏覽器翻出正位與逆位後，開啟首頁區塊與選單項目。
+4. 確認覆蓋檢查完整、在瀏覽器翻出正位與逆位後，把 `TAROT_ENTRY_ENABLED` 改為 `true`。牌面象徵已對照 Waite《The Pictorial Key to the Tarot》與 Rider-Waite-Smith 牌圖，正逆位關鍵詞已對照主流來源（Biddy Tarot）。
 5. 回滾：關閉旗標即可；紀錄會隨到期清除，不需要資料遷移。
 
 ## Open Questions
 
 - 插畫來源：公版牌面（例如 1909 年的經典牌組）、委託繪製或 AI 生成？授權與風格需要先決定。
-- 首頁區塊的確切位置（四張維度卡之後，或「分析得更深入一點」之後）。
 - 是否要在日後加入「抽牌歷史」頁？資料已保存 3 個月，加頁面不需要遷移。

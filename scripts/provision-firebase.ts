@@ -22,6 +22,7 @@ const EXPIRY_QUERY_GROUPS = [
     'summaries',
     'detailedReports',
     'humanDesign',
+    'tarotDraws',
 ];
 
 getScriptFirestore();

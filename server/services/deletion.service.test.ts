@@ -17,11 +17,14 @@ async function seed(db: FakeFirestore) {
     await db.doc('users/u1/summaries/s1').set({ x: 1 });
     await db.doc('users/u1/detailedReports/r1').set({ x: 1 });
     await db.doc('users/u1/humanDesign/main').set({ x: 1 });
+    await db.doc('users/u1/tarotDraws/2026-10-27').set({ cardIndex: 3 });
+    await db.doc('users/u1/tarotDraws/2026-10-28').set({ cardIndex: 5 });
     await db.doc('users/u1/pointAccount/main').set({ x: 1 });
     await db.doc('users/u1/pointBatches/b1').set({ remaining: 3 });
     await db.doc('users/u1/payments/p1').set({ x: 1 });
     await db.doc('users/u2').set({ email: 'b@example.com' });
     await db.doc('users/u2/summaries/s9').set({ x: 1 });
+    await db.doc('users/u2/tarotDraws/2026-10-27').set({ cardIndex: 9 });
     await db.doc('welcomeGrants/hash1').set({ googleUidHash: 'hash1' });
     await db.doc('aiUsageRecords/r1').set({
         userId: 'u1', estimatedCost: 1,
@@ -93,6 +96,12 @@ describe('DeletionService.deleteAccount', () => {
 
         expect(db.paths().filter((p) => p.startsWith('users/u1'))).toEqual([]);
         expect(deleteAuthUser).toHaveBeenCalledWith('u1');
+    });
+
+    it('removes every tarot draw of the user and keeps those of other users', async () => {
+        await new DeletionService({ deleteAuthUser: async () => undefined }).deleteAccount('u1');
+
+        expect(db.paths().filter((p) => p.includes('/tarotDraws/'))).toEqual(['users/u2/tarotDraws/2026-10-27']);
     });
 
     it('removes the gender together with the profile', async () => {

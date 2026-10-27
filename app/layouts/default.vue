@@ -121,6 +121,7 @@
 
 <script lang="ts" setup>
 import { WELCOME_BATCH_VALID_DAYS } from '../../shared/constants/points';
+import { TAROT_ENTRY_ENABLED } from '../../shared/constants/tarot';
 
 type MenuItem = {
     to: string;
@@ -136,6 +137,13 @@ const menuItems: MenuItem[] = [
     {
         to: '/self-reports', label: '自我分析報告', icon: 'mdi-file-document-outline',
     },
+    ...(TAROT_ENTRY_ENABLED
+        ? [
+            {
+                to: '/tarot', label: '每日塔羅', icon: 'mdi-cards-playing-outline',
+            },
+        ]
+        : []),
     {
         to: '/report', label: '多維度分析', icon: 'mdi-layers-outline',
     },

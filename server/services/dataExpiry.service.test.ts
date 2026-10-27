@@ -38,6 +38,9 @@ describe('DataExpiryService', () => {
         await db.doc('users/u1/detailedReports/new').set({ expiresAt: FUTURE });
         await db.doc('users/u1/humanDesign/main').set({ expiresAt: PAST });
         await db.doc('users/u2/humanDesign/main').set({ expiresAt: FUTURE });
+        await db.doc('users/u1/tarotDraws/2026-03-01').set({ expiresAt: PAST });
+        await db.doc('users/u1/tarotDraws/2026-06-30').set({ expiresAt: FUTURE });
+        await db.doc('users/u2/tarotDraws/2026-03-01').set({ expiresAt: PAST });
 
         await db.doc('users/u1/payments/p1').set({ status: 'COMPLETED' });
         await db.doc('users/u1/pointBatches/b1').set({
@@ -53,6 +56,7 @@ describe('DataExpiryService', () => {
             deletedSummaries: 1,
             deletedReports: 1,
             deletedHumanDesigns: 1,
+            deletedTarotDraws: 2,
             clearedMbti: 1,
             failed: [],
         });
@@ -64,6 +68,9 @@ describe('DataExpiryService', () => {
         expect(paths).toContain('users/u1/summaries/new');
         expect(paths).toContain('users/u1/detailedReports/new');
         expect(paths).toContain('users/u2/humanDesign/main');
+        expect(paths).not.toContain('users/u1/tarotDraws/2026-03-01');
+        expect(paths).not.toContain('users/u2/tarotDraws/2026-03-01');
+        expect(paths).toContain('users/u1/tarotDraws/2026-06-30');
     });
 
     it('clears an expired mbti but leaves a current one alone', async () => {
@@ -91,6 +98,7 @@ describe('DataExpiryService', () => {
             deletedSummaries: 0,
             deletedReports: 0,
             deletedHumanDesigns: 0,
+            deletedTarotDraws: 0,
             clearedMbti: 0,
         });
     });

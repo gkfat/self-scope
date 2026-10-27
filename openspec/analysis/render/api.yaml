@@ -20,6 +20,8 @@ tags:
   - name: Account
   - name: Operations
   - name: Admin
+  - name: Today
+  - name: TransitReports
 security:
   - bearerAuth: []
 paths:
@@ -203,8 +205,8 @@ paths:
   "/zodiac/natal-chart":
     post:
       operationId: calculateNatalChart
-      summary: "計算進階星盤（太陽、月亮、水星、金星、火星、木星、土星與上升的星座）"
-      description: "依出生日期、時間與城市算出固定的星盤結果，不呼叫 AI、不扣點、不儲存。三個欄位都必填，城市須在預設清單內。出生時間落在夏令時間切換而出現兩次或不存在時，timeNote 會標示。"
+      summary: "計算進階星盤（日、月、水、金、火、木、土、天王、海王、冥王與上升的星座）"
+      description: "依出生日期、時間與城市算出固定的星盤結果，不呼叫 AI、不扣點、不儲存。三個欄位都必填，城市須在預設清單內。出生時間落在夏令時間切換而出現兩次或不存在時，timeNote 會標示。天王、海王、冥王為新增，既有七顆天體與上升的結果不變。"
       tags: [FixedResults]
       security: []
       requestBody:
@@ -222,8 +224,6 @@ paths:
                 "$ref": "#/components/schemas/NatalChart"
         "400":
           "$ref": "#/components/responses/ValidationError"
-  "/fixed-results/blood-types/{bloodType}":
-    get:
   "/bazi/calculations":
     post:
       operationId: calculateBazi
@@ -248,6 +248,8 @@ paths:
           "$ref": "#/components/responses/ValidationError"
         "404":
           "$ref": "#/components/responses/NotFound"
+  "/fixed-results/blood-types/{bloodType}":
+    get:
       operationId: getBloodTypeResult
       summary: "取得血型單項分析"
       description: "UNKNOWN 不提供分析（RULE-002），回傳 404。"
@@ -1029,6 +1031,231 @@ paths:
           "$ref": "#/components/responses/NotFound"
         "409":
           "$ref": "#/components/responses/ConfirmationRequired"
+  "/today":
+    get:
+      operationId: getTodayStatus
+      summary: "「此刻／今日」區塊的當日狀態"
+      description: "回傳台北今日各項的狀態（塔羅已抽否、盧恩已抽否、今日 Kin 已解鎖否、今日即時星象報告是否存在及其狀態），供首頁區塊顯示；只回傳狀態與簡短識別，不含固定內容全文。日期由伺服器以 Asia/Taipei 計算，不接受客戶端日期（RULE-038）。訪客不可使用（RULE-050），前端未登入時只顯示登入提示、不呼叫此端點。"
+      tags: [Today]
+      responses:
+        "200":
+          description: "當日狀態"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/TodayStatus"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+  "/tarot/daily":
+    get:
+      operationId: getDailyTarot
+      summary: "查詢今日塔羅"
+      description: "回傳今日是否已翻牌；已翻則含牌、正逆位與固定內容。不寫入紀錄。以帳號與台北日期決定（RULE-035、RULE-038）。"
+      tags: [Today]
+      responses:
+        "200":
+          description: "今日塔羅狀態"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/DailyTarotState"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+    post:
+      operationId: drawDailyTarot
+      summary: "翻今日塔羅"
+      description: "同帳號同台北日期只建立一筆紀錄；已翻過則回傳既有結果、不重新計算，可安全重試與並行（RULE-035、NFR-018）。免費、不呼叫 AI（RULE-036）。固定內容尚未發佈時回 404，且不寫入紀錄。結果須附免責說明（RULE-049）。"
+      tags: [Today]
+      responses:
+        "200":
+          description: "今日塔羅（新翻開或既有）"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/DailyTarotState"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+  "/rune/daily":
+    get:
+      operationId: getDailyRune
+      summary: "查詢今日盧恩"
+      description: "回傳今日是否已抽符；已抽則含符文、正逆位與固定內容。不寫入紀錄。"
+      tags: [Today]
+      responses:
+        "200":
+          description: "今日盧恩狀態"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/DailyDrawState"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+    post:
+      operationId: drawDailyRune
+      summary: "抽今日盧恩"
+      description: "Elder Futhark 24 枚；僅 15 枚方向可辨識的符文可為逆位，Gebo、Hagalaz、Nauthiz、Isa、Jera、Eihwaz、Sowilo、Ingwaz、Dagaz 只有正位（RULE-037）。同帳號同日只有一筆，已抽過回傳既有結果（RULE-035）。免費、不呼叫 AI。內容尚未發佈回 404 且不寫入紀錄。"
+      tags: [Today]
+      responses:
+        "200":
+          description: "今日盧恩（新抽出或既有）"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/DailyDrawState"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+  "/kin/today":
+    get:
+      operationId: getTodayKin
+      summary: "查詢今日瑪雅 Kin"
+      description: "回傳今日是否已解鎖；已解鎖則含 Kin 與固定內容，解鎖後當日可不限次數查看（RULE-039）。未解鎖時不回傳 Kin 內容。"
+      tags: [Today]
+      responses:
+        "200":
+          description: "今日 Kin 狀態"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/KinTodayState"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+    post:
+      operationId: unlockTodayKin
+      summary: "計算並解鎖今日 Kin"
+      description: "每會員每台北日期可計算一次，計算即解鎖、不扣點（RULE-039）；已解鎖則回傳既有結果。Kin 以 Dreamspell 曆法計算，2/29 沿用 2/28（RULE-040）。內容為今日 Kin 專用的 260 筆（RULE-041），尚未發佈回 404 且不寫入紀錄。"
+      tags: [Today]
+      responses:
+        "200":
+          description: "已解鎖的今日 Kin（新解鎖或既有）"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/KinTodayState"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+  "/fixed-results/maya-kin":
+    get:
+      operationId: getBirthKinResult
+      summary: "取得生日瑪雅 Kin"
+      description: "依生日以 Dreamspell 曆法計算 Kin，回傳生日 Kin 專用的固定內容（260 筆，與今日 Kin 內容分開，RULE-041）。2/29 沿用 2/28（RULE-040）。不呼叫 AI、不扣點、不儲存。是否須登入、訪客可否取得比照單項免費結果，屬推導待確認（FR-048）。"
+      tags: [FixedResults]
+      security: []
+      parameters:
+        - name: birthDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: "生日 Kin 結果"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/BirthKinResult"
+        "400":
+          "$ref": "#/components/responses/ValidationError"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+  "/transit-reports":
+    post:
+      operationId: createTransitReport
+      summary: "生成即時星象報告"
+      description: "以會員已存的出生日期、時間與城市計算本命盤，與台北當日 00:00（UTC+8）的行運盤（十顆天體）及相位，扣點後非同步生成 AI 報告，回傳 202 與 reportId，以 GET 輪詢（RULE-042、RULE-043）。同帳號同台北日期同本命資料版本已有報告時回 200 並回傳既有報告，不再扣點（RULE-045）；本命資料變更視為新的一份。缺少出生日期、時間或城市回 422 且不扣點（RULE-044）。失敗、逾時或品質檢查不通過時返還點數（RULE-046）。需 Idempotency-Key。價格待定（CTX-CON-017）。"
+      tags: [TransitReports]
+      parameters:
+        - "$ref": "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: "今日已有報告，回傳既有結果，不扣點"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/TransitReportAccepted"
+        "202":
+          description: "已受理，生成中"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/TransitReportAccepted"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "402":
+          "$ref": "#/components/responses/InsufficientPoints"
+        "422":
+          description: "缺少出生日期、時間或城市，無法生成"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "429":
+          "$ref": "#/components/responses/RateLimited"
+    get:
+      operationId: listTransitReports
+      summary: "列出我的即時星象報告"
+      description: "僅回傳自己的、未到期的報告（RULE-047、RULE-048）。"
+      tags: [TransitReports]
+      responses:
+        "200":
+          description: "報告清單"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/TransitReport"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+  "/transit-reports/{reportId}":
+    get:
+      operationId: getTransitReport
+      summary: "查看即時星象報告"
+      description: "僅擁有者可存取；讀取已保存內容，不呼叫 AI、不扣點（RULE-048）。生成中回傳狀態；已滿 3 個月到期刪除者回 404。"
+      tags: [TransitReports]
+      parameters:
+        - "$ref": "#/components/parameters/ReportIdPath"
+      responses:
+        "200":
+          description: "報告"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/TransitReport"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "403":
+          "$ref": "#/components/responses/Forbidden"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+  "/transit-reports/{reportId}/export":
+    post:
+      operationId: exportTransitReportPdf
+      summary: "匯出即時星象報告 PDF"
+      description: "【尚未實作】讀取已保存內容產生 PDF，不呼叫 AI（RULE-048）；僅擁有者、報告未到期。是否扣點、下載或寄送 email、是否與詳細分析報告書（API-035 以後）共用機制尚未決定（CTX-ASM-019），確認後再補 request 與 response 細節。"
+      tags: [TransitReports]
+      parameters:
+        - "$ref": "#/components/parameters/ReportIdPath"
+      responses:
+        "200":
+          description: "PDF 檔"
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "403":
+          "$ref": "#/components/responses/Forbidden"
+        "404":
+          "$ref": "#/components/responses/NotFound"
 components:
   securitySchemes:
     bearerAuth:
@@ -1139,6 +1366,10 @@ components:
     BloodType:
       type: string
       enum: [A, B, O, AB, UNKNOWN]
+    Gender:
+      type: string
+      description: "選填；只用來決定八字大運的排法（男命、女命順逆不同），不用於其他分析或顯示"
+      enum: [MALE, FEMALE]
     MbtiType:
       type: string
       enum: [INTJ, INTP, ENTJ, ENTP, INFJ, INFP, ENFJ, ENFP, ISTJ, ISFJ, ESTJ, ESFJ, ISTP, ISFP, ESTP, ESFP]
@@ -1178,6 +1409,9 @@ components:
         mbti:
           "$ref": "#/components/schemas/MbtiType"
           nullable: true
+        gender:
+          "$ref": "#/components/schemas/Gender"
+          nullable: true
       required: [birthData]
     Profile:
       type: object
@@ -1192,6 +1426,9 @@ components:
           "$ref": "#/components/schemas/BloodType"
         mbti:
           "$ref": "#/components/schemas/MbtiType"
+          nullable: true
+        gender:
+          "$ref": "#/components/schemas/Gender"
           nullable: true
       required: [userId, birthData]
     LoginRequest:
@@ -1366,10 +1603,6 @@ components:
             - type: string
             - type: number
         responseTimeMs:
-    Gender:
-      type: string
-      description: "選填；只用來決定八字大運的排法（男命、女命順逆不同），不用於其他分析或顯示"
-      enum: [MALE, FEMALE]
           type: integer
           minimum: 0
           nullable: true
@@ -1409,9 +1642,6 @@ components:
           nullable: true
       required: [testVersion, result, content, persisted]
     TestAttempt:
-        gender:
-          "$ref": "#/components/schemas/Gender"
-          nullable: true
       type: object
       properties:
         attemptId:
@@ -1427,9 +1657,6 @@ components:
           format: date-time
         expiresAt:
           type: string
-        gender:
-          "$ref": "#/components/schemas/Gender"
-          nullable: true
           format: date-time
       required: [attemptId, testId, testVersion, result, completedAt, expiresAt]
     CombinationKey:
@@ -1503,6 +1730,9 @@ components:
         mbti:
           type: string
           nullable: true
+        gender:
+          "$ref": "#/components/schemas/Gender"
+          nullable: true
         hasHumanDesign:
           type: boolean
       required: [birthData, bloodType, mbti, gender, hasHumanDesign]
@@ -1552,11 +1782,162 @@ components:
               "$ref": "#/components/schemas/NatalChartPlacement"
             SATURN:
               "$ref": "#/components/schemas/NatalChartPlacement"
+            URANUS:
+              "$ref": "#/components/schemas/NatalChartPlacement"
+            NEPTUNE:
+              "$ref": "#/components/schemas/NatalChartPlacement"
+            PLUTO:
+              "$ref": "#/components/schemas/NatalChartPlacement"
         timeNote:
           type: string
           nullable: true
           enum: [AMBIGUOUS, NONEXISTENT]
       required: [ascendant, bodies, timeNote]
+    BaziRequest:
+      type: object
+      properties:
+        birthDate:
+          type: string
+          format: date
+          description: "真實且不在未來的日期"
+        birthTime:
+          type: string
+          pattern: "^([01]\\d|2[0-3]):[0-5]\\d$"
+          nullable: true
+          description: "出生地的當地時間；沒有時只算三柱"
+        birthPlace:
+          type: string
+          nullable: true
+          description: "預設城市清單的代碼；沒有時以 Asia/Taipei 計算"
+        gender:
+          "$ref": "#/components/schemas/Gender"
+          nullable: true
+          description: "只用來決定大運的排法；沒有時不輸出大運與流年"
+      required: [birthDate]
+    BaziPillar:
+      type: object
+      properties:
+        stem:
+          type: string
+          description: "天干"
+        branch:
+          type: string
+          description: "地支"
+      required: [stem, branch]
+    BaziFlowYear:
+      type: object
+      properties:
+        year:
+          type: integer
+        pillar:
+          "$ref": "#/components/schemas/BaziPillar"
+        tenGod:
+          type: string
+          description: "對日干的十神"
+      required: [year, pillar, tenGod]
+    BaziChart:
+      type: object
+      properties:
+        timeZone:
+          type: string
+        timeZoneAssumed:
+          type: boolean
+          description: "沒有提供出生城市而以預設時區計算"
+        hasTime:
+          type: boolean
+        baziYear:
+          type: integer
+          description: "年柱所屬的年（立春之前為前一年）"
+        pillars:
+          type: object
+          properties:
+            year:
+              "$ref": "#/components/schemas/BaziPillar"
+            month:
+              "$ref": "#/components/schemas/BaziPillar"
+            day:
+              "$ref": "#/components/schemas/BaziPillar"
+            hour:
+              "$ref": "#/components/schemas/BaziPillar"
+              nullable: true
+          required: [year, month, day, hour]
+        dayMaster:
+          type: object
+          properties:
+            stem:
+              type: string
+            element:
+              type: string
+              enum: [wood, fire, earth, metal, water]
+            polarity:
+              type: string
+              enum: [YANG, YIN]
+          required: [stem, element, polarity]
+        chart:
+          type: array
+          description: "每柱的十神、五行與藏干（含藏干的十神）"
+          items:
+            type: object
+            additionalProperties: true
+        elementCounts:
+          type: object
+          description: "八個字（三柱為六個）的五行數量，不加權"
+          additionalProperties:
+            type: integer
+        tenGodCounts:
+          type: object
+          additionalProperties:
+            type: integer
+        groupCounts:
+          type: object
+          description: "比劫 peer、食傷 output、財 wealth、官殺 power、印 resource"
+          additionalProperties:
+            type: integer
+        facts:
+          type: object
+          description: "地勢與自坐、空亡、納音、命宮與胎元、生肖、節氣與季節、合沖關係；只列事實，不附吉凶"
+          additionalProperties: true
+        strength:
+          type: object
+          description: "幫扶分、強弱分級、五行旺衰、命格與喜用神（以十神類別表示；中和時 useful 為 null）"
+          additionalProperties: true
+        bone:
+          type: object
+          nullable: true
+          description: "稱骨骨重；沒有出生時間時為 null"
+          additionalProperties: true
+        lateZi:
+          type: boolean
+        borderline:
+          type: array
+          description: "距離節或時辰界線 30 分鐘內的交界提示"
+          items:
+            type: object
+            additionalProperties: true
+        termDay:
+          type: object
+          nullable: true
+          description: "沒有時間且出生日剛好有節時，月柱（或年柱）可能不同"
+          additionalProperties: true
+        luckStatus:
+          type: string
+          enum: [OK, NEEDS_GENDER, NEEDS_TIME]
+        luck:
+          type: object
+          nullable: true
+          description: "大運：順逆、起運歲數、8 步大運（含起訖歲數與年份、十神）、目前的大運與各步的十個流年"
+          additionalProperties: true
+        flowYears:
+          type: array
+          nullable: true
+          description: "今年（立春換年）與接下來 4 年；沒有性別時為 null"
+          items:
+            "$ref": "#/components/schemas/BaziFlowYear"
+        interpretation:
+          type: object
+          description: "事先寫好的固定內容（日主、五行、十神群組、月令、強弱、命格、喜用神、稱骨、目前的大運）"
+          additionalProperties: true
+      required: [timeZone, timeZoneAssumed, hasTime, baziYear, pillars, dayMaster, chart, elementCounts, tenGodCounts, groupCounts, facts, strength, bone, lateZi, borderline, termDay, luckStatus, luck, flowYears, interpretation]
     HumanDesignRequest:
       type: object
       properties:
@@ -1730,9 +2111,6 @@ components:
         pointsDeducted:
           type: integer
       required: [reportId, status, pointsDeducted]
-        gender:
-          "$ref": "#/components/schemas/Gender"
-          nullable: true
     PointBatch:
       type: object
       properties:
@@ -1793,151 +2171,6 @@ components:
       required: [items]
     Money:
       type: object
-    BaziRequest:
-      type: object
-      properties:
-        birthDate:
-          type: string
-          format: date
-          description: "真實且不在未來的日期"
-        birthTime:
-          type: string
-          pattern: "^([01]\\d|2[0-3]):[0-5]\\d$"
-          nullable: true
-          description: "出生地的當地時間；沒有時只算三柱"
-        birthPlace:
-          type: string
-          nullable: true
-          description: "預設城市清單的代碼；沒有時以 Asia/Taipei 計算"
-        gender:
-          "$ref": "#/components/schemas/Gender"
-          nullable: true
-          description: "只用來決定大運的排法；沒有時不輸出大運與流年"
-      required: [birthDate]
-    BaziPillar:
-      type: object
-      properties:
-        stem:
-          type: string
-          description: "天干"
-        branch:
-          type: string
-          description: "地支"
-      required: [stem, branch]
-    BaziFlowYear:
-      type: object
-      properties:
-        year:
-          type: integer
-        pillar:
-          "$ref": "#/components/schemas/BaziPillar"
-        tenGod:
-          type: string
-          description: "對日干的十神"
-      required: [year, pillar, tenGod]
-    BaziChart:
-      type: object
-      properties:
-        timeZone:
-          type: string
-        timeZoneAssumed:
-          type: boolean
-          description: "沒有提供出生城市而以預設時區計算"
-        hasTime:
-          type: boolean
-        baziYear:
-          type: integer
-          description: "年柱所屬的年（立春之前為前一年）"
-        pillars:
-          type: object
-          properties:
-            year:
-              "$ref": "#/components/schemas/BaziPillar"
-            month:
-              "$ref": "#/components/schemas/BaziPillar"
-            day:
-              "$ref": "#/components/schemas/BaziPillar"
-            hour:
-              "$ref": "#/components/schemas/BaziPillar"
-              nullable: true
-          required: [year, month, day, hour]
-        dayMaster:
-          type: object
-          properties:
-            stem:
-              type: string
-            element:
-              type: string
-              enum: [wood, fire, earth, metal, water]
-            polarity:
-              type: string
-              enum: [YANG, YIN]
-          required: [stem, element, polarity]
-        chart:
-          type: array
-          description: "每柱的十神、五行與藏干（含藏干的十神）"
-          items:
-            type: object
-            additionalProperties: true
-        elementCounts:
-          type: object
-          description: "八個字（三柱為六個）的五行數量，不加權"
-          additionalProperties:
-            type: integer
-        tenGodCounts:
-          type: object
-          additionalProperties:
-            type: integer
-        groupCounts:
-          type: object
-          description: "比劫 peer、食傷 output、財 wealth、官殺 power、印 resource"
-          additionalProperties:
-            type: integer
-        facts:
-          type: object
-          description: "地勢與自坐、空亡、納音、命宮與胎元、生肖、節氣與季節、合沖關係；只列事實，不附吉凶"
-          additionalProperties: true
-        strength:
-          type: object
-          description: "幫扶分、強弱分級、五行旺衰、命格與喜用神（以十神類別表示；中和時 useful 為 null）"
-          additionalProperties: true
-        bone:
-          type: object
-          nullable: true
-          description: "稱骨骨重；沒有出生時間時為 null"
-          additionalProperties: true
-        lateZi:
-          type: boolean
-        borderline:
-          type: array
-          description: "距離節或時辰界線 30 分鐘內的交界提示"
-          items:
-            type: object
-            additionalProperties: true
-        termDay:
-          type: object
-          nullable: true
-          description: "沒有時間且出生日剛好有節時，月柱（或年柱）可能不同"
-          additionalProperties: true
-        luckStatus:
-          type: string
-          enum: [OK, NEEDS_GENDER, NEEDS_TIME]
-        luck:
-          type: object
-          nullable: true
-          description: "大運：順逆、起運歲數、8 步大運（含起訖歲數與年份、十神）、目前的大運與各步的十個流年"
-          additionalProperties: true
-        flowYears:
-          type: array
-          nullable: true
-          description: "今年（立春換年）與接下來 4 年；沒有性別時為 null"
-          items:
-            "$ref": "#/components/schemas/BaziFlowYear"
-        interpretation:
-          type: object
-          description: "事先寫好的固定內容（日主、五行、十神群組、月令、強弱、命格、喜用神、稱骨、目前的大運）"
-          additionalProperties: true
-      required: [timeZone, timeZoneAssumed, hasTime, baziYear, pillars, dayMaster, chart, elementCounts, tenGodCounts, groupCounts, facts, strength, bone, lateZi, borderline, termDay, luckStatus, luck, flowYears, interpretation]
       properties:
         amount:
           type: number
@@ -2076,3 +2309,194 @@ components:
         deletedSummaries:
           type: integer
       required: [deletedAttempts, deletedSummaries]
+    TodayStatus:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          description: "台北日期，由伺服器計算"
+        tarot:
+          type: object
+          properties:
+            drawn:
+              type: boolean
+          required: [drawn]
+        rune:
+          type: object
+          properties:
+            drawn:
+              type: boolean
+          required: [drawn]
+        kin:
+          type: object
+          properties:
+            unlocked:
+              type: boolean
+          required: [unlocked]
+        transitReport:
+          type: object
+          properties:
+            exists:
+              type: boolean
+            reportId:
+              type: string
+              nullable: true
+            status:
+              type: string
+              nullable: true
+              enum: [GENERATING, COMPLETED, FAILED]
+          required: [exists]
+      required: [date, tarot, rune, kin, transitReport]
+    DrawnSymbol:
+      type: object
+      properties:
+        symbolIndex:
+          type: integer
+          description: "塔羅 0 至 21；盧恩 0 至 23"
+        orientation:
+          type: string
+          enum: [UPRIGHT, REVERSED]
+          description: "9 枚對稱盧恩只有 UPRIGHT（RULE-037）"
+      required: [symbolIndex, orientation]
+    DailyDrawState:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        drawn:
+          type: boolean
+        symbol:
+          "$ref": "#/components/schemas/DrawnSymbol"
+        content:
+          "$ref": "#/components/schemas/FixedResultContent"
+      required: [date, drawn]
+    TarotCard:
+      type: object
+      properties:
+        index:
+          type: integer
+          minimum: 0
+          maximum: 21
+        roman:
+          type: string
+        name:
+          type: string
+        englishName:
+          type: string
+        orientation:
+          type: string
+          enum: [upright, reversed]
+        illustration:
+          type: string
+          nullable: true
+          description: "插畫來源；尚無插畫時為 null"
+      required: [index, roman, name, englishName, orientation, illustration]
+    DailyTarotState:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        drawn:
+          type: boolean
+        card:
+          "$ref": "#/components/schemas/TarotCard"
+        content:
+          "$ref": "#/components/schemas/FixedResultContent"
+      required: [date, drawn]
+      description: "drawn 為 false 時只有 date；為 true 時含 card 與 content"
+    KinResult:
+      type: object
+      properties:
+        kinNumber:
+          type: integer
+          minimum: 1
+          maximum: 260
+        solarSeal:
+          type: integer
+          minimum: 1
+          maximum: 20
+        galacticTone:
+          type: integer
+          minimum: 1
+          maximum: 13
+      required: [kinNumber, solarSeal, galacticTone]
+    KinTodayState:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        unlocked:
+          type: boolean
+        kin:
+          "$ref": "#/components/schemas/KinResult"
+        content:
+          "$ref": "#/components/schemas/FixedResultContent"
+      required: [date, unlocked]
+    BirthKinResult:
+      type: object
+      properties:
+        kin:
+          "$ref": "#/components/schemas/KinResult"
+        content:
+          "$ref": "#/components/schemas/FixedResultContent"
+      required: [kin, content]
+    TransitReportAccepted:
+      type: object
+      properties:
+        reportId:
+          type: string
+        status:
+          type: string
+          enum: [GENERATING, COMPLETED, FAILED]
+        transitDate:
+          type: string
+          format: date
+        pointsDeducted:
+          type: integer
+          description: "既有報告時為 0"
+      required: [reportId, status, transitDate, pointsDeducted]
+    TransitReport:
+      type: object
+      properties:
+        reportId:
+          type: string
+        status:
+          type: string
+          enum: [GENERATING, COMPLETED, FAILED]
+        transitDate:
+          type: string
+          format: date
+        transitAt:
+          type: string
+          format: date-time
+          description: "行運盤計算時刻，固定為台北當日 00:00（RULE-042）"
+        sections:
+          type: array
+          items:
+            "$ref": "#/components/schemas/ReportSection"
+          description: "章節結構待定"
+        disclaimer:
+          type: string
+        modelName:
+          type: string
+        promptVersion:
+          type: string
+        failureReason:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+      required: [reportId, status, transitDate, transitAt, createdAt]

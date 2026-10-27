@@ -32,6 +32,8 @@ describe('classifyRoute', () => {
         expect(classifyRoute('POST', '/api/summaries')).toBe('required');
         expect(classifyRoute('DELETE', '/api/account')).toBe('required');
         expect(classifyRoute('GET', '/api/unknown')).toBe('required');
+        expect(classifyRoute('GET', '/api/tarot/daily')).toBe('required');
+        expect(classifyRoute('POST', '/api/tarot/daily')).toBe('required');
     });
 
     it('does not make a public path public for other methods', () => {
