@@ -29,3 +29,6 @@ service_account.json
 # Secrets
 service_account.json
 *.pem
+
+# Content data (fixed analyses, test definitions): imported into Firestore, not versioned
+content/
