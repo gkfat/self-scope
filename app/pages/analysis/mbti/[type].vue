@@ -56,7 +56,11 @@
             <FixedResultView
                 v-else-if="result"
                 :result="result"
-            />
+            >
+                <template #after-insight>
+                    <MbtiGuide :current="type" />
+                </template>
+            </FixedResultView>
 
             <div class="d-flex justify-center mb-4">
                 <v-btn
@@ -67,6 +71,7 @@
                     重新測驗
                 </v-btn>
             </div>
+
         </template>
     </div>
 </template>

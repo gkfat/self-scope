@@ -20,7 +20,11 @@
         />
 
         <template v-else-if="result">
-            <FixedResultView :result="result.content" />
+            <FixedResultView :result="result.content">
+                <template #after-insight>
+                    <MbtiGuide :current="result.result" />
+                </template>
+            </FixedResultView>
 
             <div class="d-flex justify-center mb-4">
                 <v-btn
@@ -48,6 +52,7 @@
             >
                 結果已儲存於你的帳號。
             </v-alert>
+
         </template>
 
         <template v-else-if="test">
@@ -58,16 +63,25 @@
             <v-card
                 v-for="question in pageQuestions"
                 :key="question.questionId"
-                class="mb-3"
+                class="question mb-3"
+                :class="{ 'question--answered': isAnswered(question.questionId) }"
             >
                 <v-card-text>
-                    <div class="mb-2">
-                        {{ question.text }}
+                    <div class="d-flex align-start ga-2 mb-2">
+                        <span class="question__text">{{ question.text }}</span>
+                        <v-spacer />
+                        <v-icon
+                            :icon="isAnswered(question.questionId) ? 'mdi-check-circle' : 'mdi-circle-outline'"
+                            :color="isAnswered(question.questionId) ? 'success' : undefined"
+                            :aria-label="isAnswered(question.questionId) ? '已作答' : '尚未作答'"
+                            class="question__mark"
+                        />
                     </div>
                     <v-radio-group
                         v-model="answers[question.questionId]"
                         inline
                         hide-details
+                        color="success"
                     >
                         <v-radio
                             v-for="option in question.options"
@@ -133,6 +147,7 @@ const { isAuthenticated } = useAuth();
 const { ensureSession } = useGuestSession();
 const { post } = useApi();
 
+const { load: loadExploration } = useExploration();
 const loading = ref(true);
 const loadError = ref<string | null>(null);
 const test = ref<PublicTest | null>(null);
@@ -145,6 +160,10 @@ const result = ref<SubmissionResponse | null>(null);
 const questions = computed(() => test.value?.questions ?? []);
 const pageCount = computed(() => Math.max(1, Math.ceil(questions.value.length / QUESTIONS_PER_PAGE)));
 const pageQuestions = computed(() => questions.value.slice(page.value * QUESTIONS_PER_PAGE, (page.value + 1) * QUESTIONS_PER_PAGE));
+function isAnswered(questionId: string): boolean {
+    return answers[questionId] !== undefined;
+}
+
 const pageComplete = computed(() => pageQuestions.value.every((q) => answers[q.questionId] !== undefined));
 const allAnswered = computed(() => questions.value.every((q) => answers[q.questionId] !== undefined));
 const progress = computed(() => (questions.value.length
@@ -244,6 +263,8 @@ async function submit() {
             'optional',
         );
         storeResult(result.value);
+        // The result is now part of the member's (or guest's) profile: other screens must see it
+        await loadExploration();
     } catch (error) {
         console.error('[test] submit failed:', error);
         submitError.value = messageOf(error, '送出失敗，請稍後再試。');
@@ -252,3 +273,28 @@ async function submit() {
     }
 }
 </script>
+
+<style scoped>
+/* Not answered yet: plain and muted, so what is left to do stands out */
+.question {
+    border-left: 4px solid rgba(var(--v-theme-on-surface), 0.12);
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.question__mark {
+    opacity: 0.45;
+}
+
+.question--answered {
+    border-left-color: rgb(var(--v-theme-success));
+    background: rgba(var(--v-theme-success), 0.07);
+}
+
+.question--answered .question__mark {
+    opacity: 1;
+}
+
+.question--answered .question__text {
+    color: rgba(var(--v-theme-on-surface), 0.75);
+}
+</style>

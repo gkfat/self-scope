@@ -182,6 +182,9 @@
             </v-card-text>
         </v-card>
 
+        <!-- Optional extra content a page wants between the second and third card -->
+        <slot name="after-insight" />
+
         <!-- Something to do with it -->
         <v-card
             v-if="hasGrowth"
