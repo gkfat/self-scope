@@ -40,10 +40,45 @@ TTL 清除會延遲（通常 24 小時內），程式判斷一律以時間比較
 - 不要把 `.env`、服務帳號金鑰提交到版本庫。
 
 ## 4. 匯入內容
+
+### 內容檔在哪裡
+`content/` **不進版控**（已列入 `.gitignore`），檔案只存在本機，請自行備份。目錄結構：
+
+| 路徑 | 內容 |
+|---|---|
+| `content/fixed/zodiac.json`、`blood.json`、`mbti.json`、`numerology.json` | 單項的固定內容（12、4、16、12 筆） |
+| `content/fixed/<維度>-<維度>.json` | 兩個維度的組合，例如 `zodiac-mbti.json`、`blood-numerology.json` |
+| `content/fixed/<維度>-<維度>-<維度>.json` | 三個維度的組合，例如 `zodiac-mbti-blood.json` |
+| `content/fixed/zodiac-mbti-blood-numerology/<星座>.json` | 四個維度的組合，依星座拆成 12 個檔案，每個 768 筆 |
+| `content/tests/personality16-v1.json`、`personality16-v2.json` | 16 型人格測驗的題目（v2 為 48 題，v1 保留給舊的作答結果） |
+| `content/point-packages.example.json` | 點數方案的範例檔 |
+
+固定內容的金鑰規則見 `shared/utils/fixedContentKeys.ts`；全部齊備時預期共 14,364 筆（單項 44 筆加上 14,320 筆組合）。
+
+### 匯入指令
 ```bash
-FIREBASE_PROJECT_ID=<id> node scripts/import-test.ts content/tests/personality16-v1.json
-FIREBASE_PROJECT_ID=<id> node scripts/import-fixed-content.ts <內容檔.json|.csv>
-FIREBASE_PROJECT_ID=<id> node scripts/import-point-packages.ts <方案檔.json>   # 價格確定後
-FIREBASE_PROJECT_ID=<id> node scripts/check-fixed-content.ts                     # 檢查 992 份內容是否都已發布
+# 測驗題目
+pnpm content:import-test content/tests/personality16-v2.json
+
+# 固定內容：先 --dry-run 驗證，確認後再匯入（狀態為 PUBLISHED 才會對外顯示）
+pnpm content:import content/fixed/zodiac.json --dry-run
+pnpm content:import content/fixed/zodiac.json
+
+# 四個維度的組合檔很多，用迴圈匯入
+for f in content/fixed/zodiac-mbti-blood-numerology/*.json; do pnpm content:import "$f"; done
+
+# 點數方案（價格確定後）
+pnpm content:import-packages content/point-packages.example.json
+
+# 檢查固定內容是否都已發布
+pnpm content:check
 ```
+
+等同於直接執行腳本（需要 `FIREBASE_PROJECT_ID` 與服務帳號）：
+`FIREBASE_PROJECT_ID=<id> node scripts/import-fixed-content.ts <內容檔.json|.csv>`。
 腳本使用 Node 內建的 TypeScript 支援（Node 24），不需額外安裝套件。
+
+### 注意
+- 匯入只會寫入內容有變動的筆數，重複匯入沒改的檔案不會多花寫入；Firestore 免費額度為每天 2 萬次寫入，一次匯入全部約 1.4 萬筆，建議分日或確認為 Blaze 方案。
+- 新增或修改文案後需要重新匯入才會生效。
+- `content/` 沒有版本控制，請另外備份（例如雲端硬碟）。
