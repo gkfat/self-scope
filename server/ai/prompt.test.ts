@@ -10,6 +10,7 @@ import {
 
 const input: AnalysisInput = {
     inputVersion: 'abc123',
+    bazi: null,
     profile: {
         zodiac: 'aries', bloodType: 'O', mbti: 'INTJ', numerology: null,
     },

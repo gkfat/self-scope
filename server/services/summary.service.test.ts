@@ -64,7 +64,7 @@ async function seedPoints(db: FakeFirestore, uid: string, remaining: number) {
     });
 }
 
-/** The three-dimension choice (3 points) and the two-dimension one (1 point) without the human design */
+/** The three-dimension choice (4 points) and the two-dimension one (2 points) without the human design or the BaZi chart */
 const THREE = {
     dimensions: [
         'ZODIAC',
@@ -90,18 +90,18 @@ describe('SummaryService', () => {
         service = new SummaryService({ clock: () => clock.now });
 
         await db.doc('users/u1').set(user());
-        await seedPoints(db, 'u1', 5);
+        await seedPoints(db, 'u1', 20);
         await seedContent(db, 'aries_INTJ_A');
         await seedContent(db, 'aries_INTJ');
     });
 
     describe('obtain', () => {
-        it('charges 3 points the first time for three dimensions and stores the summary for 3 months', async () => {
+        it('charges 4 points the first time for three dimensions and stores the summary for 3 months', async () => {
             const result = await service.obtain('u1', THREE);
 
             expect(result).toMatchObject({
                 summaryId: 'aries_INTJ_A',
-                pointsDeducted: 3,
+                pointsDeducted: 4,
                 combinationKey: {
                     zodiac: 'aries', mbti: 'INTJ', bloodType: 'A',
                 },
@@ -111,7 +111,7 @@ describe('SummaryService', () => {
                 obtainedAt: NOW,
                 expiresAt: addMonths(NOW, 3),
             });
-            expect(await pointsLeft(db)).toBe(2);
+            expect(await pointsLeft(db)).toBe(16);
             expect(summaryDocs(db)).toEqual(['users/u1/summaries/aries_INTJ_A']);
         });
 
@@ -120,7 +120,7 @@ describe('SummaryService', () => {
             const again = await service.obtain('u1', THREE);
 
             expect(again.pointsDeducted).toBe(0);
-            expect(await pointsLeft(db)).toBe(2);
+            expect(await pointsLeft(db)).toBe(16);
             expect(chargeDocs(db)).toHaveLength(1);
         });
 
@@ -130,8 +130,8 @@ describe('SummaryService', () => {
 
             expect(withBlood.summaryId).toBe('aries_INTJ_A');
             expect(withoutBlood.summaryId).toBe('aries_INTJ');
-            expect(withoutBlood.pointsDeducted).toBe(1);
-            expect(await pointsLeft(db)).toBe(1);
+            expect(withoutBlood.pointsDeducted).toBe(2);
+            expect(await pointsLeft(db)).toBe(14);
         });
 
         it('asks for the blood type when it is chosen but unknown, without charging', async () => {
@@ -140,10 +140,10 @@ describe('SummaryService', () => {
             await expect(service.obtain('u1', THREE)).rejects.toMatchObject({
                 statusCode: 422, code: 'BLOOD_REQUIRED',
             });
-            expect(await pointsLeft(db)).toBe(5);
+            expect(await pointsLeft(db)).toBe(20);
         });
 
-        it('charges 1 point for a pair that includes the blood type', async () => {
+        it('charges 2 points for a pair that includes the blood type', async () => {
             await seedContent(db, 'aries_A');
             await seedContent(db, 'INTJ_A');
 
@@ -151,30 +151,30 @@ describe('SummaryService', () => {
             const bloodMbti = await service.obtain('u1', { dimensions: ['MBTI', 'BLOOD'] });
 
             expect(zodiacBlood).toMatchObject({
-                summaryId: 'aries_A', pointsDeducted: 1,
+                summaryId: 'aries_A', pointsDeducted: 2,
                 combinationKey: {
                     zodiac: 'aries', mbti: null, bloodType: 'A',
                 },
             });
             expect(bloodMbti).toMatchObject({
-                summaryId: 'INTJ_A', pointsDeducted: 1,
+                summaryId: 'INTJ_A', pointsDeducted: 2,
                 combinationKey: {
                     zodiac: null, mbti: 'INTJ', bloodType: 'A',
                 },
             });
-            expect(await pointsLeft(db)).toBe(3);
+            expect(await pointsLeft(db)).toBe(16);
         });
 
         it('does not offer the human design here', async () => {
             await expect(service.obtain('u1', { dimensions: ['ZODIAC', 'HUMAN_DESIGN'] } as never)).rejects.toMatchObject({ code: 'DIMENSIONS_NOT_OFFERED' });
-            expect(await pointsLeft(db)).toBe(5);
+            expect(await pointsLeft(db)).toBe(20);
         });
 
         it('charges only once when requests are repeated concurrently', async () => {
             const results = await Promise.all(Array.from({ length: 6 }, () => service.obtain('u1', THREE)));
 
-            expect(results.filter((r) => r.pointsDeducted === 3)).toHaveLength(1);
-            expect(await pointsLeft(db)).toBe(2);
+            expect(results.filter((r) => r.pointsDeducted === 4)).toHaveLength(1);
+            expect(await pointsLeft(db)).toBe(16);
             expect(chargeDocs(db)).toHaveLength(1);
         });
 
@@ -201,7 +201,7 @@ describe('SummaryService', () => {
             await expect(service.obtain('u1', THREE)).rejects.toMatchObject({
                 statusCode: 422, code: 'MBTI_REQUIRED',
             });
-            expect(await pointsLeft(db)).toBe(5);
+            expect(await pointsLeft(db)).toBe(20);
         });
 
         it('treats an expired mbti as missing', async () => {
@@ -222,7 +222,7 @@ describe('SummaryService', () => {
             await seedContent(db, 'aries_INTJ_A', 'DRAFT');
 
             await expect(service.obtain('u1', THREE)).rejects.toBeInstanceOf(NotFoundError);
-            expect(await pointsLeft(db)).toBe(5);
+            expect(await pointsLeft(db)).toBe(20);
             expect(summaryDocs(db)).toEqual([]);
         });
 
@@ -234,9 +234,9 @@ describe('SummaryService', () => {
             await db.doc('users/u1').update({ mbtiExpiresAt: addMonths(clock.now, 3) });
             const renewed = await service.obtain('u1', PAIR);
 
-            expect(renewed.pointsDeducted).toBe(1);
+            expect(renewed.pointsDeducted).toBe(2);
             expect(renewed.expiresAt).toBe(addMonths(clock.now, 3));
-            expect(await pointsLeft(db)).toBe(3);
+            expect(await pointsLeft(db)).toBe(16);
             expect(chargeDocs(db)).toHaveLength(2);
         });
     });
@@ -251,7 +251,7 @@ describe('SummaryService', () => {
             const items = await service.list('u1');
 
             expect(items.map((i) => i.summaryId).sort()).toEqual(['aries_INTJ', 'aries_INTJ_A']);
-            expect(await pointsLeft(db)).toBe(1);
+            expect(await pointsLeft(db)).toBe(14);
         });
 
         it('hides expired summaries', async () => {

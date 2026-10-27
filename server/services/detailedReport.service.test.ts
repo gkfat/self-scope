@@ -101,7 +101,7 @@ describe('DetailedReportService', () => {
     });
 
     const points = async () => (await new PointService({ clock: () => clock.now }).getBalance('u1')).availableBalance;
-    // Three dimensions with the human design: 5 points
+    // Three dimensions with the human design: (1 + 1 + 2) x 1.5 x 1.5 = 9 points
     const request = {
         dimensions: [
             'ZODIAC',
@@ -129,18 +129,18 @@ describe('DetailedReportService', () => {
             expiresAt: addMonths(NOW, 3),
         });
         await db.doc('users/u1/pointBatches/b1').set({
-            source: 'PURCHASE', sourceRef: null, granted: 20, remaining: 20, expiresAt: null, createdAt: NOW - DAY_MS,
+            source: 'PURCHASE', sourceRef: null, granted: 60, remaining: 60, expiresAt: null, createdAt: NOW - DAY_MS,
         });
     });
 
     describe('create', () => {
-        it('charges 5 points, replies at once and completes the report in the background', async () => {
+        it('charges 9 points, replies at once and completes the report in the background', async () => {
             const accepted = await service.create('u1', request, 'key-aaaaaaaa');
 
             expect(accepted).toEqual({
-                reportId: 'key-aaaaaaaa', status: 'GENERATING', pointsDeducted: 5,
+                reportId: 'key-aaaaaaaa', status: 'GENERATING', pointsDeducted: 9,
             });
-            expect(await points()).toBe(15);
+            expect(await points()).toBe(51);
             expect((await report('key-aaaaaaaa'))?.status).toBe('GENERATING');
 
             await settle();
@@ -212,20 +212,22 @@ describe('DetailedReportService', () => {
             });
         });
 
-        it('prices by the number of dimensions: 3, 5 and 8 points', async () => {
+        it('prices by the dimensions chosen: 4, 9 and 15 points', async () => {
+            // (1 + 2) x 1 x 1.5 = 4.5, rounded down
             const two = await service.create('u1', { dimensions: ['ZODIAC', 'HUMAN_DESIGN'] }, 'key-aaaaaaaa');
             const three = await service.create('u1', {
                 dimensions: [
                     'ZODIAC',
                     'MBTI',
                     'HUMAN_DESIGN',
-                ], 
+                ],
             }, 'key-bbbbbbbb');
 
-            expect([two.pointsDeducted, three.pointsDeducted]).toEqual([3, 5]);
-            expect(await points()).toBe(12);
+            expect([two.pointsDeducted, three.pointsDeducted]).toEqual([4, 9]);
+            expect(await points()).toBe(47);
 
-            await db.doc('users/u1/pointBatches/b1').update({ remaining: 8 });
+            await db.doc('users/u1/pointBatches/b1').update({ remaining: 15 });
+            // (1 + 1 + 1 + 2) x 2 x 1.5 = 15
             const four = await service.create('u1', {
                 dimensions: [
                     'ZODIAC',
@@ -235,13 +237,13 @@ describe('DetailedReportService', () => {
                 ],
             }, 'key-cccccccc');
 
-            expect(four.pointsDeducted).toBe(8);
+            expect(four.pointsDeducted).toBe(15);
             expect(await points()).toBe(0);
         });
 
         it('does not generate a choice without the human design', async () => {
             await expect(service.create('u1', { dimensions: ['ZODIAC', 'MBTI'] }, 'key-aaaaaaaa')).rejects.toMatchObject({ code: 'DIMENSIONS_NOT_OFFERED' });
-            expect(await points()).toBe(20);
+            expect(await points()).toBe(60);
             expect(ai.calls).toHaveLength(0);
         });
 
@@ -251,7 +253,7 @@ describe('DetailedReportService', () => {
             await expect(service.create('u1', { dimensions: ['BLOOD', 'HUMAN_DESIGN'] }, 'key-aaaaaaaa')).rejects.toMatchObject({
                 statusCode: 422, code: 'BLOOD_REQUIRED',
             });
-            expect(await points()).toBe(20);
+            expect(await points()).toBe(60);
         });
 
         it('refuses without charging when the member has not enough points', async () => {
@@ -275,7 +277,7 @@ describe('DetailedReportService', () => {
             await db.doc('users/u1').update({ birthData: null });
             await expect(service.create('u1', request, 'key-bbbbbbbb')).rejects.toMatchObject({ code: 'PROFILE_REQUIRED' });
 
-            expect(await points()).toBe(20);
+            expect(await points()).toBe(60);
             expect(ai.calls).toHaveLength(0);
         });
 
@@ -283,7 +285,7 @@ describe('DetailedReportService', () => {
             await db.doc('users/u1/humanDesign/main').delete();
 
             await expect(service.create('u1', request, 'key-aaaaaaaa')).rejects.toMatchObject({ code: 'HUMAN_DESIGN_REQUIRED' });
-            expect(await points()).toBe(20);
+            expect(await points()).toBe(60);
         });
 
         it('uses a saved human design as an input and records its type', async () => {
@@ -356,7 +358,7 @@ describe('DetailedReportService', () => {
             expect(again).toEqual({
                 reportId: 'key-aaaaaaaa', status: 'COMPLETED', pointsDeducted: 0,
             });
-            expect(await points()).toBe(15);
+            expect(await points()).toBe(51);
             expect(ai.calls).toHaveLength(1);
         });
 
@@ -365,7 +367,7 @@ describe('DetailedReportService', () => {
             await settle();
 
             expect(results.every((r) => r.status === 'fulfilled')).toBe(true);
-            expect(await points()).toBe(15);
+            expect(await points()).toBe(51);
             expect(chargeDocs()).toHaveLength(1);
             expect(ai.calls).toHaveLength(1);
         });
@@ -382,7 +384,7 @@ describe('DetailedReportService', () => {
             await expect(service.create('u1', request, 'key-00000004')).rejects.toBeInstanceOf(RateLimitError);
             await settle();
 
-            expect(await points()).toBe(5);
+            expect(await points()).toBe(33);
             expect(await report('key-00000004')).toBeUndefined();
         });
     });
@@ -401,7 +403,7 @@ describe('DetailedReportService', () => {
             expect(await report('key-aaaaaaaa')).toMatchObject({
                 status: 'FAILED', failureReason: 'AI_ERROR',
             });
-            expect(await points()).toBe(20);
+            expect(await points()).toBe(60);
             expect(refundDocs()).toHaveLength(1);
         });
 
@@ -413,7 +415,7 @@ describe('DetailedReportService', () => {
             await settle();
 
             expect((await report('key-aaaaaaaa'))?.failureReason).toBe('REFUSED');
-            expect(await points()).toBe(20);
+            expect(await points()).toBe(60);
         });
 
         it('fails, refunds and still records usage when the answer breaks the content rules', async () => {
@@ -438,7 +440,7 @@ describe('DetailedReportService', () => {
             expect(await report('key-aaaaaaaa')).toMatchObject({
                 status: 'FAILED', failureReason: 'INVALID_OUTPUT', sections: [],
             });
-            expect(await points()).toBe(20);
+            expect(await points()).toBe(60);
             expect(db.paths().filter((p) => p.startsWith('aiUsageRecords/'))).toHaveLength(1);
         });
 
@@ -455,7 +457,7 @@ describe('DetailedReportService', () => {
             await settle();
 
             expect((await report('key-aaaaaaaa'))?.failureReason).toBe('INVALID_OUTPUT');
-            expect(await points()).toBe(20);
+            expect(await points()).toBe(60);
         });
 
         it('gives up on a slow model, then fails and refunds', async () => {
@@ -470,7 +472,7 @@ describe('DetailedReportService', () => {
             expect(await report('key-aaaaaaaa')).toMatchObject({
                 status: 'FAILED', failureReason: 'TIMEOUT',
             });
-            expect(await points()).toBe(20);
+            expect(await points()).toBe(60);
         });
 
         it('lets the member read the failure and try again with a new key', async () => {
@@ -493,7 +495,7 @@ describe('DetailedReportService', () => {
             await settle();
 
             expect((await report('key-bbbbbbbb'))?.status).toBe('COMPLETED');
-            expect(await points()).toBe(15);
+            expect(await points()).toBe(51);
         });
     });
 
@@ -526,7 +528,7 @@ describe('DetailedReportService', () => {
                 status: 'FAILED', failureReason: 'STALE',
             });
             expect(second.status).toBe('FAILED');
-            expect(await points()).toBe(before + 5);
+            expect(await points()).toBe(before + 9);
         });
     });
 
@@ -541,9 +543,9 @@ describe('DetailedReportService', () => {
             await settle();
 
             expect(accepted).toEqual({
-                reportId: 'key-bbbbbbbb', status: 'GENERATING', pointsDeducted: 5,
+                reportId: 'key-bbbbbbbb', status: 'GENERATING', pointsDeducted: 9,
             });
-            expect(await points()).toBe(10);
+            expect(await points()).toBe(42);
             expect((await report('key-aaaaaaaa'))?.status).toBe('COMPLETED');
             expect(await report('key-bbbbbbbb')).toMatchObject({
                 status: 'COMPLETED', supersedesReportId: 'key-aaaaaaaa',
@@ -566,7 +568,7 @@ describe('DetailedReportService', () => {
             await settle();
 
             expect(again.pointsDeducted).toBe(0);
-            expect(await points()).toBe(10);
+            expect(await points()).toBe(42);
         });
 
         it('refunds the regeneration charge when it fails and leaves the old report untouched', async () => {
@@ -579,7 +581,7 @@ describe('DetailedReportService', () => {
 
             expect((await report('key-bbbbbbbb'))?.status).toBe('FAILED');
             expect((await report('key-aaaaaaaa'))?.status).toBe('COMPLETED');
-            expect(await points()).toBe(15);
+            expect(await points()).toBe(51);
         });
 
         it('cannot start from a report that is missing, someone else\'s or expired', async () => {
@@ -597,7 +599,7 @@ describe('DetailedReportService', () => {
             });
 
             await expect(service.regenerate('u1', 'key-aaaaaaaa', 'key-bbbbbbbb')).rejects.toBeInstanceOf(UnprocessableError);
-            expect(await points()).toBe(15);
+            expect(await points()).toBe(51);
         });
     });
 
@@ -613,7 +615,7 @@ describe('DetailedReportService', () => {
             expect(item.status).toBe('COMPLETED');
             expect(item.sections).toHaveLength(8);
             expect(ai.calls).toHaveLength(1);
-            expect(await points()).toBe(15);
+            expect(await points()).toBe(51);
         });
 
         it('treats someone else\'s report id as not found', async () => {

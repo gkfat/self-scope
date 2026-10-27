@@ -124,22 +124,19 @@
             >
                 尚無報告。
             </p>
-            <v-row v-else>
-                <v-col
+            <div
+                v-else
+                class="report-list"
+            >
+                <v-card
                     v-for="item in entries"
                     :key="item.key"
-                    cols="12"
-                    sm="6"
-                    md="4"
+                    class="analysis-card"
+                    :class="`analysis-card--${item.state}`"
+                    variant="outlined"
                 >
-                    <v-card
-                        class="analysis-card"
-                        :class="[`analysis-card--${item.state}`, `analysis-card--t${item.tier}`]"
-                        :style="{ '--tone': item.tone, '--grad': item.gradient, '--tint': item.tint }"
-                        :to="item.state === 'ready' ? item.to : undefined"
-                        :ripple="item.state === 'ready'"
-                    >
-                        <v-card-text>
+                    <v-card-text class="report-row">
+                        <div class="report-row__main">
                             <div class="d-flex flex-wrap ga-1 mb-2">
                                 <v-chip
                                     v-for="part in item.parts"
@@ -153,16 +150,11 @@
                                     {{ part.label }}
                                 </v-chip>
                             </div>
-                            <div class="analysis-card__meta mb-2">
-                                <span class="analysis-card__tier">{{ item.tier >= 5 ? '全維度' : `${item.tier} 維度` }}</span>
-                                <span>{{ new Date(item.at).toLocaleDateString('zh-TW') }} 生成</span>
-                            </div>
 
                             <template v-if="item.state === 'loading'">
-                                <div class="text-h6 mb-2">
+                                <div class="text-subtitle-1 font-weight-medium mb-1">
                                     報告整理中
                                 </div>
-                                <div class="analysis-card__bar mb-3" />
                                 <p class="text-body-2 text-medium-emphasis mb-0">
                                     {{ item.generated ? '正在依你的資料逐份整理，約需 1～2 分鐘。' : '正在把這組維度整理成報告。' }}
                                     可以先離開，稍後再回來看。
@@ -170,7 +162,7 @@
                             </template>
 
                             <template v-else-if="item.state === 'failed'">
-                                <div class="text-h6 mb-2">
+                                <div class="text-subtitle-1 font-weight-medium mb-1">
                                     {{ item.result }}
                                 </div>
                                 <p class="text-body-2 mb-0">
@@ -179,35 +171,43 @@
                             </template>
 
                             <template v-else>
-                                <div class="text-h6 mb-1">
+                                <div class="text-subtitle-1 font-weight-medium">
                                     {{ item.result }}
                                 </div>
-                                <p class="text-body-2 text-medium-emphasis mb-2">
-                                    {{ item.title }}
-                                </p>
-                                <p
-                                    v-if="item.expiresAt"
-                                    class="analysis-card__expiry"
-                                    :class="{ 'analysis-card__expiry--soon': item.expiresSoon }"
-                                >
-                                    <v-icon
-                                        icon="mdi-calendar-clock-outline"
-                                        size="14"
-                                    />
-                                    {{ new Date(item.expiresAt).toLocaleDateString('zh-TW') }} 到期
-                                </p>
-                                <span class="analysis-card__open">
-                                    查看報告
-                                    <v-icon
-                                        icon="mdi-arrow-right"
-                                        size="small"
-                                    />
-                                </span>
                             </template>
-                        </v-card-text>
-                    </v-card>
-                </v-col>
-            </v-row>
+                        </div>
+
+                        <dl class="report-row__meta">
+                            <div>
+                                <dt>維度</dt>
+                                <dd><span class="analysis-card__tier">{{ item.dimensionCount }} 維度</span></dd>
+                            </div>
+                            <div>
+                                <dt>產生日期</dt>
+                                <dd>{{ new Date(item.at).toLocaleDateString('zh-TW') }}</dd>
+                            </div>
+                            <div>
+                                <dt>有效期限</dt>
+                                <dd :class="{ 'analysis-card__expiry--soon': item.expiresSoon }">
+                                    {{ item.expiresAt ? new Date(item.expiresAt).toLocaleDateString('zh-TW') : '—' }}
+                                </dd>
+                            </div>
+                        </dl>
+
+                        <div class="report-row__action">
+                            <v-btn
+                                v-if="item.state === 'ready'"
+                                :to="item.to"
+                                color="primary"
+                                variant="tonal"
+                                append-icon="mdi-arrow-right"
+                            >
+                                查看
+                            </v-btn>
+                        </div>
+                    </v-card-text>
+                </v-card>
+            </div>
         </template>
 
         <v-dialog
@@ -253,7 +253,9 @@ import {
     BLOOD_TYPE_LABELS, ZODIAC_LABELS,
 } from '../../../shared/constants/zodiacLabels';
 import { lifePathNumber } from '../../../shared/utils/numerology';
+import { ELEMENT_LABELS } from '../../../shared/constants/bazi';
 import { HUMAN_DESIGN_TYPE_LABELS } from '../../../shared/constants/humanDesignLabels';
+import type { BaziResponse } from '../../../shared/schemas/api/bazi.schema';
 
 definePageMeta({ middleware: 'member' });
 
@@ -308,6 +310,7 @@ let ticker: ReturnType<typeof setInterval> | null = null;
 let lastPoll = 0;
 
 const humanDesignType = ref<string | null>(null);
+const baziDayMaster = ref<string | null>(null);
 
 /** What the member has in each dimension, shown on its card */
 const results = computed<Record<ReportDimension, string>>(() => ({
@@ -316,6 +319,7 @@ const results = computed<Record<ReportDimension, string>>(() => ({
     MBTI: state.value.mbti ?? '',
     HUMAN_DESIGN: humanDesignType.value ?? '已計算',
     NUMEROLOGY: state.value.birthData ? `數字 ${lifePathNumber(state.value.birthData.birthDate)}` : '',
+    BAZI: baziDayMaster.value ?? '',
 }));
 
 const dimensionChoices = computed(() => dimensionOptions.map((option) => ({
@@ -396,7 +400,7 @@ function problemFrom(error: unknown): Problem {
         };
     }
 
-    if (failure.data?.code === 'BLOOD_REQUIRED' || failure.data?.code === 'HUMAN_DESIGN_REQUIRED') {
+    if (failure.data?.code === 'BLOOD_REQUIRED' || failure.data?.code === 'HUMAN_DESIGN_REQUIRED' || failure.data?.code === 'BAZI_REQUIRED') {
         return {
             type: 'info',
             message: '所選的維度還沒完成，請先到首頁完成後再試。',
@@ -423,13 +427,9 @@ type Entry = {
     at: number;
     state: 'loading' | 'ready' | 'failed';
     generated: boolean;
-    tone: string;
-    /** How many dimensions it combines: more of them look richer */
-    tier: number;
-    gradient: string;
-    tint: string;
+    /** How many dimensions the report combines */
+    dimensionCount: number;
     parts: ReturnType<typeof dimensionPartsOf>;
-    title: string;
     result: string;
     cost: number | string;
     expiresAt: number | null;
@@ -452,8 +452,6 @@ function entryOf(
     expiresAt: number | null,
 ): Entry {
     const parts = dimensionPartsOf(combination);
-    // A single color needs a second stop to make a gradient
-    const tones = parts.length > 1 ? parts.map((part) => part.tone) : [parts[0]?.tone ?? '#2f5d8a', parts[0]?.tone ?? '#2f5d8a'];
     const state = status === 'FAILED'
         ? 'failed'
         : (status === 'GENERATING' || stillRevealing(key) ? 'loading' : 'ready');
@@ -462,13 +460,9 @@ function entryOf(
         key,
         at,
         state,
-        generated: parts.some((part) => part.value === 'HUMAN_DESIGN'),
-        tone: parts[0]?.tone ?? '#2f5d8a',
-        tier: Math.min(parts.length, 5),
-        gradient: `linear-gradient(90deg, ${tones.join(', ')})`,
-        tint: `linear-gradient(135deg, ${tones.map((tone) => `color-mix(in srgb, ${tone} 9%, rgb(var(--v-theme-surface)))`).join(', ')})`,
+        generated: parts.some((part) => part.value === 'HUMAN_DESIGN' || part.value === 'BAZI'),
+        dimensionCount: parts.length,
         parts,
-        title: combinationLabel(combination),
         result: combinationResult(combination),
         cost: costOf(combination),
         expiresAt,
@@ -584,10 +578,10 @@ async function start() {
 
 // Start with every finished dimension ticked; the member can narrow it down
 watch(() => progress.value.done, (done) => {
-    // Written content is the cheapest: start with up to three finished dimensions that are not the human design
+    // Written content is the cheapest: start with up to three finished dimensions that are not generated (human design, BaZi)
     selected.value = dimensionOptions
         .map((option) => option.value)
-        .filter((value) => done[value] && value !== 'HUMAN_DESIGN')
+        .filter((value) => done[value] && value !== 'HUMAN_DESIGN' && value !== 'BAZI')
         .slice(0, 3);
 }, { immediate: true });
 
@@ -601,6 +595,32 @@ watch(() => progress.value.done.HUMAN_DESIGN, async (done) => {
         humanDesignType.value = HUMAN_DESIGN_TYPE_LABELS[chart.type];
     } catch (error) {
         console.error('[report] human design type failed:', error);
+    }
+}, { immediate: true });
+
+// The BaZi card names the member's day master, which the progress facts do not carry (nothing is stored: it is worked out)
+watch(() => [
+    progress.value.done.BAZI,
+    state.value.birthData?.birthDate,
+    state.value.birthData?.birthTime,
+    state.value.birthData?.birthPlace,
+], async ([done]) => {
+    if (!done) {
+        baziDayMaster.value = null;
+
+        return;
+    }
+
+    try {
+        const chart = await post<BaziResponse>('/api/bazi/calculations', {
+            birthDate: state.value.birthData?.birthDate,
+            birthTime: state.value.birthData?.birthTime,
+            birthPlace: state.value.birthData?.birthPlace ?? null,
+        }, {}, 'optional');
+
+        baziDayMaster.value = `${chart.dayMaster.stem}${ELEMENT_LABELS[chart.dayMaster.element]}日主`;
+    } catch (error) {
+        console.error('[report] bazi day master failed:', error);
     }
 }, { immediate: true });
 
@@ -734,101 +754,25 @@ onBeforeUnmount(stopTicker);
     color: var(--chip-tone) !important;
 }
 
+/* Plain cards: one neutral outline, with a colored edge only when something needs attention */
 .analysis-card {
-    --bar: 3px;
-    position: relative;
-    height: 100%;
-    overflow: hidden;
-    background: var(--tint);
-    box-shadow: 0 2px 10px color-mix(in srgb, var(--tone) 18%, transparent);
-    transition: transform 0.15s, box-shadow 0.15s;
+    border-left: 4px solid rgba(var(--v-theme-on-surface), 0.2);
 }
 
-/* The colored bar on top: one color per dimension, thicker the more dimensions */
-.analysis-card::before {
-    position: absolute;
-    inset: 0 0 auto;
-    height: var(--bar);
-    background: var(--grad);
-    content: '';
+.analysis-card--ready {
+    border-left-color: rgb(var(--v-theme-primary));
 }
 
-.analysis-card--t3 {
-    --bar: 5px;
-    box-shadow: 0 4px 16px color-mix(in srgb, var(--tone) 28%, transparent);
-}
-
-.analysis-card--t4 {
-    --bar: 7px;
-    box-shadow:
-        0 6px 22px color-mix(in srgb, var(--tone) 34%, transparent),
-        inset 0 0 0 1px color-mix(in srgb, var(--tone) 35%, transparent);
-}
-
-.analysis-card--t5 {
-    --bar: 9px;
-    box-shadow:
-        0 8px 28px color-mix(in srgb, var(--tone) 40%, transparent),
-        inset 0 0 0 1.5px rgba(217, 164, 65, 0.7);
-}
-
-/* A slow sheen across the richest cards */
-.analysis-card--t4.analysis-card--ready::after,
-.analysis-card--t5.analysis-card--ready::after {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.45) 50%, transparent 60%);
-    content: '';
-    transform: translateX(-120%);
-    animation: analysis-sheen 5s ease-in-out infinite;
-    pointer-events: none;
-}
-
-@keyframes analysis-sheen {
-    0%, 60% { transform: translateX(-120%); }
-    100% { transform: translateX(120%); }
-}
-
-.analysis-card--ready:hover {
-    transform: translateY(-2px);
-}
-
-.analysis-card--loading {
-    --bar: 3px;
-    background: rgb(var(--v-theme-surface));
-    box-shadow: none;
-}
-
-.analysis-card--loading::before {
-    background: rgba(var(--v-theme-on-surface), 0.2);
-}
-
-.analysis-card--failed::before {
-    background: rgb(var(--v-theme-error));
-}
-
-.analysis-card__meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.8125rem;
-    color: rgba(var(--v-theme-on-surface), 0.6);
+.analysis-card--failed {
+    border-left-color: rgb(var(--v-theme-error));
 }
 
 .analysis-card__tier {
     padding: 0 8px;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--tone) 16%, transparent);
+    background: rgba(var(--v-theme-primary), 0.12);
     font-weight: 700;
-    color: var(--tone);
-}
-
-.analysis-card__open {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-weight: 500;
-    color: var(--tone);
+    color: rgb(var(--v-theme-primary));
 }
 
 /* A sweeping highlight while the report is being put together */
@@ -856,15 +800,64 @@ onBeforeUnmount(stopTicker);
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .analysis-card--t4.analysis-card--ready::after,
-    .analysis-card--t5.analysis-card--ready::after {
-        animation: none;
-        display: none;
-    }
-
     .analysis-card__bar::after {
         animation: none;
         width: 100%;
+    }
+}
+
+.report-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* One report per row: what it combines, when it was made and expires, and the way in */
+.report-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 24px;
+}
+
+.report-row__main {
+    flex: 1 1 260px;
+    min-width: 0;
+}
+
+.report-row__meta {
+    display: flex;
+    gap: 24px;
+    margin: 0;
+}
+
+.report-row__meta dt {
+    font-size: 0.75rem;
+    color: rgba(var(--v-theme-on-surface), 0.6);
+}
+
+.report-row__meta dd {
+    margin: 0;
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.report-row__action {
+    flex: none;
+    min-width: 88px;
+    text-align: right;
+}
+
+@media (max-width: 599px) {
+    .report-row__meta {
+        flex: 1 1 100%;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .report-row__action {
+        flex: 1 1 100%;
+        text-align: left;
     }
 }
 </style>

@@ -6,65 +6,109 @@ import {
 } from './multiDimensionPricing';
 
 describe('multiDimensionCost', () => {
-    it('charges written content 1 point for two dimensions and 3 for three', () => {
-        expect(multiDimensionCost(['ZODIAC', 'MBTI'])).toBe(1);
-        expect(multiDimensionCost(['BLOOD', 'ZODIAC'])).toBe(1);
-        expect(multiDimensionCost(['MBTI', 'BLOOD'])).toBe(1);
+    it('prices written content from the sum of base prices (1 point each) and the count weight, rounded down', () => {
+        expect(multiDimensionCost(['ZODIAC', 'MBTI'])).toBe(2);
+        // 3 x 1.5 = 4.5
         expect(multiDimensionCost([
             'ZODIAC',
             'BLOOD',
             'MBTI',
-        ])).toBe(3);
-    });
-
-    it('charges generated analysis 3, 5 and 8 points for two, three and four dimensions', () => {
-        expect(multiDimensionCost(['ZODIAC', 'HUMAN_DESIGN'])).toBe(3);
-        expect(multiDimensionCost([
-            'ZODIAC',
-            'MBTI',
-            'HUMAN_DESIGN',
-        ])).toBe(5);
+        ])).toBe(4);
         expect(multiDimensionCost([
             'ZODIAC',
             'BLOOD',
             'MBTI',
-            'HUMAN_DESIGN',
+            'NUMEROLOGY',
         ])).toBe(8);
     });
 
-    it('counts the life path number like any other dimension', () => {
-        expect(multiDimensionCost(['ZODIAC', 'NUMEROLOGY'])).toBe(1);
+    it('counts the human design as 2 points, the BaZi chart as 3, and multiplies a generated analysis by 1.5', () => {
+        // (1 + 2) x 1 x 1.5 = 4.5
+        expect(multiDimensionCost(['ZODIAC', 'HUMAN_DESIGN'])).toBe(4);
+        // (1 + 3) x 1 x 1.5 = 6
+        expect(multiDimensionCost(['ZODIAC', 'BAZI'])).toBe(6);
+        // (2 + 3) x 1 x 1.5 = 7.5
+        expect(multiDimensionCost(['HUMAN_DESIGN', 'BAZI'])).toBe(7);
+        // (1 + 1 + 2) x 1.5 x 1.5 = 9
         expect(multiDimensionCost([
             'ZODIAC',
             'MBTI',
-            'NUMEROLOGY',
-        ])).toBe(3);
-        expect(multiDimensionCost(['NUMEROLOGY', 'HUMAN_DESIGN'])).toBe(3);
+            'HUMAN_DESIGN',
+        ])).toBe(9);
+    });
+
+    it('stops the count weight rising at five dimensions', () => {
+        // (1 + 1 + 1 + 1 + 2) x 2.5 x 1.5 = 22.5
         expect(multiDimensionCost([
             'ZODIAC',
             'BLOOD',
             'MBTI',
             'NUMEROLOGY',
             'HUMAN_DESIGN',
-        ])).toBe(13);
-    });
-
-    it('charges written content 5 points for all four dimensions', () => {
+        ])).toBe(22);
+        // (1 + 1 + 1 + 1 + 2 + 3) x 2.5 x 1.5 = 33.75, capped at 30
         expect(multiDimensionCost([
             'ZODIAC',
             'BLOOD',
             'MBTI',
             'NUMEROLOGY',
-        ])).toBe(5);
+            'HUMAN_DESIGN',
+            'BAZI',
+        ])).toBe(30);
+    });
+
+    it('does not depend on the order or on repeats', () => {
+        expect(multiDimensionCost(['HUMAN_DESIGN', 'ZODIAC'])).toBe(multiDimensionCost(['ZODIAC', 'HUMAN_DESIGN']));
+        expect(multiDimensionCost([
+            'ZODIAC',
+            'ZODIAC',
+            'MBTI',
+        ])).toBe(2);
+    });
+
+    it('never costs more than 30 points', () => {
+        expect(multiDimensionCost([
+            'ZODIAC',
+            'BLOOD',
+            'MBTI',
+            'NUMEROLOGY',
+            'HUMAN_DESIGN',
+            'BAZI',
+        ])).toBe(30);
+        expect(multiDimensionCost([
+            'MBTI',
+            'NUMEROLOGY',
+            'HUMAN_DESIGN',
+            'BAZI',
+            'ZODIAC',
+        ])).toBeLessThanOrEqual(30);
+    });
+
+    it('never gives a fraction', () => {
+        const all = [
+            'ZODIAC',
+            'BLOOD',
+            'MBTI',
+            'NUMEROLOGY',
+            'HUMAN_DESIGN',
+            'BAZI',
+        ] as const;
+
+        for (let count = 2; count <= all.length; count++) {
+            expect(Number.isInteger(multiDimensionCost(all.slice(0, count)))).toBe(true);
+        }
     });
 
     it('offers nothing below two dimensions', () => {
         expect(multiDimensionCost(['MBTI'])).toBeNull();
         expect(multiDimensionCost([])).toBeNull();
     });
+});
 
-    it('tells generated analysis from written content by the human design', () => {
+describe('isGeneratedAnalysis', () => {
+    it('is true with the human design or the BaZi chart, false without', () => {
         expect(isGeneratedAnalysis(['ZODIAC', 'HUMAN_DESIGN'])).toBe(true);
+        expect(isGeneratedAnalysis(['ZODIAC', 'BAZI'])).toBe(true);
         expect(isGeneratedAnalysis(['ZODIAC', 'MBTI'])).toBe(false);
     });
 });

@@ -8,6 +8,9 @@ import { UserRepository } from '../repositories/user.repository';
 import { getAiProvider } from '../ai';
 import { buildAnalysisInput } from '../ai/analysisInput';
 import {
+    buildBaziReportFacts, type BaziReportFacts,
+} from '../bazi/reportFacts';
+import {
     AiOutputError, type AiReportProvider, 
 } from '../ai/provider';
 import { PROMPT_VERSION } from '../ai/prompt';
@@ -26,7 +29,9 @@ import {
     REPORT_STALE_AFTER_MS,
     REPORT_TIMEOUT_MS,
 } from '../../shared/constants/ai';
-import { multiDimensionCost } from '../../shared/utils/multiDimensionPricing';
+import {
+    isGeneratedAnalysis, multiDimensionCost,
+} from '../../shared/utils/multiDimensionPricing';
 import {
     REPORT_SECTIONS, detailedReportDocSchema,
     type AiUsageRecord, type DetailedReportDoc, type ReportDimension,
@@ -148,6 +153,7 @@ export class DetailedReportService extends BaseService {
         if (combinationKey.mbti !== null) dimensions.push('MBTI');
         if (combinationKey.humanDesignType !== null) dimensions.push('HUMAN_DESIGN');
         if (combinationKey.numerology !== null) dimensions.push('NUMEROLOGY');
+        if (combinationKey.baziDayMaster !== null) dimensions.push('BAZI');
 
         return this.start(uid, { dimensions }, idempotencyKey, {
             reason: 'REGENERATE', supersedesReportId: sourceReportId,
@@ -208,8 +214,8 @@ export class DetailedReportService extends BaseService {
 
         const cost = multiDimensionCost(request.dimensions);
 
-        // Only choices that include the human design are generated; the rest are written content (SummaryService)
-        if (cost === null || !request.dimensions.includes('HUMAN_DESIGN')) {
+        // Only choices that include the human design or the BaZi chart are generated; the rest are written content (SummaryService)
+        if (cost === null || !isGeneratedAnalysis(request.dimensions)) {
             throw new UnprocessableError('This choice of dimensions is not offered here', 'DIMENSIONS_NOT_OFFERED');
         }
 
@@ -340,6 +346,22 @@ export class DetailedReportService extends BaseService {
             };
         }
 
+        let bazi: BaziReportFacts | null = null;
+
+        if (chosen.has('BAZI')) {
+            const birth = user.birthData;
+
+            if (!birth || !birth.birthTime) {
+                throw new UnprocessableError('Fill in your birth date and time first', 'BAZI_REQUIRED');
+            }
+
+            bazi = buildBaziReportFacts({
+                birthDate: birth.birthDate,
+                birthTime: birth.birthTime,
+                birthPlace: birth.birthPlace ?? null,
+            });
+        }
+
         const mbti = chosen.has('MBTI') ? user.mbti : null;
         const input = buildAnalysisInput({
             zodiac: chosen.has('ZODIAC') ? user.birthData?.zodiac ?? null : null,
@@ -351,6 +373,7 @@ export class DetailedReportService extends BaseService {
             // The answer leanings belong to the MBTI dimension only
             test: mbti ? await this.latestTest(uid) : null,
             humanDesign,
+            bazi,
         });
 
         return {
@@ -361,6 +384,7 @@ export class DetailedReportService extends BaseService {
                 bloodType: input.profile.bloodType,
                 humanDesignType: typeof humanDesign?.type === 'string' ? humanDesign.type : null,
                 numerology: input.profile.numerology,
+                baziDayMaster: bazi ? bazi.dayMaster.slice(0, 1) : null,
             },
         };
     }

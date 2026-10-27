@@ -78,6 +78,8 @@ export const analysisInputSchema = z.object({
         dimensions: z.record(z.string(), dimensionResultSchema),
     }).nullable(),
     humanDesign: z.record(z.string(), z.unknown()).nullable(),
+    /** Chart-level BaZi facts when that dimension was chosen; reports made before it was offered have none */
+    bazi: z.record(z.string(), z.unknown()).nullable().default(null),
 });
 
 /** The dimensions a multi-dimension analysis can combine; a report needs at least two. */
@@ -87,6 +89,7 @@ export const REPORT_DIMENSIONS = [
     'MBTI',
     'HUMAN_DESIGN',
     'NUMEROLOGY',
+    'BAZI',
 ] as const;
 
 export const reportDimensionSchema = z.enum(REPORT_DIMENSIONS);
@@ -99,6 +102,8 @@ export const reportCombinationSchema = z.object({
     humanDesignType: z.string().nullable(),
     /** Life path number; reports made before it was offered have none */
     numerology: numerologySchema.nullable().default(null),
+    /** The day-master stem of the BaZi chart; reports made before it was offered have none */
+    baziDayMaster: z.string().nullable().default(null),
 });
 
 export const REPORT_STATUSES = [

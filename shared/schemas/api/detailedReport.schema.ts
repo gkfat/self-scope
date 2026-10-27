@@ -6,11 +6,11 @@ import {
 export const MIN_REPORT_DIMENSIONS = 2;
 
 export const createReportRequestSchema = z.object({
-    /** The dimensions to combine: at least two, each at most once, and the human design among them. */
+    /** The dimensions to combine: at least two, each at most once, and the human design or the BaZi chart among them. */
     dimensions: z.array(reportDimensionSchema)
         .min(MIN_REPORT_DIMENSIONS)
         .refine((items) => new Set(items).size === items.length, 'dimensions must not repeat')
-        .refine((items) => items.includes('HUMAN_DESIGN'), 'a generated analysis includes the human design'),
+        .refine((items) => items.includes('HUMAN_DESIGN') || items.includes('BAZI'), 'a generated analysis includes the human design or the BaZi chart'),
 });
 
 /** The Idempotency-Key header doubles as the report id, so it must be a safe path segment. */

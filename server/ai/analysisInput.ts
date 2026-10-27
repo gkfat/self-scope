@@ -23,6 +23,7 @@ type BuildAnalysisInputParams = {
         answers: readonly AnswerInput[];
     } | null;
     humanDesign: Record<string, unknown> | null;
+    bazi?: Record<string, unknown> | null;
 };
 
 /**
@@ -45,6 +46,7 @@ export function buildAnalysisInput(params: BuildAnalysisInputParams): AnalysisIn
             }
             : null,
         humanDesign: params.humanDesign,
+        bazi: params.bazi ?? null,
     };
 
     const inputVersion = createHash('sha256').update(JSON.stringify(facts)).digest('hex').slice(0, 16);

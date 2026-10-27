@@ -11,6 +11,8 @@ export type CombinationLike = {
     bloodType: string | null;
     humanDesignType?: string | null;
     numerology?: string | null;
+    /** Day-master stem of the BaZi chart, for reports that used it */
+    baziDayMaster?: string | null;
 };
 
 export type DimensionMeta = {
@@ -37,6 +39,9 @@ export const DIMENSION_META: DimensionMeta[] = [
     {
         value: 'NUMEROLOGY', label: '生命靈數', icon: 'mdi-numeric', tone: '#7a5aa6',
     },
+    {
+        value: 'BAZI', label: '八字', icon: 'mdi-yin-yang', tone: '#8c5e34',
+    },
 ];
 
 /** The dimensions a stored combination was made from, in display order */
@@ -48,6 +53,7 @@ export function dimensionsOf(combination: CombinationLike): ReportDimension[] {
     if (combination.mbti !== null) dimensions.push('MBTI');
     if ((combination.humanDesignType ?? null) !== null) dimensions.push('HUMAN_DESIGN');
     if ((combination.numerology ?? null) !== null) dimensions.push('NUMEROLOGY');
+    if ((combination.baziDayMaster ?? null) !== null) dimensions.push('BAZI');
 
     return dimensions;
 }
@@ -62,6 +68,8 @@ function resultOf(value: ReportDimension, combination: CombinationLike): string 
         return combination.mbti ?? '';
     case 'NUMEROLOGY':
         return combination.numerology ? `數字 ${combination.numerology}` : '';
+    case 'BAZI':
+        return combination.baziDayMaster ? `${combination.baziDayMaster}日主` : '';
     case 'HUMAN_DESIGN':
         return HUMAN_DESIGN_TYPE_LABELS[combination.humanDesignType as keyof typeof HUMAN_DESIGN_TYPE_LABELS] ?? combination.humanDesignType ?? '';
     }
