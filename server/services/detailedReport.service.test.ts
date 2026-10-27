@@ -12,11 +12,11 @@ import {
 } from '../ai/provider';
 import { PROMPT_VERSION } from '../ai/prompt';
 import {
+    REPORT_SECTIONS, type AnalysisInput, type ReportDimension,
+} from '../../shared/schemas/firestore/detailedReport.schema';
+import {
     InsufficientPointsError, NotFoundError, RateLimitError, UnprocessableError,
 } from '../../shared/types/errors';
-import {
-    REPORT_SECTIONS, type AnalysisInput,
-} from '../../shared/schemas/firestore/detailedReport.schema';
 import { testDefinitionFileSchema } from '../../shared/schemas/firestore/test.schema';
 import { REPORT_STALE_AFTER_MS } from '../../shared/constants/ai';
 import {
@@ -101,9 +101,15 @@ describe('DetailedReportService', () => {
     });
 
     const points = async () => (await new PointService({ clock: () => clock.now }).getBalance('u1')).availableBalance;
+    // Three dimensions with the human design: 5 points
     const request = {
-        includeBloodType: true, includeHumanDesign: false, 
+        dimensions: [
+            'ZODIAC',
+            'MBTI',
+            'HUMAN_DESIGN',
+        ] as ReportDimension[], 
     };
+    const chart = calculateHumanDesign('1995-03-25', '14:30', 'Asia/Taipei');
     const report = async (id: string, uid = 'u1') => (await db.doc(`users/${uid}/detailedReports/${id}`).get()).data();
     const chargeDocs = () => db.paths().filter((p) => p.includes('/pointTransactions/'));
 
@@ -116,6 +122,12 @@ describe('DetailedReportService', () => {
         service = makeService();
 
         await db.doc('users/u1').set(user());
+        await db.doc('users/u1/humanDesign/main').set({
+            result: chart,
+            inputDigest: 'digest',
+            calculatedAt: NOW,
+            expiresAt: addMonths(NOW, 3),
+        });
         await db.doc('users/u1/pointBatches/b1').set({
             source: 'PURCHASE', sourceRef: null, granted: 20, remaining: 20, expiresAt: null, createdAt: NOW - DAY_MS,
         });
@@ -181,19 +193,65 @@ describe('DetailedReportService', () => {
 
             const input = ai.calls[0];
             expect(input?.profile).toEqual({
-                zodiac: 'aries', bloodType: 'O', mbti: 'INTJ',
+                zodiac: 'aries', bloodType: null, mbti: 'INTJ', numerology: null,
             });
             expect(input?.test?.dimensions.EI?.leaning).toBe('E');
             expect(JSON.stringify(input)).not.toMatch(/u1|email|questionId/);
         });
 
-        it('leaves blood type out when the member does not want it used', async () => {
-            await service.create('u1', {
-                includeBloodType: false, includeHumanDesign: false,
-            }, 'key-aaaaaaaa');
+        it('only uses the chosen dimensions', async () => {
+            await service.create('u1', { dimensions: ['BLOOD', 'HUMAN_DESIGN'] }, 'key-aaaaaaaa');
             await settle();
 
-            expect(ai.calls[0]?.profile.bloodType).toBeNull();
+            expect(ai.calls[0]?.profile).toEqual({
+                zodiac: null, bloodType: 'O', mbti: null, numerology: null,
+            });
+            expect(ai.calls[0]?.test).toBeNull();
+            expect((await report('key-aaaaaaaa'))?.combinationKey).toMatchObject({
+                zodiac: null, bloodType: 'O', mbti: null, humanDesignType: chart.type,
+            });
+        });
+
+        it('prices by the number of dimensions: 3, 5 and 8 points', async () => {
+            const two = await service.create('u1', { dimensions: ['ZODIAC', 'HUMAN_DESIGN'] }, 'key-aaaaaaaa');
+            const three = await service.create('u1', {
+                dimensions: [
+                    'ZODIAC',
+                    'MBTI',
+                    'HUMAN_DESIGN',
+                ], 
+            }, 'key-bbbbbbbb');
+
+            expect([two.pointsDeducted, three.pointsDeducted]).toEqual([3, 5]);
+            expect(await points()).toBe(12);
+
+            await db.doc('users/u1/pointBatches/b1').update({ remaining: 8 });
+            const four = await service.create('u1', {
+                dimensions: [
+                    'ZODIAC',
+                    'BLOOD',
+                    'MBTI',
+                    'HUMAN_DESIGN',
+                ],
+            }, 'key-cccccccc');
+
+            expect(four.pointsDeducted).toBe(8);
+            expect(await points()).toBe(0);
+        });
+
+        it('does not generate a choice without the human design', async () => {
+            await expect(service.create('u1', { dimensions: ['ZODIAC', 'MBTI'] }, 'key-aaaaaaaa')).rejects.toMatchObject({ code: 'DIMENSIONS_NOT_OFFERED' });
+            expect(await points()).toBe(20);
+            expect(ai.calls).toHaveLength(0);
+        });
+
+        it('asks for the blood type when it is chosen but unknown', async () => {
+            await db.doc('users/u1').update({ bloodType: 'UNKNOWN' });
+
+            await expect(service.create('u1', { dimensions: ['BLOOD', 'HUMAN_DESIGN'] }, 'key-aaaaaaaa')).rejects.toMatchObject({
+                statusCode: 422, code: 'BLOOD_REQUIRED',
+            });
+            expect(await points()).toBe(20);
         });
 
         it('refuses without charging when the member has not enough points', async () => {
@@ -222,9 +280,9 @@ describe('DetailedReportService', () => {
         });
 
         it('asks for the human design when it is requested but not saved', async () => {
-            await expect(service.create('u1', {
-                includeBloodType: true, includeHumanDesign: true,
-            }, 'key-aaaaaaaa')).rejects.toMatchObject({ code: 'HUMAN_DESIGN_REQUIRED' });
+            await db.doc('users/u1/humanDesign/main').delete();
+
+            await expect(service.create('u1', request, 'key-aaaaaaaa')).rejects.toMatchObject({ code: 'HUMAN_DESIGN_REQUIRED' });
             expect(await points()).toBe(20);
         });
 
@@ -239,7 +297,12 @@ describe('DetailedReportService', () => {
             });
 
             await service.create('u1', {
-                includeBloodType: true, includeHumanDesign: true,
+                dimensions: [
+                    'ZODIAC',
+                    'BLOOD',
+                    'MBTI',
+                    'HUMAN_DESIGN',
+                ], 
             }, 'key-aaaaaaaa');
             await settle();
 
@@ -273,7 +336,12 @@ describe('DetailedReportService', () => {
             });
 
             await service.create('u1', {
-                includeBloodType: true, includeHumanDesign: true,
+                dimensions: [
+                    'ZODIAC',
+                    'BLOOD',
+                    'MBTI',
+                    'HUMAN_DESIGN',
+                ], 
             }, 'key-aaaaaaaa');
             await settle();
 

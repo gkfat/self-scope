@@ -1,11 +1,12 @@
 import { z } from 'zod';
 import {
-    epochMsSchema, mbtiTypeSchema, zodiacSchema,
+    epochMsSchema, mbtiTypeSchema, numerologySchema, zodiacSchema,
 } from '../common';
 
 export const summaryCombinationSchema = z.object({
-    zodiac: zodiacSchema,
-    mbti: mbtiTypeSchema,
+    /** Each part is null when it is not in the combination (at least two are not null) */
+    zodiac: zodiacSchema.nullable(),
+    mbti: mbtiTypeSchema.nullable(),
     /** null when blood type was unknown or left out */
     bloodType: z.enum([
         'A',
@@ -13,6 +14,8 @@ export const summaryCombinationSchema = z.object({
         'O',
         'AB',
     ]).nullable(),
+    /** Life path number; older stored summaries have none */
+    numerology: numerologySchema.nullable().default(null),
 });
 
 /** users/{uid}/summaries/{combinationKey}: one per member and combination (RULE-005). */

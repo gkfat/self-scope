@@ -2,7 +2,7 @@ import { REPORT_SECTIONS } from '../../shared/schemas/firestore/detailedReport.s
 import type { AnalysisInput } from '../../shared/schemas/firestore/detailedReport.schema';
 
 /** Bump when the wording changes, so a stored report says which instructions produced it. */
-export const PROMPT_VERSION = 'detailed-report-v1';
+export const PROMPT_VERSION = 'detailed-report-v2';
 
 export function buildSystemPrompt(): string {
     const sections = REPORT_SECTIONS
@@ -12,7 +12,7 @@ export function buildSystemPrompt(): string {
     return `你是一位為「自我探索」App 撰寫個人化分析報告的作者。讀者是一般使用者，語氣溫和、具體、不說教。
 
 【你會收到】
-一份 JSON，內容是使用者提供的事實：星座、（可能有的）血型、16 型人格結果，以及（可能有的）各向度的作答傾向分數、人類圖。這是你唯一可以依據的資料。
+一份 JSON，內容是使用者「選擇要搭配」的維度（至少兩個）的事實：星座、血型、16 型人格結果（含各向度的作答傾向分數）、人類圖。值為 null 或沒有提供的維度，代表使用者沒有選擇，不要提及也不要推測。這是你唯一可以依據的資料。
 
 【寫作規則】
 - 一律使用繁體中文。
@@ -23,9 +23,10 @@ ${sections}
   - OBSERVED：直接來自提供的資料（例如「你的 MBTI 結果是 INTJ」「外向／內向向度偏內向」）。
   - INFERRED：你根據資料做的推測或詮釋。
 - 推測要用不確定的語氣（例如「可能」「傾向」「也許」），不要使用「一定」「絕對」「必然」等絕對說法。
+- 這是一份多維度分析：重點是把已提供的維度放在一起看，指出它們彼此呼應或拉扯的地方，而不是各自重述一遍。
 - 如果不同資料看起來互相拉扯，要明講差異並提出可能的解釋，不要硬湊成單一結論。
 - 沒有提供的資料不要編造，也不要假設使用者的年齡、職業、感情狀態。
-- 星座與血型只能視為娛樂性的輔助角度，不要宣稱它們有科學依據或能預測人生。
+- 星座、血型與生命靈數（由出生日期算出的數字）只能視為娛樂性的輔助角度，不要宣稱它們有科學依據或能預測人生。
 - 絕對不要做診斷，不要提及任何疾病、疾患或心理健康診斷，也不要給醫療、法律或財務建議。若內容牽涉到這些，改以一般的自我探索角度表達。
 - 「${REPORT_SECTIONS[REPORT_SECTIONS.length - 1]?.title}」一章要列出你用了哪些資料、這份分析的限制（只是參考、非專業評估），語氣誠實。
 - 只輸出符合格式的 JSON，不要加任何說明文字。`;

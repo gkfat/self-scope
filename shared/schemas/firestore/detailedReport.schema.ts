@@ -1,8 +1,7 @@
 import { z } from 'zod';
 import {
-    bloodTypeSchema, epochMsSchema, mbtiTypeSchema, zodiacSchema,
+    bloodTypeSchema, epochMsSchema, mbtiTypeSchema, numerologySchema, zodiacSchema,
 } from '../common';
-import { summaryCombinationSchema } from './summary.schema';
 
 /** The eight sections, in the order they are shown (plan 6.3). */
 export const REPORT_SECTIONS = [
@@ -67,9 +66,11 @@ export const analysisInputSchema = z.object({
     /** Hash of the facts below: tells apart reports made from different data (FR-015). */
     inputVersion: z.string(),
     profile: z.object({
-        zodiac: zodiacSchema,
+        /** Each is null when that dimension was not chosen for this report */
+        zodiac: zodiacSchema.nullable(),
         bloodType: bloodTypeSchema.exclude(['UNKNOWN']).nullable(),
-        mbti: mbtiTypeSchema,
+        mbti: mbtiTypeSchema.nullable(),
+        numerology: numerologySchema.nullable().default(null),
     }),
     /** Per-dimension leanings from the member's latest saved test, when there is one. */
     test: z.object({
@@ -77,6 +78,27 @@ export const analysisInputSchema = z.object({
         dimensions: z.record(z.string(), dimensionResultSchema),
     }).nullable(),
     humanDesign: z.record(z.string(), z.unknown()).nullable(),
+});
+
+/** The dimensions a multi-dimension analysis can combine; a report needs at least two. */
+export const REPORT_DIMENSIONS = [
+    'ZODIAC',
+    'BLOOD',
+    'MBTI',
+    'HUMAN_DESIGN',
+    'NUMEROLOGY',
+] as const;
+
+export const reportDimensionSchema = z.enum(REPORT_DIMENSIONS);
+
+/** What a report was made from; a dimension that was not chosen is null. */
+export const reportCombinationSchema = z.object({
+    zodiac: zodiacSchema.nullable(),
+    mbti: mbtiTypeSchema.nullable(),
+    bloodType: bloodTypeSchema.exclude(['UNKNOWN']).nullable(),
+    humanDesignType: z.string().nullable(),
+    /** Life path number; reports made before it was offered have none */
+    numerology: numerologySchema.nullable().default(null),
 });
 
 export const REPORT_STATUSES = [
@@ -91,7 +113,7 @@ export const reportSectionSchema = aiSectionSchema.extend({ title: z.string() })
 
 /** users/{uid}/detailedReports/{reportId}; the id is the client's Idempotency-Key. */
 export const detailedReportDocSchema = z.object({
-    combinationKey: summaryCombinationSchema.extend({ humanDesignType: z.string().nullable() }),
+    combinationKey: reportCombinationSchema,
     input: analysisInputSchema,
     status: reportStatusSchema,
     sections: z.array(reportSectionSchema),
@@ -124,5 +146,6 @@ export type AiSection = z.infer<typeof aiSectionSchema>;
 export type AiReportOutput = z.infer<typeof aiReportOutputSchema>;
 export type AnalysisInput = z.infer<typeof analysisInputSchema>;
 export type DetailedReportDoc = z.infer<typeof detailedReportDocSchema>;
+export type ReportDimension = z.infer<typeof reportDimensionSchema>;
 export type ReportStatus = z.infer<typeof reportStatusSchema>;
 export type AiUsageRecord = z.infer<typeof aiUsageRecordSchema>;

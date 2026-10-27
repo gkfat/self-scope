@@ -26,15 +26,17 @@ import {
     REPORT_STALE_AFTER_MS,
     REPORT_TIMEOUT_MS,
 } from '../../shared/constants/ai';
-import { DETAILED_REPORT_COST_POINTS } from '../../shared/constants/points';
+import { multiDimensionCost } from '../../shared/utils/multiDimensionPricing';
 import {
     REPORT_SECTIONS, detailedReportDocSchema,
-    type AiUsageRecord, type DetailedReportDoc,
+    type AiUsageRecord, type DetailedReportDoc, type ReportDimension,
 } from '../../shared/schemas/firestore/detailedReport.schema';
 import { testAttemptDocSchema } from '../../shared/schemas/firestore/testAttempt.schema';
 import type {
     CreateReportRequest, ReportAccepted, ReportItem,
 } from '../../shared/schemas/api/detailedReport.schema';
+import { lifePathNumber } from '../../shared/utils/numerology';
+import type { NumerologyNumber } from '../../shared/schemas/common';
 import { addMonths } from '../../shared/utils/time';
 import {
     NotFoundError, UnprocessableError, errorMessage,
@@ -138,10 +140,16 @@ export class DetailedReportService extends BaseService {
             throw new NotFoundError('Report');
         }
 
-        return this.start(uid, {
-            includeBloodType: doc.combinationKey.bloodType !== null,
-            includeHumanDesign: doc.combinationKey.humanDesignType !== null,
-        }, idempotencyKey, {
+        const { combinationKey } = doc;
+        const dimensions: ReportDimension[] = [];
+
+        if (combinationKey.zodiac !== null) dimensions.push('ZODIAC');
+        if (combinationKey.bloodType !== null) dimensions.push('BLOOD');
+        if (combinationKey.mbti !== null) dimensions.push('MBTI');
+        if (combinationKey.humanDesignType !== null) dimensions.push('HUMAN_DESIGN');
+        if (combinationKey.numerology !== null) dimensions.push('NUMEROLOGY');
+
+        return this.start(uid, { dimensions }, idempotencyKey, {
             reason: 'REGENERATE', supersedesReportId: sourceReportId,
         });
     }
@@ -198,8 +206,15 @@ export class DetailedReportService extends BaseService {
             };
         }
 
+        const cost = multiDimensionCost(request.dimensions);
+
+        // Only choices that include the human design are generated; the rest are written content (SummaryService)
+        if (cost === null || !request.dimensions.includes('HUMAN_DESIGN')) {
+            throw new UnprocessableError('This choice of dimensions is not offered here', 'DIMENSIONS_NOT_OFFERED');
+        }
+
         const {
-            input, combinationKey, 
+            input, combinationKey,
         } = await this.collectInput(uid, request);
 
         await this.rateLimit.consume(`report_hour_${uid}`, REPORT_LIMIT_PER_HOUR, HOUR_MS);
@@ -216,7 +231,7 @@ export class DetailedReportService extends BaseService {
 
             const plan = await this.points.planDeduction(tx, {
                 uid,
-                amount: DETAILED_REPORT_COST_POINTS,
+                amount: cost,
                 reason: options.reason,
                 transactionId: chargeTransactionId(reportId, options.supersedesReportId),
                 reference: reportId,
@@ -271,7 +286,7 @@ export class DetailedReportService extends BaseService {
         );
 
         return {
-            reportId, status: 'GENERATING', pointsDeducted: DETAILED_REPORT_COST_POINTS,
+            reportId, status: 'GENERATING', pointsDeducted: cost,
         };
     }
 
@@ -285,20 +300,26 @@ export class DetailedReportService extends BaseService {
             throw new NotFoundError('User');
         }
 
-        if (!user.birthData) {
+        const chosen = new Set(request.dimensions);
+        const now = this.clock();
+
+        if ((chosen.has('ZODIAC') || chosen.has('NUMEROLOGY')) && !user.birthData) {
             throw new UnprocessableError('Fill in your birth date and zodiac first', 'PROFILE_REQUIRED');
         }
 
-        const now = this.clock();
+        if (chosen.has('BLOOD') && user.bloodType === 'UNKNOWN') {
+            throw new UnprocessableError('Fill in your blood type first', 'BLOOD_REQUIRED');
+        }
+
         const mbtiValid = user.mbti !== null && (user.mbtiExpiresAt === null || user.mbtiExpiresAt > now);
 
-        if (!mbtiValid || user.mbti === null) {
+        if (chosen.has('MBTI') && (!mbtiValid || user.mbti === null)) {
             throw new UnprocessableError('Complete the personality test first', 'MBTI_REQUIRED');
         }
 
         let humanDesign: Record<string, unknown> | null = null;
 
-        if (request.includeHumanDesign) {
+        if (chosen.has('HUMAN_DESIGN')) {
             // getCurrent recalculates a chart whose birth data has changed, so a stale chart is never paid for.
             const chart = await this.humanDesign.getCurrent(uid);
 
@@ -319,22 +340,27 @@ export class DetailedReportService extends BaseService {
             };
         }
 
-        const bloodType = request.includeBloodType && user.bloodType !== 'UNKNOWN' ? user.bloodType : null;
+        const mbti = chosen.has('MBTI') ? user.mbti : null;
         const input = buildAnalysisInput({
-            zodiac: user.birthData.zodiac,
-            bloodType,
-            mbti: user.mbti,
-            test: await this.latestTest(uid),
+            zodiac: chosen.has('ZODIAC') ? user.birthData?.zodiac ?? null : null,
+            bloodType: chosen.has('BLOOD') ? user.bloodType : null,
+            mbti,
+            numerology: chosen.has('NUMEROLOGY') && user.birthData
+                ? String(lifePathNumber(user.birthData.birthDate)) as NumerologyNumber
+                : null,
+            // The answer leanings belong to the MBTI dimension only
+            test: mbti ? await this.latestTest(uid) : null,
             humanDesign,
         });
 
         return {
             input,
             combinationKey: {
-                zodiac: user.birthData.zodiac,
-                mbti: user.mbti,
+                zodiac: input.profile.zodiac,
+                mbti: input.profile.mbti,
                 bloodType: input.profile.bloodType,
                 humanDesignType: typeof humanDesign?.type === 'string' ? humanDesign.type : null,
+                numerology: input.profile.numerology,
             },
         };
     }

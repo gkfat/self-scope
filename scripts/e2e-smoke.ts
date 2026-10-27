@@ -110,9 +110,10 @@ const content = (type: string, key: string) => ({
 
 const seededContent = [
     'MBTI_ESTJ',
-    'SUMMARY_aries_ESTJ_O',
     'SUMMARY_aries_ESTJ',
-    'SUMMARY_aries_ESTJ_A',
+    'SUMMARY_aries_A',
+    'SUMMARY_aries_B',
+    'SUMMARY_ESTJ_A',
     'SUMMARY_aries_ESTJ_B',
 ];
 
@@ -218,51 +219,63 @@ try {
     const points0 = await call('GET', '/points', { token });
     check('points: balance 3, welcome batch expires in ~90 days', val(points0.body, 'availableBalance') === 3 && Math.round((val(points0.body, 'batches.0.expiresAt') - Date.now()) / 86400000) >= 89, JSON.stringify(points0.body).slice(0, 200));
 
+    // Written-content analyses: 1 point for two dimensions, 3 for three (the welcome grant is 3)
     const s1 = await call('POST', '/summaries', {
-        token, body: {}, 
+        token, body: { dimensions: ['ZODIAC', 'MBTI'] },
     });
-    check('summary: first time costs 1 point (201)', s1.status === 201 && val(s1.body, 'pointsDeducted') === 1 && val(s1.body, 'summaryId') === 'aries_ESTJ_O', JSON.stringify(s1.body).slice(0, 160));
+    check('summary: a pair costs 1 point (201)', s1.status === 201 && val(s1.body, 'pointsDeducted') === 1 && val(s1.body, 'summaryId') === 'aries_ESTJ', JSON.stringify(s1.body).slice(0, 160));
     const s1b = await call('POST', '/summaries', {
-        token, body: {}, 
+        token, body: { dimensions: ['MBTI', 'ZODIAC'] },
     });
     check('summary: asking again is free (200)', s1b.status === 200 && val(s1b.body, 'pointsDeducted') === 0);
     const race = await Promise.all(Array.from({ length: 5 }, () => call('POST', '/summaries', {
-        token, body: {}, 
+        token, body: { dimensions: ['ZODIAC', 'MBTI'] },
     })));
     check('summary: concurrent repeats never charge again', race.every((r) => val(r.body, 'pointsDeducted') === 0));
     check('points: 2 left after one summary', val((await call('GET', '/points', { token })).body, 'availableBalance') === 2);
-    check('summary: listed and readable', val((await call('GET', '/summaries', { token })).body, 'length') === 1 && (await call('GET', '/summaries/aries_ESTJ_O', { token })).status === 200);
+    check('summary: listed and readable', val((await call('GET', '/summaries', { token })).body, 'length') === 1 && (await call('GET', '/summaries/aries_ESTJ', { token })).status === 200);
     check('summary: other ids are 404', (await call('GET', '/summaries/aries_ESTJ_B', { token })).status === 404);
+    const withHumanDesign = await call('POST', '/summaries', {
+        token, body: { dimensions: ['ZODIAC', 'HUMAN_DESIGN'] },
+    });
+    check('summary: the human design is not offered here (400)', withHumanDesign.status === 400, JSON.stringify(withHumanDesign.body).slice(0, 120));
 
     await call('PUT', '/profile', {
         token, body: {
-            ...profile, bloodType: 'AB', 
-        }, 
+            ...profile, bloodType: 'AB',
+        },
     });
     const noContent = await call('POST', '/summaries', {
-        token, body: {}, 
+        token, body: {
+            dimensions: [
+                'ZODIAC',
+                'MBTI',
+                'BLOOD',
+            ], 
+        },
     });
     check('summary: unpublished combination -> 404 and no charge', noContent.status === 404 && val((await call('GET', '/points', { token })).body, 'availableBalance') === 2);
 
-    const twoFactor = await call('POST', '/summaries', {
-        token, body: { includeBloodType: false }, 
-    });
-    check('summary: two-factor combination is a separate purchase', twoFactor.status === 201 && val(twoFactor.body, 'summaryId') === 'aries_ESTJ');
     await call('PUT', '/profile', {
         token, body: {
-            ...profile, bloodType: 'A', 
-        }, 
+            ...profile, bloodType: 'A',
+        },
     });
-    check('summary: third purchase uses the last point', (await call('POST', '/summaries', {
-        token, body: {}, 
-    })).status === 201 && val((await call('GET', '/points', { token })).body, 'availableBalance') === 0);
+    const zodiacBlood = await call('POST', '/summaries', {
+        token, body: { dimensions: ['ZODIAC', 'BLOOD'] },
+    });
+    check('summary: zodiac x blood costs 1 point', zodiacBlood.status === 201 && val(zodiacBlood.body, 'summaryId') === 'aries_A');
+    const bloodMbti = await call('POST', '/summaries', {
+        token, body: { dimensions: ['BLOOD', 'MBTI'] },
+    });
+    check('summary: blood x MBTI costs the last point', bloodMbti.status === 201 && val(bloodMbti.body, 'summaryId') === 'ESTJ_A' && val((await call('GET', '/points', { token })).body, 'availableBalance') === 0);
     await call('PUT', '/profile', {
         token, body: {
-            ...profile, bloodType: 'B', 
-        }, 
+            ...profile, bloodType: 'B',
+        },
     });
     const broke = await call('POST', '/summaries', {
-        token, body: {}, 
+        token, body: { dimensions: ['ZODIAC', 'BLOOD'] },
     });
     check('summary: no points -> 402, nothing created', broke.status === 402 && val((await call('GET', '/summaries', { token })).body, 'length') === 3, JSON.stringify(broke.body).slice(0, 120));
 
@@ -344,9 +357,15 @@ try {
     check('payments: history shows COMPLETED', val(payments.body, '0.status') === 'COMPLETED' && val(payments.body, '0.pointsPurchased') === 5);
 
     const spend = await call('POST', '/summaries', {
-        token, body: {}, 
+        token, body: {
+            dimensions: [
+                'ZODIAC',
+                'MBTI',
+                'BLOOD',
+            ], 
+        },
     });
-    check('summary: bought points can be spent', spend.status === 201 && val((await call('GET', '/points', { token })).body, 'availableBalance') === 4);
+    check('summary: bought points can be spent (3 for three dimensions)', spend.status === 201 && val(spend.body, 'pointsDeducted') === 3 && val((await call('GET', '/points', { token })).body, 'availableBalance') === 2);
 
     const txs = await call('GET', '/points/transactions', {
         token, headers: {}, 
@@ -359,13 +378,13 @@ try {
     // ---- share cards
     const card = await call('POST', '/share-cards', {
         token, body: {
-            source: 'SUMMARY', referenceId: 'aries_ESTJ_O', 
+            source: 'SUMMARY', referenceId: 'aries_ESTJ', 
         }, 
     });
     check('share: card for own summary has no personal data', card.status === 200 && !JSON.stringify(card.body).includes('1995') && !JSON.stringify(card.body).includes(EMAIL), JSON.stringify(card.body).slice(0, 120));
     check('share: summary card needs sign-in (401)', (await call('POST', '/share-cards', {
         body: {
-            source: 'SUMMARY', referenceId: 'aries_ESTJ_O', 
+            source: 'SUMMARY', referenceId: 'aries_ESTJ', 
         }, 
     })).status === 401);
     check('share: single result card works for guests', (await call('POST', '/share-cards', {
@@ -425,7 +444,7 @@ try {
     const delSummaries = await call('DELETE', '/account/data', {
         token, body: { scopes: ['SUMMARIES'] }, 
     });
-    check('delete data: summaries removed, points untouched', delSummaries.status === 200 && val((await call('GET', '/summaries', { token })).body, 'length') === 0 && val((await call('GET', '/points', { token })).body, 'availableBalance') === 4);
+    check('delete data: summaries removed, points untouched', delSummaries.status === 200 && val((await call('GET', '/summaries', { token })).body, 'length') === 0 && val((await call('GET', '/points', { token })).body, 'availableBalance') === 2);
 
     const delAccount = await call('DELETE', '/account', { token });
     check('delete account: accepted', delAccount.status === 200, JSON.stringify(delAccount.body).slice(0, 120));

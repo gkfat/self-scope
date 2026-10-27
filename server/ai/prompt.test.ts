@@ -11,7 +11,7 @@ import {
 const input: AnalysisInput = {
     inputVersion: 'abc123',
     profile: {
-        zodiac: 'aries', bloodType: 'O', mbti: 'INTJ',
+        zodiac: 'aries', bloodType: 'O', mbti: 'INTJ', numerology: null,
     },
     test: {
         testVersion: '1',

@@ -1,14 +1,16 @@
 import { z } from 'zod';
 import {
-    evidenceKindSchema, reportStatusSchema,
+    evidenceKindSchema, reportCombinationSchema, reportDimensionSchema, reportStatusSchema,
 } from '../firestore/detailedReport.schema';
-import { summaryCombinationSchema } from '../firestore/summary.schema';
+
+export const MIN_REPORT_DIMENSIONS = 2;
 
 export const createReportRequestSchema = z.object({
-    /** Use the blood type in the analysis when it is known. Defaults to true. */
-    includeBloodType: z.boolean().default(true),
-    /** Include the saved human-design chart. Defaults to false. */
-    includeHumanDesign: z.boolean().default(false),
+    /** The dimensions to combine: at least two, each at most once, and the human design among them. */
+    dimensions: z.array(reportDimensionSchema)
+        .min(MIN_REPORT_DIMENSIONS)
+        .refine((items) => new Set(items).size === items.length, 'dimensions must not repeat')
+        .refine((items) => items.includes('HUMAN_DESIGN'), 'a generated analysis includes the human design'),
 });
 
 /** The Idempotency-Key header doubles as the report id, so it must be a safe path segment. */
@@ -32,7 +34,7 @@ export const reportSectionItemSchema = z.object({
 export const reportItemSchema = z.object({
     reportId: z.string(),
     status: reportStatusSchema,
-    combinationKey: summaryCombinationSchema.extend({ humanDesignType: z.string().nullable() }),
+    combinationKey: reportCombinationSchema,
     sections: z.array(reportSectionItemSchema),
     disclaimer: z.string().nullable(),
     modelName: z.string().nullable(),

@@ -9,7 +9,7 @@ import type { AnalysisInput } from '../../shared/schemas/firestore/detailedRepor
 const input: AnalysisInput = {
     inputVersion: 'v',
     profile: {
-        zodiac: 'leo', bloodType: null, mbti: 'ENFP',
+        zodiac: 'leo', bloodType: null, mbti: 'ENFP', numerology: null,
     },
     test: null,
     humanDesign: null,

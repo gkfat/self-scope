@@ -2,9 +2,18 @@ import { z } from 'zod';
 import { summaryCombinationSchema } from '../firestore/summary.schema';
 import { fixedResultResponseSchema } from './fixedResult.schema';
 
+/** Written-content analyses combine zodiac, blood type, MBTI and life path number: two or three of them, without the human design. */
+export const SUMMARY_DIMENSIONS = [
+    'ZODIAC',
+    'BLOOD',
+    'MBTI',
+    'NUMEROLOGY',
+] as const;
+
 export const summaryRequestSchema = z.object({
-    /** Use the blood type in the combination when it is known. Defaults to true. */
-    includeBloodType: z.boolean().default(true),
+    dimensions: z.array(z.enum(SUMMARY_DIMENSIONS))
+        .min(2)
+        .refine((items) => new Set(items).size === items.length, 'dimensions must not repeat'),
 });
 
 export const summaryItemSchema = z.object({
@@ -16,7 +25,7 @@ export const summaryItemSchema = z.object({
 });
 
 export const summaryObtainedSchema = summaryItemSchema.extend({
-    /** 1 the first time a combination is obtained, 0 when it was already owned. */
+    /** The price the first time a combination is obtained, 0 when it was already owned. */
     pointsDeducted: z.number().int().nonnegative(),
 });
 

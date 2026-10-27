@@ -64,6 +64,16 @@ async function seedPoints(db: FakeFirestore, uid: string, remaining: number) {
     });
 }
 
+/** The three-dimension choice (3 points) and the two-dimension one (1 point) without the human design */
+const THREE = {
+    dimensions: [
+        'ZODIAC',
+        'MBTI',
+        'BLOOD',
+    ] as Array<'ZODIAC' | 'MBTI' | 'BLOOD'>, 
+};
+const PAIR = { dimensions: ['ZODIAC', 'MBTI'] as Array<'ZODIAC' | 'MBTI' | 'BLOOD'> };
+
 const pointsLeft = async (db: FakeFirestore, uid = 'u1') => (await db.doc(`users/${uid}/pointBatches/b1`).get()).data()?.remaining;
 const summaryDocs = (db: FakeFirestore) => db.paths().filter((p) => p.includes('/summaries/'));
 const chargeDocs = (db: FakeFirestore) => db.paths().filter((p) => p.includes('/pointTransactions/'));
@@ -86,12 +96,12 @@ describe('SummaryService', () => {
     });
 
     describe('obtain', () => {
-        it('charges 1 point the first time and stores the summary for 3 months', async () => {
-            const result = await service.obtain('u1', { includeBloodType: true });
+        it('charges 3 points the first time for three dimensions and stores the summary for 3 months', async () => {
+            const result = await service.obtain('u1', THREE);
 
             expect(result).toMatchObject({
                 summaryId: 'aries_INTJ_A',
-                pointsDeducted: 1,
+                pointsDeducted: 3,
                 combinationKey: {
                     zodiac: 'aries', mbti: 'INTJ', bloodType: 'A',
                 },
@@ -101,49 +111,77 @@ describe('SummaryService', () => {
                 obtainedAt: NOW,
                 expiresAt: addMonths(NOW, 3),
             });
-            expect(await pointsLeft(db)).toBe(4);
+            expect(await pointsLeft(db)).toBe(2);
             expect(summaryDocs(db)).toEqual(['users/u1/summaries/aries_INTJ_A']);
         });
 
         it('does not charge again for a combination the member already has', async () => {
-            await service.obtain('u1', { includeBloodType: true });
-            const again = await service.obtain('u1', { includeBloodType: true });
+            await service.obtain('u1', THREE);
+            const again = await service.obtain('u1', THREE);
 
             expect(again.pointsDeducted).toBe(0);
-            expect(await pointsLeft(db)).toBe(4);
+            expect(await pointsLeft(db)).toBe(2);
             expect(chargeDocs(db)).toHaveLength(1);
         });
 
         it('treats the two-factor and three-factor combinations as separate summaries', async () => {
-            const withBlood = await service.obtain('u1', { includeBloodType: true });
-            const withoutBlood = await service.obtain('u1', { includeBloodType: false });
+            const withBlood = await service.obtain('u1', THREE);
+            const withoutBlood = await service.obtain('u1', PAIR);
 
             expect(withBlood.summaryId).toBe('aries_INTJ_A');
             expect(withoutBlood.summaryId).toBe('aries_INTJ');
+            expect(withoutBlood.pointsDeducted).toBe(1);
+            expect(await pointsLeft(db)).toBe(1);
+        });
+
+        it('asks for the blood type when it is chosen but unknown, without charging', async () => {
+            await db.doc('users/u1').update({ bloodType: 'UNKNOWN' });
+
+            await expect(service.obtain('u1', THREE)).rejects.toMatchObject({
+                statusCode: 422, code: 'BLOOD_REQUIRED',
+            });
+            expect(await pointsLeft(db)).toBe(5);
+        });
+
+        it('charges 1 point for a pair that includes the blood type', async () => {
+            await seedContent(db, 'aries_A');
+            await seedContent(db, 'INTJ_A');
+
+            const zodiacBlood = await service.obtain('u1', { dimensions: ['BLOOD', 'ZODIAC'] });
+            const bloodMbti = await service.obtain('u1', { dimensions: ['MBTI', 'BLOOD'] });
+
+            expect(zodiacBlood).toMatchObject({
+                summaryId: 'aries_A', pointsDeducted: 1,
+                combinationKey: {
+                    zodiac: 'aries', mbti: null, bloodType: 'A',
+                },
+            });
+            expect(bloodMbti).toMatchObject({
+                summaryId: 'INTJ_A', pointsDeducted: 1,
+                combinationKey: {
+                    zodiac: null, mbti: 'INTJ', bloodType: 'A',
+                },
+            });
             expect(await pointsLeft(db)).toBe(3);
         });
 
-        it('uses the two-factor combination when the blood type is unknown', async () => {
-            await db.doc('users/u1').update({ bloodType: 'UNKNOWN' });
-
-            const result = await service.obtain('u1', { includeBloodType: true });
-
-            expect(result.summaryId).toBe('aries_INTJ');
-            expect(result.combinationKey.bloodType).toBeNull();
+        it('does not offer the human design here', async () => {
+            await expect(service.obtain('u1', { dimensions: ['ZODIAC', 'HUMAN_DESIGN'] } as never)).rejects.toMatchObject({ code: 'DIMENSIONS_NOT_OFFERED' });
+            expect(await pointsLeft(db)).toBe(5);
         });
 
         it('charges only once when requests are repeated concurrently', async () => {
-            const results = await Promise.all(Array.from({ length: 6 }, () => service.obtain('u1', { includeBloodType: true })));
+            const results = await Promise.all(Array.from({ length: 6 }, () => service.obtain('u1', THREE)));
 
-            expect(results.filter((r) => r.pointsDeducted === 1)).toHaveLength(1);
-            expect(await pointsLeft(db)).toBe(4);
+            expect(results.filter((r) => r.pointsDeducted === 3)).toHaveLength(1);
+            expect(await pointsLeft(db)).toBe(2);
             expect(chargeDocs(db)).toHaveLength(1);
         });
 
         it('rejects without charging when there are not enough points', async () => {
             await db.doc('users/u1/pointBatches/b1').update({ remaining: 0 });
 
-            await expect(service.obtain('u1', { includeBloodType: true })).rejects.toBeInstanceOf(InsufficientPointsError);
+            await expect(service.obtain('u1', THREE)).rejects.toBeInstanceOf(InsufficientPointsError);
 
             expect(summaryDocs(db)).toEqual([]);
             expect(chargeDocs(db)).toEqual([]);
@@ -152,7 +190,7 @@ describe('SummaryService', () => {
         it('ignores expired points', async () => {
             await db.doc('users/u1/pointBatches/b1').update({ expiresAt: NOW - 1 });
 
-            await expect(service.obtain('u1', { includeBloodType: true })).rejects.toBeInstanceOf(InsufficientPointsError);
+            await expect(service.obtain('u1', THREE)).rejects.toBeInstanceOf(InsufficientPointsError);
         });
 
         it('asks for the personality test when the member has no mbti', async () => {
@@ -160,7 +198,7 @@ describe('SummaryService', () => {
                 mbti: null, mbtiExpiresAt: null,
             });
 
-            await expect(service.obtain('u1', { includeBloodType: true })).rejects.toMatchObject({
+            await expect(service.obtain('u1', THREE)).rejects.toMatchObject({
                 statusCode: 422, code: 'MBTI_REQUIRED',
             });
             expect(await pointsLeft(db)).toBe(5);
@@ -169,13 +207,13 @@ describe('SummaryService', () => {
         it('treats an expired mbti as missing', async () => {
             await db.doc('users/u1').update({ mbtiExpiresAt: NOW - 1 });
 
-            await expect(service.obtain('u1', { includeBloodType: true })).rejects.toBeInstanceOf(UnprocessableError);
+            await expect(service.obtain('u1', THREE)).rejects.toBeInstanceOf(UnprocessableError);
         });
 
         it('asks for the profile when birth data is missing', async () => {
             await db.doc('users/u1').update({ birthData: null });
 
-            await expect(service.obtain('u1', { includeBloodType: true })).rejects.toMatchObject({
+            await expect(service.obtain('u1', THREE)).rejects.toMatchObject({
                 statusCode: 422, code: 'PROFILE_REQUIRED',
             });
         });
@@ -183,18 +221,18 @@ describe('SummaryService', () => {
         it('does not charge when the content for the combination is not published', async () => {
             await seedContent(db, 'aries_INTJ_A', 'DRAFT');
 
-            await expect(service.obtain('u1', { includeBloodType: true })).rejects.toBeInstanceOf(NotFoundError);
+            await expect(service.obtain('u1', THREE)).rejects.toBeInstanceOf(NotFoundError);
             expect(await pointsLeft(db)).toBe(5);
             expect(summaryDocs(db)).toEqual([]);
         });
 
         it('charges again once the earlier summary has expired', async () => {
-            await service.obtain('u1', { includeBloodType: true });
+            await service.obtain('u1', PAIR);
 
             clock.now = addMonths(NOW, 3) + DAY_MS;
             // The member's mbti has expired by now too; assume they retook the test.
             await db.doc('users/u1').update({ mbtiExpiresAt: addMonths(clock.now, 3) });
-            const renewed = await service.obtain('u1', { includeBloodType: true });
+            const renewed = await service.obtain('u1', PAIR);
 
             expect(renewed.pointsDeducted).toBe(1);
             expect(renewed.expiresAt).toBe(addMonths(clock.now, 3));
@@ -205,15 +243,15 @@ describe('SummaryService', () => {
 
     describe('list / get', () => {
         beforeEach(async () => {
-            await service.obtain('u1', { includeBloodType: true });
-            await service.obtain('u1', { includeBloodType: false });
+            await service.obtain('u1', THREE);
+            await service.obtain('u1', PAIR);
         });
 
         it('lists unexpired summaries, newest first, without charging', async () => {
             const items = await service.list('u1');
 
             expect(items.map((i) => i.summaryId).sort()).toEqual(['aries_INTJ', 'aries_INTJ_A']);
-            expect(await pointsLeft(db)).toBe(3);
+            expect(await pointsLeft(db)).toBe(1);
         });
 
         it('hides expired summaries', async () => {

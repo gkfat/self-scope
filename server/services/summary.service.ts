@@ -10,10 +10,14 @@ import {
 import type {
     SummaryItem, SummaryObtained, SummaryRequest,
 } from '../../shared/schemas/api/summary.schema';
-import { SUMMARY_COST_POINTS } from '../../shared/constants/points';
+import {
+    isGeneratedAnalysis, multiDimensionCost,
+} from '../../shared/utils/multiDimensionPricing';
 import {
     fixedContentId, summaryKey,
 } from '../../shared/utils/fixedContentKeys';
+import { lifePathNumber } from '../../shared/utils/numerology';
+import type { NumerologyNumber } from '../../shared/schemas/common';
 import { addMonths } from '../../shared/utils/time';
 import {
     NotFoundError, UnprocessableError,
@@ -49,12 +53,19 @@ export class SummaryService extends BaseService {
     }
 
     /**
-     * Get the simple summary for the member's combination, paying 1 point the
-     * first time. Owning a combination makes asking again free (RULE-005), and
+     * Get the written-content analysis for the chosen dimensions, paying its price (1 point for two
+     * dimensions, 3 for three) the first time. Owning a combination makes asking again free (RULE-005), and
      * the charge and the ownership record are written in one transaction, so a
      * repeated or concurrent request can never pay twice (NFR-017).
      */
     async obtain(uid: string, request: SummaryRequest): Promise<SummaryObtained> {
+        const cost = multiDimensionCost(request.dimensions);
+
+        // Choices with the human design are generated, not written content (DetailedReportService)
+        if (cost === null || isGeneratedAnalysis(request.dimensions)) {
+            throw new UnprocessableError('This choice of dimensions is not offered', 'DIMENSIONS_NOT_OFFERED');
+        }
+
         const combination = await this.resolveCombination(uid, request);
         const key = summaryKey(combination);
         // Make sure there is something to deliver before anything is charged.
@@ -82,7 +93,7 @@ export class SummaryService extends BaseService {
             // combination again after it expired is a new, separate charge.
             const plan = await this.points.planDeduction(tx, {
                 uid,
-                amount: SUMMARY_COST_POINTS,
+                amount: cost,
                 reason: 'SUMMARY',
                 transactionId: `summary_${key}_${now}`,
                 reference: key,
@@ -118,7 +129,7 @@ export class SummaryService extends BaseService {
             content,
             obtainedAt: outcome.doc.obtainedAt,
             expiresAt: outcome.doc.expiresAt,
-            pointsDeducted: outcome.charged ? SUMMARY_COST_POINTS : 0,
+            pointsDeducted: outcome.charged ? cost : 0,
         };
     }
 
@@ -180,20 +191,29 @@ export class SummaryService extends BaseService {
             throw new NotFoundError('User');
         }
 
-        if (!user.birthData) {
+        const chosen = new Set(request.dimensions);
+
+        if ((chosen.has('ZODIAC') || chosen.has('NUMEROLOGY')) && !user.birthData) {
             throw new UnprocessableError('Fill in your birth date and zodiac first', 'PROFILE_REQUIRED');
+        }
+
+        if (chosen.has('BLOOD') && user.bloodType === 'UNKNOWN') {
+            throw new UnprocessableError('Fill in your blood type first', 'BLOOD_REQUIRED');
         }
 
         const mbtiValid = user.mbti !== null && (user.mbtiExpiresAt === null || user.mbtiExpiresAt > this.clock());
 
-        if (!mbtiValid || user.mbti === null) {
+        if (chosen.has('MBTI') && (!mbtiValid || user.mbti === null)) {
             throw new UnprocessableError('Complete the personality test first', 'MBTI_REQUIRED');
         }
 
         return {
-            zodiac: user.birthData.zodiac,
-            mbti: user.mbti,
-            bloodType: request.includeBloodType && user.bloodType !== 'UNKNOWN' ? user.bloodType : null,
+            zodiac: chosen.has('ZODIAC') ? user.birthData?.zodiac ?? null : null,
+            mbti: chosen.has('MBTI') ? user.mbti : null,
+            bloodType: chosen.has('BLOOD') && user.bloodType !== 'UNKNOWN' ? user.bloodType : null,
+            numerology: chosen.has('NUMEROLOGY') && user.birthData
+                ? String(lifePathNumber(user.birthData.birthDate)) as NumerologyNumber
+                : null,
         };
     }
 

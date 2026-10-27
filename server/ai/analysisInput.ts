@@ -7,14 +7,15 @@ import type {
     ScoringRule, TestQuestion,
 } from '../../shared/schemas/firestore/test.schema';
 import type {
-    BloodType, MbtiType, Zodiac,
+    BloodType, MbtiType, NumerologyNumber, Zodiac,
 } from '../../shared/schemas/common';
 
 type BuildAnalysisInputParams = {
-    zodiac: Zodiac;
+    zodiac: Zodiac | null;
     bloodType: BloodType | null;
-    mbti: MbtiType;
-    /** The member's latest saved test, when there is one. */
+    mbti: MbtiType | null;
+    numerology?: NumerologyNumber | null;
+    /** The member's latest saved test; only given when MBTI is one of the chosen dimensions. */
     test: {
         testVersion: string;
         questions: readonly TestQuestion[];
@@ -35,6 +36,7 @@ export function buildAnalysisInput(params: BuildAnalysisInputParams): AnalysisIn
             zodiac: params.zodiac,
             bloodType: params.bloodType && params.bloodType !== 'UNKNOWN' ? params.bloodType : null,
             mbti: params.mbti,
+            numerology: params.numerology ?? null,
         },
         test: params.test
             ? {

@@ -26,7 +26,7 @@ describe('buildAnalysisInput', () => {
         const input = buildAnalysisInput(base);
 
         expect(input.profile).toEqual({
-            zodiac: 'aries', bloodType: 'O', mbti: 'ESTJ',
+            zodiac: 'aries', bloodType: 'O', mbti: 'ESTJ', numerology: null,
         });
         expect(input.test).toBeNull();
         expect(input.humanDesign).toBeNull();
