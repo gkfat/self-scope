@@ -1,6 +1,18 @@
 // Plain `.ts` import specifiers: this file is also run directly by Node
 // (type stripping) from scripts/, where extensionless imports do not resolve.
 import {
+    BRANCHES,
+    ELEMENTS,
+    PATTERN_KEYS,
+    STEMS,
+    STRENGTH_LEVELS,
+    TEN_GODS,
+    TEN_GOD_GROUPS,
+    TEN_GOD_GROUP_LABELS,
+    BONE_MAX_QIAN,
+    BONE_MIN_QIAN,
+} from '../constants/bazi.ts';
+import {
     MBTI_TYPES, NUMEROLOGY_NUMBERS, ZODIACS,
 } from '../schemas/common.ts';
 import type {
@@ -15,6 +27,7 @@ export const FIXED_CONTENT_TYPES = [
     'BLOOD',
     'MBTI',
     'NUMEROLOGY',
+    'BAZI',
 ] as const;
 
 export type FixedContentType = typeof FIXED_CONTENT_TYPES[number];
@@ -98,6 +111,31 @@ export function parseSummaryKey(key: string): SummaryCombination | null {
     return combination;
 }
 
+/** The 123 BaZi content keys: day master, element, ten-god group, month, luck theme, strength, pattern, useful gods, bone weight. */
+export function baziContentKeys(): string[] {
+    const keys: string[] = [];
+
+    for (const stem of STEMS) keys.push(`daymaster_${stem}`);
+    for (const element of ELEMENTS) keys.push(`element_strong_${element}`);
+    for (const element of ELEMENTS) keys.push(`element_missing_${element}`);
+    for (const group of TEN_GOD_GROUPS) keys.push(`group_dominant_${group}`);
+    // 寅 month first, the order the months run in
+    for (let i = 0; i < BRANCHES.length; i++) keys.push(`month_${BRANCHES[(i + 2) % BRANCHES.length]}`);
+    for (const god of TEN_GODS) keys.push(`luck_${god}`);
+    for (const level of STRENGTH_LEVELS) keys.push(`strength_${level}`);
+    for (const pattern of PATTERN_KEYS) keys.push(`pattern_${pattern}`);
+
+    for (const side of ['strong', 'weak']) {
+        for (const group of TEN_GOD_GROUPS) keys.push(`useful_${side}_${TEN_GOD_GROUP_LABELS[group]}`);
+    }
+
+    for (let qian = BONE_MIN_QIAN; qian <= BONE_MAX_QIAN; qian++) keys.push(`bone_${qian}`);
+
+    return keys;
+}
+
+const BAZI_KEY_SET: ReadonlySet<string> = new Set(baziContentKeys());
+
 export function fixedContentId(type: FixedContentType, key: string): string {
     return `${type}_${key}`;
 }
@@ -110,12 +148,14 @@ export function isValidContentKey(type: FixedContentType, key: string): boolean 
     case 'BLOOD': return (ANALYZABLE_BLOOD_TYPES as readonly string[]).includes(key);
     case 'MBTI': return (MBTI_TYPES as readonly string[]).includes(key);
     case 'NUMEROLOGY': return (NUMEROLOGY_NUMBERS as readonly string[]).includes(key);
+    case 'BAZI': return BAZI_KEY_SET.has(key);
     }
 }
 
 /**
  * Every document id that must exist before launch:
- * every summary combination (2 to 4 of zodiac, MBTI, blood type and life path number) plus 12 + 4 + 16 + 12 single results.
+ * every summary combination (2 to 4 of zodiac, MBTI, blood type and life path number), 12 + 4 + 16 + 12 single results,
+ * and the 123 BaZi contents.
  */
 export function expectedFixedContentIds(): string[] {
     const ids: string[] = [];
@@ -149,6 +189,7 @@ export function expectedFixedContentIds(): string[] {
     for (const bloodType of ANALYZABLE_BLOOD_TYPES) ids.push(fixedContentId('BLOOD', bloodType));
     for (const mbti of MBTI_TYPES) ids.push(fixedContentId('MBTI', mbti));
     for (const number of NUMEROLOGY_NUMBERS) ids.push(fixedContentId('NUMEROLOGY', number));
+    for (const key of baziContentKeys()) ids.push(fixedContentId('BAZI', key));
 
     return ids;
 }

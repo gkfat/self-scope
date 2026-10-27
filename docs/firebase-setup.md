@@ -53,7 +53,7 @@ TTL 清除會延遲（通常 24 小時內），程式判斷一律以時間比較
 | `content/tests/personality16-v1.json`、`personality16-v2.json` | 16 型人格測驗的題目（v2 為 48 題，v1 保留給舊的作答結果） |
 | `content/point-packages.example.json` | 點數方案的範例檔 |
 
-固定內容的金鑰規則見 `shared/utils/fixedContentKeys.ts`；全部齊備時預期共 14,364 筆（單項 44 筆加上 14,320 筆組合）。
+固定內容的金鑰規則見 `shared/utils/fixedContentKeys.ts`；全部齊備時預期共 14,487 筆（單項 44 筆、14,320 筆組合與 123 筆八字內容）。
 
 ### 匯入指令
 ```bash

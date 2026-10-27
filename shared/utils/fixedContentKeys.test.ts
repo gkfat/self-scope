@@ -2,6 +2,7 @@ import {
     describe, expect, it,
 } from 'vitest';
 import {
+    baziContentKeys,
     expectedFixedContentIds,
     fixedContentId,
     isValidContentKey,
@@ -82,19 +83,88 @@ describe('isValidContentKey', () => {
         expect(isValidContentKey('NUMEROLOGY', '10')).toBe(false);
         expect(isValidContentKey('SUMMARY', 'aries_INTJ_A')).toBe(true);
     });
+
+    it('accepts the legal BAZI keys', () => {
+        for (const key of [
+            'daymaster_甲',
+            'element_strong_wood',
+            'element_missing_water',
+            'group_dominant_resource',
+            'month_寅',
+            'luck_偏印',
+            'strength_taiwang',
+            'pattern_建祿',
+            'useful_strong_印',
+            'useful_weak_官殺',
+            'bone_21',
+            'bone_71',
+        ]) {
+            expect(isValidContentKey('BAZI', key), key).toBe(true);
+        }
+    });
+
+    it('rejects illegal BAZI keys', () => {
+        for (const key of [
+            'daymaster_子',
+            'daymaster_',
+            'group_dominant_other',
+            'element_missing_air',
+            'month_甲',
+            'luck_好運',
+            'strength_strongest',
+            'pattern_比肩',
+            'useful_strong_other',
+            'useful_balanced_印',
+            'bone_20',
+            'bone_72',
+            'bone_021',
+            'bone_4.1',
+            'aries',
+        ]) {
+            expect(isValidContentKey('BAZI', key), key).toBe(false);
+        }
+    });
+});
+
+describe('baziContentKeys', () => {
+    const keys = baziContentKeys();
+    const countOf = (prefix: string) => keys.filter((key) => key.startsWith(prefix)).length;
+
+    it('lists 123 distinct keys', () => {
+        expect(keys).toHaveLength(123);
+        expect(new Set(keys).size).toBe(123);
+    });
+
+    it('splits them into the ten content groups', () => {
+        expect(countOf('daymaster_')).toBe(10);
+        expect(countOf('element_strong_')).toBe(5);
+        expect(countOf('element_missing_')).toBe(5);
+        expect(countOf('group_dominant_')).toBe(5);
+        expect(countOf('month_')).toBe(12);
+        expect(countOf('luck_')).toBe(10);
+        expect(countOf('strength_')).toBe(5);
+        expect(countOf('pattern_')).toBe(10);
+        expect(countOf('useful_')).toBe(10);
+        expect(countOf('bone_')).toBe(51);
+    });
+
+    it('is valid for every key it lists', () => {
+        for (const key of keys) expect(isValidContentKey('BAZI', key), key).toBe(true);
+    });
 });
 
 describe('expectedFixedContentIds', () => {
     const ids = expectedFixedContentIds();
 
-    it('lists 14320 summaries plus 44 single results, all unique', () => {
-        expect(ids).toHaveLength(14364);
-        expect(new Set(ids).size).toBe(14364);
+    it('lists 14320 summaries, 44 single results and 123 BaZi contents, all unique', () => {
+        expect(ids).toHaveLength(14487);
+        expect(new Set(ids).size).toBe(14487);
         expect(ids.filter((id) => id.startsWith('SUMMARY_'))).toHaveLength(14320);
         expect(ids.filter((id) => id.startsWith('ZODIAC_'))).toHaveLength(12);
         expect(ids.filter((id) => id.startsWith('BLOOD_'))).toHaveLength(4);
         expect(ids.filter((id) => id.startsWith('MBTI_'))).toHaveLength(16);
         expect(ids.filter((id) => id.startsWith('NUMEROLOGY_'))).toHaveLength(12);
+        expect(ids.filter((id) => id.startsWith('BAZI_'))).toHaveLength(123);
     });
 
     it('splits summaries into 688 pairs, 4416 triples and 9216 with all four parts', () => {
