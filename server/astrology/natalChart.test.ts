@@ -79,6 +79,15 @@ describe('computeNatalChart', () => {
             SATURN: {
                 sign: 'aries', degree: 4,
             },
+            URANUS: {
+                sign: 'virgo', degree: 1,
+            },
+            NEPTUNE: {
+                sign: 'taurus', degree: 7,
+            },
+            PLUTO: {
+                sign: 'taurus', degree: 24,
+            },
         });
     });
 

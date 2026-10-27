@@ -28,6 +28,15 @@ export const NATAL_LABELS: Record<NatalKey, { name: string; role: string }> = {
     SATURN: {
         name: '土星', role: '你的責任與課題，需要時間慢慢練出的部分。',
     },
+    URANUS: {
+        name: '天王星', role: '世代對改變與自由的追求，打破舊框架的方式。',
+    },
+    NEPTUNE: {
+        name: '海王星', role: '世代共有的理想與憧憬，也包含容易模糊的地方。',
+    },
+    PLUTO: {
+        name: '冥王星', role: '世代經歷的深層轉化，與權力、重生有關的長期主題。',
+    },
 };
 
 /** How the cards are grouped on the report. */
@@ -48,5 +57,12 @@ export const NATAL_GROUPS: Array<{ title: string; subtitle: string; keys: NatalK
     },
     {
         title: '機會與責任', subtitle: '比較長期的成長主題。', keys: ['JUPITER', 'SATURN'],
+    },
+    {
+        title: '世代與長期主題', subtitle: '這三顆星在同一星座停留數年到數十年，同世代的人落點相同，是共同的時代背景，不是你獨有的特質。', keys: [
+            'URANUS',
+            'NEPTUNE',
+            'PLUTO',
+        ],
     },
 ];

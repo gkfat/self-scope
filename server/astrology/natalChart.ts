@@ -37,6 +37,9 @@ const BODY_OF: Record<Exclude<NatalBody, 'SUN' | 'MOON'>, Astronomy.Body> = {
     MARS: Astronomy.Body.Mars,
     JUPITER: Astronomy.Body.Jupiter,
     SATURN: Astronomy.Body.Saturn,
+    URANUS: Astronomy.Body.Uranus,
+    NEPTUNE: Astronomy.Body.Neptune,
+    PLUTO: Astronomy.Body.Pluto,
 };
 
 function bodyLongitude(body: NatalBody, time: Astronomy.AstroTime): number {

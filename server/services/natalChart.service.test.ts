@@ -2,7 +2,9 @@ import {
     describe, expect, it,
 } from 'vitest';
 import { NatalChartService } from './natalChart.service';
-import { natalChartRequestSchema } from '../../shared/schemas/api/natalChart.schema';
+import {
+    natalChartRequestSchema, natalChartResponseSchema,
+} from '../../shared/schemas/api/natalChart.schema';
 import { ValidationError } from '../../shared/types/errors';
 
 const request = {
@@ -25,7 +27,11 @@ describe('NatalChartService', () => {
             'MARS',
             'JUPITER',
             'SATURN',
+            'URANUS',
+            'NEPTUNE',
+            'PLUTO',
         ]);
+        expect(natalChartResponseSchema.safeParse(chart).success).toBe(true);
         expect(chart.ascendant.sign).toBeTruthy();
     });
 

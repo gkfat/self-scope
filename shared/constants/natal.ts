@@ -7,6 +7,9 @@ export const NATAL_BODIES = [
     'MARS',
     'JUPITER',
     'SATURN',
+    'URANUS',
+    'NEPTUNE',
+    'PLUTO',
 ] as const;
 
 export type NatalBody = typeof NATAL_BODIES[number];

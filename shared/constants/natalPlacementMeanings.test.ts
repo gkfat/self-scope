@@ -6,7 +6,7 @@ import { NATAL_LABELS } from './natalLabels';
 import { ZODIACS } from '../schemas/common';
 
 describe('NATAL_PLACEMENT_MEANINGS', () => {
-    it('covers every position in every sign: 8 x 12', () => {
+    it('covers every position in every sign: 11 x 12', () => {
         expect(Object.keys(NATAL_PLACEMENT_MEANINGS).sort()).toEqual(Object.keys(NATAL_LABELS).sort());
 
         for (const [position, signs] of Object.entries(NATAL_PLACEMENT_MEANINGS)) {

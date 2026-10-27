@@ -2,8 +2,9 @@ import type { Zodiac } from '../schemas/common';
 import type { NatalKey } from './natalLabels';
 
 /**
- * What each placement in a birth chart can mean: 8 positions (Sun, Moon, ascendant, Mercury, Venus, Mars,
- * Jupiter, Saturn) times 12 signs. Fixed text, the same for everyone with that placement, written once and
+ * What each placement in a birth chart can mean: 11 positions (Sun, Moon, ascendant, Mercury, Venus, Mars,
+ * Jupiter, Saturn, Uranus, Neptune, Pluto) times 12 signs. The last three stay in one sign for years, so
+ * their readings describe a generation's shared background, not a personal trait. Fixed text, the same for everyone with that placement, written once and
  * reviewed, never produced by AI (RULE-017). The wording is tentative and never diagnostic.
  */
 export const NATAL_PLACEMENT_MEANINGS: Readonly<Record<NatalKey, Readonly<Record<Zodiac, string>>>> = {
@@ -118,5 +119,47 @@ export const NATAL_PLACEMENT_MEANINGS: Readonly<Record<NatalKey, Readonly<Record
         capricorn: '課題是責任與壓力：學習在努力之外也留空間，不把一切扛在身上。',
         aquarius: '課題是歸屬與獨立：學習在群體中保有自己，並用行動實現理想。',
         pisces: '課題是界線與現實：學習分辨感受與事實，把夢想一步步變得可行。',
+    },
+    URANUS: {
+        aries: '同世代的背景是打破舊框架、主張自我；傾向相信先行動、先開創，再回頭修正。',
+        taurus: '同世代的背景是重新檢視金錢、土地與生活方式；傾向在穩定與改革之間尋找新平衡。',
+        gemini: '同世代的背景是資訊與溝通方式的快速改變；傾向習慣多工、多管道，也容易感到資訊過載。',
+        cancer: '同世代的背景是家庭與歸屬的重新定義；傾向用不同於上一代的方式看待家與親密關係。',
+        leo: '同世代的背景是自我表達與創意的解放；傾向重視個人風格，也渴望被獨特地看見。',
+        virgo: '同世代的背景是工作、健康與效率的革新；傾向用新方法與新工具改善日常運作。',
+        libra: '同世代的背景是重新思考關係與公平；傾向質疑傳統的婚姻與合作模式，嘗試新的相處規則。',
+        scorpio: '同世代的背景是權力、資源與親密議題的劇烈翻轉；傾向直視禁忌，也渴望更深的真實。',
+        sagittarius: '同世代的背景是信仰與視野的擴張；傾向跨越文化與疆界，對既有的真理抱持開放。',
+        capricorn: '同世代的背景是體制與權威的重整；傾向懷疑舊秩序，也願意親手建立新的規則。',
+        aquarius: '同世代的背景是科技與群體意識的躍進；傾向重視自由、平等，並期待集體共創未來。',
+        pisces: '同世代的背景是夢想、靈性與界線的鬆動；傾向相信直覺與想像，也要留意現實感。',
+    },
+    NEPTUNE: {
+        aries: '同世代共有的理想是勇敢開創與自我實現；傾向浪漫化英雄與冒險，需要分辨夢想與衝動。',
+        taurus: '同世代共有的理想是安定、富足與美好生活；傾向對物質與享受抱有憧憬，也易有不切實際的期待。',
+        gemini: '同世代共有的理想是交流與資訊的無限可能；傾向相信言語的力量，也要小心被傳聞與表象迷惑。',
+        cancer: '同世代共有的理想是家的溫暖與歸屬；傾向懷念過去、理想化親情，需要面對真實的家人。',
+        leo: '同世代共有的理想是舞台、魅力與創作；傾向嚮往被看見和被崇拜，也要分辨真實的自己。',
+        virgo: '同世代共有的理想是服務與完善；傾向想把日常過得更好，也容易對自己或工作過度苛求。',
+        libra: '同世代共有的理想是完美的愛與和平；傾向浪漫看待關係，需要留意用理想遮住現實的落差。',
+        scorpio: '同世代共有的理想是深層的蛻變與療癒；傾向被神祕與深刻的事物吸引，也需謹慎分辨真偽。',
+        sagittarius: '同世代共有的理想是自由、信念與遠方；傾向追尋意義與更大的真理，也容易過度樂觀。',
+        capricorn: '同世代共有的理想是成就與穩固的秩序；傾向對體制與權威有所期待，也可能面臨幻滅與重整。',
+        aquarius: '同世代共有的理想是人人平等的未來；傾向相信科技與群體的力量，也要小心過度理想化。',
+        pisces: '同世代共有的理想是同理、靈性與藝術；傾向感受力強、渴望超越現實，需要穩住自己的界線。',
+    },
+    PLUTO: {
+        aries: '同世代經歷的長期轉化是自我與開創力的重生；傾向以強烈的行動突破限制，並學習面對競爭。',
+        taurus: '同世代經歷的長期轉化是資源、價值與土地的重整；傾向重新定義什麼才是真正的安全。',
+        gemini: '同世代經歷的長期轉化是學習與溝通方式的蛻變；傾向在資訊與言論的力量中重新理解世界。',
+        cancer: '同世代經歷的長期轉化是家庭與歸屬的重塑；傾向在安全感的失去與重建中，學習情感上的獨立。',
+        leo: '同世代經歷的長期轉化是自我價值與創造力的覺醒；傾向追求個人影響力，也要面對對權力的渴望。',
+        virgo: '同世代經歷的長期轉化是工作、健康與日常秩序的重整；傾向在效率與完美之間反覆調整。',
+        libra: '同世代經歷的長期轉化是關係與社會公平的重塑；傾向重新談判合作與平等，過程可能伴隨衝突。',
+        scorpio: '同世代經歷的長期轉化是權力、資源與深層真相的翻轉；傾向直面陰影，並在崩解後重建。',
+        sagittarius: '同世代經歷的長期轉化是信仰、教育與世界觀的重組；傾向挑戰既有的真理，尋找新的意義。',
+        capricorn: '同世代經歷的長期轉化是體制、權威與責任的重整；傾向面對舊結構的瓦解，並學習建立新的秩序。',
+        aquarius: '同世代經歷的長期轉化是群體、科技與社會結構的改寫；傾向重新思考個人與集體的關係。',
+        pisces: '同世代經歷的長期轉化是夢想、靈性與集體意識的重塑；傾向在界線的消融中重新找到信念。',
     },
 };

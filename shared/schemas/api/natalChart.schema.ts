@@ -44,6 +44,9 @@ export const natalChartResponseSchema = z.object({
         MARS: placementSchema,
         JUPITER: placementSchema,
         SATURN: placementSchema,
+        URANUS: placementSchema,
+        NEPTUNE: placementSchema,
+        PLUTO: placementSchema,
     }),
     /** Set when a daylight-saving switch made the entered time happen twice or not at all */
     timeNote: z.enum(['AMBIGUOUS', 'NONEXISTENT']).nullable(),
