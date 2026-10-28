@@ -85,6 +85,58 @@
                 </v-card-text>
             </v-card>
 
+            <v-card
+                v-if="readings.length"
+                class="mb-4"
+            >
+                <v-card-title>整體特質解讀</v-card-title>
+                <v-card-subtitle class="text-wrap">
+                    以下是人類圖傳統說法裡，這些項目可能代表的傾向，僅供參考與自我探索。
+                </v-card-subtitle>
+                <v-card-text>
+                    <v-row dense>
+                        <v-col
+                            v-for="reading in readings"
+                            :key="reading.label"
+                            cols="12"
+                            md="6"
+                        >
+                            <v-card
+                                variant="outlined"
+                                height="100%"
+                            >
+                                <v-card-text>
+                                    <div class="text-caption text-medium-emphasis">
+                                        {{ reading.label }}
+                                    </div>
+                                    <div class="text-subtitle-1 font-weight-medium mb-2">
+                                        {{ reading.title }}
+                                    </div>
+                                    <p class="text-body-2 mb-3">
+                                        {{ reading.summary }}
+                                    </p>
+                                    <p
+                                        v-if="reading.strategy"
+                                        class="text-body-2 mb-3"
+                                    >
+                                        <span class="text-medium-emphasis">策略：</span>{{ reading.strategy }}
+                                    </p>
+                                    <p class="text-body-2 mb-3">
+                                        <span class="text-medium-emphasis">可能的優勢：</span>{{ reading.strengths }}
+                                    </p>
+                                    <p class="text-body-2 mb-3">
+                                        <span class="text-medium-emphasis">可能的盲點：</span>{{ reading.blindSpots }}
+                                    </p>
+                                    <p class="text-body-2 mb-0">
+                                        <span class="text-medium-emphasis">想一想：</span>{{ reading.reflection }}
+                                    </p>
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+                    </v-row>
+                </v-card-text>
+            </v-card>
+
             <v-card class="mb-4">
                 <v-card-title>能量中心</v-card-title>
                 <v-card-subtitle class="text-wrap">
@@ -383,6 +435,14 @@ import {
     HUMAN_DESIGN_STRATEGY_LABELS as strategyLabels,
     HUMAN_DESIGN_TYPE_LABELS as typeLabels,
 } from '../../shared/constants/humanDesignLabels';
+import {
+    HUMAN_DESIGN_AUTHORITY_INTERPRETATIONS,
+    HUMAN_DESIGN_CROSS_ANGLE_INTERPRETATIONS,
+    HUMAN_DESIGN_DEFINITION_INTERPRETATIONS,
+    HUMAN_DESIGN_PROFILE_INTERPRETATIONS,
+    HUMAN_DESIGN_TYPE_INTERPRETATIONS,
+    type HumanDesignProfile,
+} from '../../shared/constants/humanDesignInterpretations';
 
 useHead({ title: '人類圖' });
 
@@ -449,6 +509,64 @@ const summaryItems = computed(() => (chart.value
         },
     ]
     : []));
+
+/**
+ * The fixed reading of each chart-level part. A part without a reading is left out and logged: another part's text
+ * must never stand in for it.
+ */
+const readings = computed(() => {
+    const current = chart.value;
+
+    if (!current) return [];
+
+    const profile = HUMAN_DESIGN_PROFILE_INTERPRETATIONS[current.profile as HumanDesignProfile];
+    const candidates = [
+        {
+            label: '類型',
+            title: typeLabels[current.type],
+            entry: HUMAN_DESIGN_TYPE_INTERPRETATIONS[current.type],
+            strategy: HUMAN_DESIGN_TYPE_INTERPRETATIONS[current.type]?.strategy ?? '',
+        },
+        {
+            label: '內在權威',
+            title: authorityLabels[current.authority],
+            entry: HUMAN_DESIGN_AUTHORITY_INTERPRETATIONS[current.authority],
+            strategy: '',
+        },
+        {
+            label: '人生角色',
+            title: profile ? `${current.profile} ${profile.name}` : current.profile,
+            entry: profile,
+            strategy: '',
+        },
+        {
+            label: '定義',
+            title: definitionLabels[current.definition],
+            entry: HUMAN_DESIGN_DEFINITION_INTERPRETATIONS[current.definition],
+            strategy: '',
+        },
+        {
+            label: '人生十字角度',
+            title: crossAngleLabels[current.incarnationCross.angle],
+            entry: HUMAN_DESIGN_CROSS_ANGLE_INTERPRETATIONS[current.incarnationCross.angle],
+            strategy: '',
+        },
+    ];
+
+    return candidates.flatMap(({
+        entry, ...rest
+    }) => {
+        if (!entry) {
+            console.error('[human-design] no interpretation for', rest.label, rest.title);
+
+            return [];
+        }
+
+        return [{
+            ...rest, ...entry,
+        }];
+    });
+});
 
 const channelName = (key: string) => CHANNEL_NAMES[key]?.zh ?? key;
 
