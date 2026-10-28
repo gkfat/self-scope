@@ -65,7 +65,7 @@
             >
                 <v-card-title>進階星盤</v-card-title>
                 <v-card-subtitle class="text-wrap">
-                    用出生的時間與城市，看太陽以外的星體落在哪個星座，以及上升星座。
+                    用出生的時間與城市，看太陽以外的星體落在哪個星座，以及上升星座、宮位、宮主星與相位。
                 </v-card-subtitle>
                 <v-card-text>
                     <!-- With time and city: the chart -->
@@ -142,6 +142,78 @@
                                     </v-col>
                                 </v-row>
                             </div>
+
+                            <div class="mb-5">
+                                <div class="text-subtitle-1 font-weight-medium">
+                                    宮位與宮主星
+                                </div>
+                                <p class="text-body-2 text-medium-emphasis mb-3">
+                                    以上升星座為第 1 宮，依序數到第 12 宮（整宮制）。每一宮由它的星座的守護星掌管，這顆守護星稱為宮主星。
+                                </p>
+                                <v-row dense>
+                                    <v-col
+                                        v-for="house in houseCards"
+                                        :key="house.house"
+                                        cols="6"
+                                        sm="4"
+                                        md="3"
+                                    >
+                                        <v-card
+                                            variant="outlined"
+                                            height="100%"
+                                        >
+                                            <v-card-text>
+                                                <div class="text-caption text-medium-emphasis">
+                                                    第 {{ house.house }} 宮・{{ house.theme }}
+                                                </div>
+                                                <div class="text-subtitle-1 font-weight-medium">
+                                                    {{ house.sign }}
+                                                </div>
+                                                <div class="text-body-2">
+                                                    宮主星：{{ house.ruler }}
+                                                </div>
+                                                <div class="text-body-2 text-medium-emphasis">
+                                                    {{ house.bodies }}
+                                                </div>
+                                            </v-card-text>
+                                        </v-card>
+                                    </v-col>
+                                </v-row>
+                            </div>
+
+                            <div class="mb-2">
+                                <div class="text-subtitle-1 font-weight-medium">
+                                    星體之間的相位
+                                </div>
+                                <p class="text-body-2 text-medium-emphasis mb-3">
+                                    兩顆星體在黃道上相距的角度接近特定角度時稱為相位。「相差」是離準確角度還差幾度，越小越準。
+                                </p>
+                                <p
+                                    v-if="aspectRows.length === 0"
+                                    class="text-body-2"
+                                >
+                                    這張星盤沒有落在範圍內的主要相位。
+                                </p>
+                                <v-row
+                                    v-else
+                                    dense
+                                >
+                                    <v-col
+                                        v-for="aspect in aspectRows"
+                                        :key="aspect.key"
+                                        cols="12"
+                                        sm="6"
+                                        md="4"
+                                    >
+                                        <v-card variant="outlined">
+                                            <v-card-text class="d-flex align-baseline justify-space-between ga-2">
+                                                <span class="text-body-1">{{ aspect.first }} {{ aspect.type }} {{ aspect.second }}</span>
+                                                <span class="text-caption text-medium-emphasis">相差 {{ aspect.orb }}°</span>
+                                            </v-card-text>
+                                        </v-card>
+                                    </v-col>
+                                </v-row>
+                            </div>
                         </template>
                     </template>
 
@@ -190,7 +262,7 @@
                                     想看進階星盤分析？
                                 </div>
                                 <p class="text-body-2 text-medium-emphasis mb-3">
-                                    填寫出生時間與出生城市，就能看到月亮、上升與其他星體落在哪個星座。
+                                    填寫出生時間與出生城市，就能看到月亮、上升與其他星體落在哪個星座，以及宮位、宮主星與星體之間的相位。
                                 </p>
                                 <v-btn
                                     to="/#fill"
@@ -220,7 +292,7 @@
 
 <script lang="ts" setup>
 import {
-    NATAL_GROUPS, NATAL_LABELS, type NatalKey,
+    ASPECT_LABELS, HOUSE_THEMES, NATAL_GROUPS, NATAL_LABELS, type NatalKey,
 } from '../../../../shared/constants/natalLabels';
 import { NATAL_PLACEMENT_MEANINGS } from '../../../../shared/constants/natalPlacementMeanings';
 import { ZODIAC_LABELS } from '../../../../shared/constants/zodiacLabels';
@@ -286,6 +358,23 @@ const groups = computed(() => {
         })),
     }));
 });
+
+/** The twelve houses: the theme, the sign, who rules it and which bodies are in it. */
+const houseCards = computed(() => (natal.value?.houses ?? []).map((house) => ({
+    house: house.house,
+    theme: HOUSE_THEMES[house.house - 1] ?? '',
+    sign: ZODIAC_LABELS[house.sign],
+    ruler: NATAL_LABELS[house.ruler].name,
+    bodies: house.bodies.length > 0 ? `星體：${house.bodies.map((body) => NATAL_LABELS[body].name).join('、')}` : '沒有星體',
+})));
+
+const aspectRows = computed(() => (natal.value?.aspects ?? []).map((aspect) => ({
+    key: `${aspect.body1}-${aspect.body2}`,
+    first: NATAL_LABELS[aspect.body1].name,
+    second: NATAL_LABELS[aspect.body2].name,
+    type: ASPECT_LABELS[aspect.type as keyof typeof ASPECT_LABELS],
+    orb: aspect.orb.toFixed(1),
+})));
 
 async function loadChart() {
     if (!advancedReady.value || !birth.value) return;

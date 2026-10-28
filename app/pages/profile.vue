@@ -59,7 +59,7 @@
                     v-if="!withTimeAndPlace"
                     class="text-body-2 text-medium-emphasis"
                 >
-                    沒有出生時間與地點時，仍可使用星座、血型、MBTI 與合成分析，只是無法計算人類圖。
+                    沒有出生時間與地點時，仍可使用星座、血型、MBTI 與合成分析，只是無法計算人類圖，也看不到進階星盤的上升、宮位、宮主星與相位。出生時間會影響上升與宮位，請填當地實際的時間。
                 </p>
                 <template v-else>
                     <ProfileBirthTimeSelect

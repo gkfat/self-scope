@@ -17,7 +17,7 @@ type VersionedSystem = Exclude<AnalysisSystem, 'MBTI'>;
 export const RULE_VERSIONS: Readonly<Record<VersionedSystem, string>> = {
     ZODIAC: 'zodiac-v1',
     BAZI: 'bazi-v1',
-    NATAL_CHART: 'natal-v1',
+    NATAL_CHART: 'natal-v2',
     HUMAN_DESIGN: 'human-design-v1',
     NUMEROLOGY: 'numerology-v1',
     MAYA_KIN: 'dreamspell-v1',

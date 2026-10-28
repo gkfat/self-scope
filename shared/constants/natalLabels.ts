@@ -39,6 +39,30 @@ export const NATAL_LABELS: Record<NatalKey, { name: string; role: string }> = {
     },
 };
 
+/** What each of the twelve houses is about, in a few words (the same names the sign horoscope uses). */
+export const HOUSE_THEMES: readonly string[] = [
+    '自我與開始',
+    '資源與價值',
+    '溝通與學習',
+    '家與根基',
+    '表現與樂趣',
+    '日常與安排',
+    '關係與合作',
+    '深層連結',
+    '視野與探索',
+    '目標與角色',
+    '夥伴與期待',
+    '沉澱與獨處',
+];
+
+export const ASPECT_LABELS = {
+    CONJUNCTION: '合相',
+    SEXTILE: '六分相',
+    SQUARE: '四分相',
+    TRINE: '三分相',
+    OPPOSITION: '對分相',
+} as const;
+
 /** How the cards are grouped on the report. */
 export const NATAL_GROUPS: Array<{ title: string; subtitle: string; keys: NatalKey[] }> = [
     {

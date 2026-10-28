@@ -35,6 +35,40 @@ describe('NatalChartService', () => {
         expect(chart.ascendant.sign).toBeTruthy();
     });
 
+    it('gives twelve houses and the aspects, in the shape the schema promises', () => {
+        const chart = service.calculate(request);
+
+        expect(chart.houses).toHaveLength(12);
+        expect(chart.houses[0]?.sign).toBe(chart.ascendant.sign);
+        expect(chart.houses.flatMap((house) => house.bodies)).toHaveLength(10);
+        expect(chart.aspects.every((aspect) => aspect.orb <= 8)).toBe(true);
+        expect(natalChartResponseSchema.safeParse(chart).success).toBe(true);
+    });
+
+    it('leaves the signs and the ascendant exactly as they were before the houses and aspects were added', () => {
+        const chart = service.calculate({
+            birthDate: '1995-03-25', birthTime: '14:30', birthPlace: 'tw-taipei',
+        });
+        const again = service.calculate({
+            birthDate: '1995-03-25', birthTime: '14:30', birthPlace: 'tw-taipei',
+        });
+
+        expect(chart.bodies).toEqual(again.bodies);
+        expect(chart.bodies.SUN).toEqual({
+            sign: 'aries', degree: 4,
+        });
+        expect(chart.houses[0]?.sign).toBe(chart.ascendant.sign);
+    });
+
+    it('does not guess a house without a birth time or a city: the request is turned away', () => {
+        expect(natalChartRequestSchema.safeParse({
+            birthDate: '1995-03-25', birthPlace: 'tw-taipei',
+        }).success).toBe(false);
+        expect(natalChartRequestSchema.safeParse({
+            birthDate: '1995-03-25', birthTime: '14:30',
+        }).success).toBe(false);
+    });
+
     it('says so when the entered time happened twice, and not otherwise', () => {
         expect(service.calculate(request).timeNote).toBe('AMBIGUOUS');
         expect(service.calculate({
