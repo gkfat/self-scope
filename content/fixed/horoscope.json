@@ -1,0 +1,1142 @@
+[
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MOON_1",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "月亮在第 1 宮：自我與開始",
+      "summary": "心情直接浮在表面，今天的情緒與自我感受很貼近，傾向想照著當下的感覺行動。",
+      "strengths": [
+        "直覺",
+        "自我",
+        "當下"
+      ],
+      "blindSpots": [
+        "情緒來得快時，可能把心情當成事實。"
+      ],
+      "growthAdvice": "今天可以試試開始前先問自己此刻真正想要什麼。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MOON_2",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "月亮在第 2 宮：資源與價值",
+      "summary": "今天的安心感可能來自手邊擁有的東西，傾向想把生活的基本面照顧好。",
+      "strengths": [
+        "安心",
+        "資源",
+        "踏實"
+      ],
+      "blindSpots": [
+        "想靠買東西或吃來安撫情緒時，可能忽略真正的需要。"
+      ],
+      "growthAdvice": "今天可以試試整理一下錢包或帳本，替自己安排一件踏實的小事。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MOON_3",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "月亮在第 3 宮：溝通與學習",
+      "summary": "心裡有很多話想說，傾向想聊、想看、想學，情緒靠交流消化。",
+      "strengths": [
+        "交流",
+        "好奇",
+        "資訊"
+      ],
+      "blindSpots": [
+        "資訊太雜時，可能讓心緒跟著飄。"
+      ],
+      "growthAdvice": "今天可以試試找人聊十分鐘，或讀一篇讓你感興趣的短文。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MOON_4",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "月亮在第 4 宮：家與根基",
+      "summary": "今天可能特別想回到安靜熟悉的地方，傾向重視家人與歸屬感。",
+      "strengths": [
+        "歸屬",
+        "家",
+        "安全感"
+      ],
+      "blindSpots": [
+        "太想縮在舒適圈時，可能錯過該面對的事。"
+      ],
+      "growthAdvice": "今天可以試試早點回家，替自己準備一份熟悉的食物。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MOON_5",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "月亮在第 5 宮：表現與樂趣",
+      "summary": "今天傾向想玩、想表現、想被看見，心情適合做讓自己開心的事。",
+      "strengths": [
+        "玩樂",
+        "創作",
+        "表達"
+      ],
+      "blindSpots": [
+        "太在意回應時，可能讓心情隨他人評價起伏。"
+      ],
+      "growthAdvice": "今天可以試試做一件純粹好玩、沒有目的的事。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MOON_6",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "月亮在第 6 宮：日常與安排",
+      "summary": "今天的心情可能和日常節奏綁在一起，傾向靠整理與做事讓自己安定。",
+      "strengths": [
+        "整理",
+        "節奏",
+        "安定"
+      ],
+      "blindSpots": [
+        "對小事過度操心時，可能越做越緊繃。"
+      ],
+      "growthAdvice": "今天可以試試清出一個小角落，或把今天要做的事排成三項。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MOON_7",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "月亮在第 7 宮：關係與合作",
+      "summary": "今天的情緒可能特別受身邊人影響，傾向想被理解、想與人同步。",
+      "strengths": [
+        "同理",
+        "關係",
+        "默契"
+      ],
+      "blindSpots": [
+        "太在意對方感受時，可能壓下自己的需要。"
+      ],
+      "growthAdvice": "今天可以試試對一位重要的人說出你今天的心情。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MOON_8",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "月亮在第 8 宮：深層連結",
+      "summary": "今天的感受可能比平常更深，傾向對信任與親密特別敏感。",
+      "strengths": [
+        "深度",
+        "信任",
+        "親密"
+      ],
+      "blindSpots": [
+        "把感受悶在心裡時，可能讓猜測越滾越大。"
+      ],
+      "growthAdvice": "今天可以試試挑一件放在心裡的事，找信任的人說說。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MOON_9",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "月亮在第 9 宮：視野與探索",
+      "summary": "今天心情傾向想往外走、想看更遠，容易被新想法與新地方吸引。",
+      "strengths": [
+        "探索",
+        "視野",
+        "好奇"
+      ],
+      "blindSpots": [
+        "想一下子裝很多時，可能沒有把任何一件消化完。"
+      ],
+      "growthAdvice": "今天可以試試走一條沒走過的路，或看一則帶來新視野的內容。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MOON_10",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "月亮在第 10 宮：目標與角色",
+      "summary": "今天的心情可能和工作或角色連在一起，傾向想把事情做出成果。",
+      "strengths": [
+        "責任",
+        "目標",
+        "成果"
+      ],
+      "blindSpots": [
+        "把心情都押在表現上時，可能忽略休息。"
+      ],
+      "growthAdvice": "今天可以試試完成一件最重要的事，然後給自己一段休息。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MOON_11",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "月亮在第 11 宮：夥伴與期待",
+      "summary": "今天傾向想和志同道合的人在一起，心情靠夥伴與共同的盼望提振。",
+      "strengths": [
+        "夥伴",
+        "盼望",
+        "群體"
+      ],
+      "blindSpots": [
+        "在群體裡太順著大家時，可能忘了自己的想法。"
+      ],
+      "growthAdvice": "今天可以試試聯絡一位聊得來的朋友，聊聊最近的期待。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MOON_12",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "月亮在第 12 宮：沉澱與獨處",
+      "summary": "今天可能特別需要安靜，傾向想獨處、整理內心，不太想應付外界。",
+      "strengths": [
+        "沉澱",
+        "獨處",
+        "休息"
+      ],
+      "blindSpots": [
+        "想逃開一切時，可能把該處理的事一直擱著。"
+      ],
+      "growthAdvice": "今天可以試試留一段不被打擾的時間，什麼都不必做。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "SUN_1",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "太陽在第 1 宮：自我與開始",
+      "summary": "這段時間的焦點可能回到你自己：你是誰、想成為什麼樣子，傾向主動開始新的事。",
+      "strengths": [
+        "自我",
+        "開始",
+        "活力"
+      ],
+      "blindSpots": [
+        "太專注自己時，可能忽略身邊人的步調。"
+      ],
+      "growthAdvice": "今天可以試試為這個月訂一個關於自己的小目標。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "SUN_2",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "太陽在第 2 宮：資源與價值",
+      "summary": "這段時間的主題可能是資源與價值：你擁有什麼、看重什麼，傾向想把基礎打穩。",
+      "strengths": [
+        "價值",
+        "資源",
+        "踏實"
+      ],
+      "blindSpots": [
+        "把價值只放在擁有多少時，可能忽略不能量化的東西。"
+      ],
+      "growthAdvice": "今天可以試試寫下你最看重的三件事，檢查時間與金錢是否花在上面。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "SUN_3",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "太陽在第 3 宮：溝通與學習",
+      "summary": "這段時間的主題可能是學習與交流：傾向多看、多聊、多寫，注意力常在資訊與周遭。",
+      "strengths": [
+        "學習",
+        "交流",
+        "好奇"
+      ],
+      "blindSpots": [
+        "想法太多時，可能一件都沒有深入。"
+      ],
+      "growthAdvice": "今天可以試試挑一個想學的小主題，每天花十五分鐘。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "SUN_4",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "太陽在第 4 宮：家與根基",
+      "summary": "這段時間的主題可能回到家與根：傾向重新整理住處、家人關係與內在的安全感。",
+      "strengths": [
+        "根基",
+        "家人",
+        "內在"
+      ],
+      "blindSpots": [
+        "太沉在過去時，可能難以往前。"
+      ],
+      "growthAdvice": "今天可以試試整理居住空間的一角，或打給一位家人。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "SUN_5",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "太陽在第 5 宮：表現與樂趣",
+      "summary": "這段時間的主題可能是創作與表現：傾向想做讓自己發光、讓自己開心的事。",
+      "strengths": [
+        "創造",
+        "表現",
+        "樂趣"
+      ],
+      "blindSpots": [
+        "太想被看見時，可能把價值綁在掌聲上。"
+      ],
+      "growthAdvice": "今天可以試試開始一件純粹因為喜歡而做的作品。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "SUN_6",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "太陽在第 6 宮：日常與安排",
+      "summary": "這段時間的主題可能是日常與習慣：傾向把生活的細節整理好、把例行的事做順。",
+      "strengths": [
+        "習慣",
+        "整理",
+        "實用"
+      ],
+      "blindSpots": [
+        "對自己要求太細時，可能讓日常變成壓力。"
+      ],
+      "growthAdvice": "今天可以試試挑一個小習慣，連續做一星期。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "SUN_7",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "太陽在第 7 宮：關係與合作",
+      "summary": "這段時間的主題可能是關係與合作：傾向在與人的互動中看見自己。",
+      "strengths": [
+        "關係",
+        "合作",
+        "平衡"
+      ],
+      "blindSpots": [
+        "把重心都放在對方時，可能失去自己的立場。"
+      ],
+      "growthAdvice": "今天可以試試與一位重要的人好好談一次彼此的期待。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "SUN_8",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "太陽在第 8 宮：深層連結",
+      "summary": "這段時間的主題可能是深層的連結與轉變：傾向面對信任、共享與放下。",
+      "strengths": [
+        "深度",
+        "信任",
+        "轉變"
+      ],
+      "blindSpots": [
+        "想一次看透所有事時，可能讓自己緊繃。"
+      ],
+      "growthAdvice": "今天可以試試放下一個一直抓著的想法或物品。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "SUN_9",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "太陽在第 9 宮：視野與探索",
+      "summary": "這段時間的主題可能是視野與意義：傾向想學新東西、走遠一點、問大一點的問題。",
+      "strengths": [
+        "視野",
+        "探索",
+        "意義"
+      ],
+      "blindSpots": [
+        "太想一次改變時，可能少了腳踏實地。"
+      ],
+      "growthAdvice": "今天可以試試規劃一個小小的探索，例如一堂課或一趟短程出走。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "SUN_10",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "太陽在第 10 宮：目標與角色",
+      "summary": "這段時間的主題可能是目標與角色：傾向把心力放在事業與外界的期待上。",
+      "strengths": [
+        "目標",
+        "責任",
+        "成就"
+      ],
+      "blindSpots": [
+        "太專注於表現時，可能忽略私人的生活。"
+      ],
+      "growthAdvice": "今天可以試試寫下這個季度最想完成的一件事，拆成三步。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "SUN_11",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "太陽在第 11 宮：夥伴與期待",
+      "summary": "這段時間的主題可能是夥伴與盼望：傾向和志同道合的人一起做事、談未來。",
+      "strengths": [
+        "夥伴",
+        "盼望",
+        "群體"
+      ],
+      "blindSpots": [
+        "太依賴群體的認同時，可能忘了個人的方向。"
+      ],
+      "growthAdvice": "今天可以試試加入或籌劃一件和朋友一起的小計畫。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "SUN_12",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "太陽在第 12 宮：沉澱與獨處",
+      "summary": "這段時間的主題可能是沉澱與整理：傾向在安靜中回顧、放下，為下個階段準備。",
+      "strengths": [
+        "沉澱",
+        "回顧",
+        "放下"
+      ],
+      "blindSpots": [
+        "躲得太久時，可能讓事情累積。"
+      ],
+      "growthAdvice": "今天可以試試寫下最近學到的三件事，並放掉一個已經結束的念頭。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MERCURY_1",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "水星在第 1 宮：自我與開始",
+      "summary": "想法與說話都很直接，傾向用自己的角度看事情，適合清楚表達想法。",
+      "strengths": [
+        "直接",
+        "表達",
+        "自我"
+      ],
+      "blindSpots": [
+        "說得太快時，可能沒聽完別人的話。"
+      ],
+      "growthAdvice": "今天可以試試把想表達的一句話想好再說。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MERCURY_2",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "水星在第 2 宮：資源與價值",
+      "summary": "思考可能圍繞著價值與實際：傾向算清楚、想實際，適合整理與評估。",
+      "strengths": [
+        "實際",
+        "評估",
+        "價值"
+      ],
+      "blindSpots": [
+        "想得太窄時，可能只看見損益。"
+      ],
+      "growthAdvice": "今天可以試試把一個正在考慮的決定，列出利弊各三點。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MERCURY_3",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "水星在第 3 宮：溝通與學習",
+      "summary": "腦筋轉得快、話也多，傾向蒐集資訊與交流，適合學習與溝通。",
+      "strengths": [
+        "資訊",
+        "交流",
+        "敏捷"
+      ],
+      "blindSpots": [
+        "同時接收太多時，可能分心。"
+      ],
+      "growthAdvice": "今天可以試試一次只處理一則訊息或一件待辦。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MERCURY_4",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "水星在第 4 宮：家與根基",
+      "summary": "思考可能圍繞著家與內心，傾向想得深、想得久，適合在安靜的地方整理想法。",
+      "strengths": [
+        "內省",
+        "安靜",
+        "家"
+      ],
+      "blindSpots": [
+        "想法悶在心裡時，可能沒讓身邊的人知道。"
+      ],
+      "growthAdvice": "今天可以試試在熟悉的地方寫下現在在想的事。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MERCURY_5",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "水星在第 5 宮：表現與樂趣",
+      "summary": "想法帶著創意與玩心，傾向用有趣的方式表達，適合發想與分享。",
+      "strengths": [
+        "創意",
+        "玩心",
+        "表達"
+      ],
+      "blindSpots": [
+        "為了好玩而說太多時，可能讓重點被稀釋。"
+      ],
+      "growthAdvice": "今天可以試試用一個比喻或故事說明你的想法。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MERCURY_6",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "水星在第 6 宮：日常與安排",
+      "summary": "思考細緻實際，傾向注意細節與流程，適合整理、規劃與檢查。",
+      "strengths": [
+        "細節",
+        "規劃",
+        "條理"
+      ],
+      "blindSpots": [
+        "太挑剔細節時，可能忽略整體。"
+      ],
+      "growthAdvice": "今天可以試試為今天的事列一份簡短的清單。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MERCURY_7",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "水星在第 7 宮：關係與合作",
+      "summary": "想法在與人對話中成形，傾向透過討論釐清，適合協商與傾聽。",
+      "strengths": [
+        "對話",
+        "協商",
+        "傾聽"
+      ],
+      "blindSpots": [
+        "想迎合對方時，可能說不出自己的看法。"
+      ],
+      "growthAdvice": "今天可以試試找一位信任的人，討論你正在想的問題。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MERCURY_8",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "水星在第 8 宮：深層連結",
+      "summary": "思考傾向挖得深，想看到事情背後的原因，適合深入研究與坦誠談話。",
+      "strengths": [
+        "洞察",
+        "深入",
+        "坦誠"
+      ],
+      "blindSpots": [
+        "想太多隱藏的意思時，可能疑心過頭。"
+      ],
+      "growthAdvice": "今天可以試試先問清楚對方真正的意思，再下結論。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MERCURY_9",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "水星在第 9 宮：視野與探索",
+      "summary": "想法傾向放遠，對新觀點與其他文化特別有興趣，適合學習與規劃。",
+      "strengths": [
+        "視野",
+        "學習",
+        "想像"
+      ],
+      "blindSpots": [
+        "想得很大卻沒落地時，可能停在構想。"
+      ],
+      "growthAdvice": "今天可以試試把一個大想法，寫成三個可以開始的步驟。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MERCURY_10",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "水星在第 10 宮：目標與角色",
+      "summary": "思考傾向以目標為中心，講話有條理、有分量，適合報告與提案。",
+      "strengths": [
+        "目標",
+        "條理",
+        "說服"
+      ],
+      "blindSpots": [
+        "太在意怎麼說才得體時，可能少了真心話。"
+      ],
+      "growthAdvice": "今天可以試試為重要的事先擬好三個重點再開口。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MERCURY_11",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "水星在第 11 宮：夥伴與期待",
+      "summary": "想法在群體中發酵，傾向與夥伴交換點子，適合腦力激盪。",
+      "strengths": [
+        "點子",
+        "夥伴",
+        "未來"
+      ],
+      "blindSpots": [
+        "附和多數時，可能少了自己的判斷。"
+      ],
+      "growthAdvice": "今天可以試試和朋友一起想一個還沒人做過的點子。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MERCURY_12",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "水星在第 12 宮：沉澱與獨處",
+      "summary": "思考傾向向內，想法安靜而細微，適合獨處時整理與寫作。",
+      "strengths": [
+        "內在",
+        "細微",
+        "整理"
+      ],
+      "blindSpots": [
+        "把想法悶在心裡時，可能越想越亂。"
+      ],
+      "growthAdvice": "今天可以試試睡前寫下腦中還在轉的三件事。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "VENUS_1",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "金星在第 1 宮：自我與開始",
+      "summary": "魅力與自我感受都比較外顯，傾向用自己真實的樣子與人相處。",
+      "strengths": [
+        "魅力",
+        "真實",
+        "自我"
+      ],
+      "blindSpots": [
+        "太在意別人怎麼看自己時，可能少了自在。"
+      ],
+      "growthAdvice": "今天可以試試做一件讓自己覺得好看、舒服的小事。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "VENUS_2",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "金星在第 2 宮：資源與價值",
+      "summary": "對感情與價值的感受偏向踏實，傾向在乎可靠與穩定的陪伴。",
+      "strengths": [
+        "踏實",
+        "可靠",
+        "陪伴"
+      ],
+      "blindSpots": [
+        "太抓緊安全感時，可能讓關係少了彈性。"
+      ],
+      "growthAdvice": "今天可以試試為重視的人準備一份實際的小心意。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "VENUS_3",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "金星在第 3 宮：溝通與學習",
+      "summary": "人際與感情靠談話與小互動滋養，傾向用訊息、聊天拉近距離。",
+      "strengths": [
+        "交談",
+        "互動",
+        "輕鬆"
+      ],
+      "blindSpots": [
+        "只停在輕鬆話題時，可能少了深入。"
+      ],
+      "growthAdvice": "今天可以試試主動關心一位久未聯絡的人。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "VENUS_4",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "金星在第 4 宮：家與根基",
+      "summary": "感情的重心可能回到家人與最親近的人，傾向想營造溫暖的氛圍。",
+      "strengths": [
+        "溫暖",
+        "家人",
+        "歸屬"
+      ],
+      "blindSpots": [
+        "只在熟悉的圈子時，可能少了新的連結。"
+      ],
+      "growthAdvice": "今天可以試試和家人或室友一起吃一頓飯。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "VENUS_5",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "金星在第 5 宮：表現與樂趣",
+      "summary": "感情帶著玩心與浪漫，傾向享受相處的樂趣，適合約會與創作。",
+      "strengths": [
+        "浪漫",
+        "樂趣",
+        "創作"
+      ],
+      "blindSpots": [
+        "只追求新鮮感時，可能忽略長久的經營。"
+      ],
+      "growthAdvice": "今天可以試試安排一件和喜歡的人一起做的好玩的事。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "VENUS_6",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "金星在第 6 宮：日常與安排",
+      "summary": "感情與人際落在日常的互相照顧，傾向用實際的幫忙與細節表達心意。",
+      "strengths": [
+        "照顧",
+        "細節",
+        "實際"
+      ],
+      "blindSpots": [
+        "付出很多卻不說時，可能累積小小的失落。"
+      ],
+      "growthAdvice": "今天可以試試為身邊的人做一件小而具體的事，也說出你的期待。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "VENUS_7",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "金星在第 7 宮：關係與合作",
+      "summary": "這是金星最自在的位置之一：關係與合作特別被看見，傾向重視平衡與互惠。",
+      "strengths": [
+        "關係",
+        "互惠",
+        "和諧"
+      ],
+      "blindSpots": [
+        "太想維持和諧時，可能壓下真實的想法。"
+      ],
+      "growthAdvice": "今天可以試試誠實告訴對方一件你在意的事。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "VENUS_8",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "金星在第 8 宮：深層連結",
+      "summary": "感情傾向深入而專注，對信任與親密特別在意，適合坦誠面對彼此。",
+      "strengths": [
+        "親密",
+        "信任",
+        "深度"
+      ],
+      "blindSpots": [
+        "想完全掌握時，可能讓對方感到壓力。"
+      ],
+      "growthAdvice": "今天可以試試對信任的人說出一件一直沒說的感受。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "VENUS_9",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "金星在第 9 宮：視野與探索",
+      "summary": "感情與人際傾向開闊，容易被不同背景的人吸引，適合交流與分享見聞。",
+      "strengths": [
+        "開闊",
+        "多元",
+        "交流"
+      ],
+      "blindSpots": [
+        "太重視自由時，可能不太願意承諾。"
+      ],
+      "growthAdvice": "今天可以試試認識一位不同圈子的人，聽聽他的故事。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "VENUS_10",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "金星在第 10 宮：目標與角色",
+      "summary": "人際帶著正式與目標的色彩，傾向重視長久與可靠的關係，也在乎形象。",
+      "strengths": [
+        "長久",
+        "形象",
+        "可靠"
+      ],
+      "blindSpots": [
+        "太在意關係合不合適時，可能顯得保留。"
+      ],
+      "growthAdvice": "今天可以試試對共事的人表達一次具體的感謝。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "VENUS_11",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "金星在第 11 宮：夥伴與期待",
+      "summary": "人際在朋友與群體中最自在，傾向重視志同道合與對等的情誼。",
+      "strengths": [
+        "友誼",
+        "群體",
+        "對等"
+      ],
+      "blindSpots": [
+        "對朋友期待太多時，可能容易失望。"
+      ],
+      "growthAdvice": "今天可以試試邀請朋友一起做一件有共同興趣的事。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "VENUS_12",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "金星在第 12 宮：沉澱與獨處",
+      "summary": "感情傾向安靜而內斂，可能更重視不說出口的默契與獨處的滋養。",
+      "strengths": [
+        "默契",
+        "內斂",
+        "滋養"
+      ],
+      "blindSpots": [
+        "把心意藏得太深時，可能讓對方猜不到。"
+      ],
+      "growthAdvice": "今天可以試試寫一段給在乎的人的話，送不送出都可以。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MARS_1",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "火星在第 1 宮：自我與開始",
+      "summary": "行動力直接而充沛，傾向想主動出手、立刻開始。",
+      "strengths": [
+        "行動",
+        "衝勁",
+        "主動"
+      ],
+      "blindSpots": [
+        "衝得太快時，可能忽略準備。"
+      ],
+      "growthAdvice": "今天可以試試挑一件拖著的事，今天先做第一步。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MARS_2",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "火星在第 2 宮：資源與價值",
+      "summary": "精力傾向用在實際的成果上，適合努力累積、把資源用在刀口。",
+      "strengths": [
+        "實際",
+        "累積",
+        "耐力"
+      ],
+      "blindSpots": [
+        "太執著於得失時，可能越做越緊。"
+      ],
+      "growthAdvice": "今天可以試試把精力放在一件能帶來具體成果的事。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MARS_3",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "火星在第 3 宮：溝通與學習",
+      "summary": "行動傾向靠嘴與腦：多談、多寫、多跑，節奏快而分散。",
+      "strengths": [
+        "溝通",
+        "敏捷",
+        "忙碌"
+      ],
+      "blindSpots": [
+        "同時開太多條線時，可能每條都沒做完。"
+      ],
+      "growthAdvice": "今天可以試試只選一件要完成的事，其他先放著。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MARS_4",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "火星在第 4 宮：家與根基",
+      "summary": "精力傾向放在家與內在，可能在住處與家人間有較多的能量與摩擦。",
+      "strengths": [
+        "家",
+        "內在",
+        "整頓"
+      ],
+      "blindSpots": [
+        "悶在心裡的火氣，可能在最親近的人面前冒出來。"
+      ],
+      "growthAdvice": "今天可以試試用整理或運動把悶著的能量排出來。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MARS_5",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "火星在第 5 宮：表現與樂趣",
+      "summary": "行動帶著熱情與競爭心，傾向想表現、想玩得盡興，適合運動與創作。",
+      "strengths": [
+        "熱情",
+        "競爭",
+        "創作"
+      ],
+      "blindSpots": [
+        "太想贏時，可能忘了享受。"
+      ],
+      "growthAdvice": "今天可以試試做一件需要全力投入、而且好玩的事。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MARS_6",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "火星在第 6 宮：日常與安排",
+      "summary": "精力傾向用在日常的事務與效率，適合整理、完成清單與調整節奏。",
+      "strengths": [
+        "效率",
+        "清單",
+        "勤勉"
+      ],
+      "blindSpots": [
+        "一直忙時，可能忘了休息。"
+      ],
+      "growthAdvice": "今天可以試試完成清單上的三件小事，然後停下來休息。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MARS_7",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "火星在第 7 宮：關係與合作",
+      "summary": "行動傾向在與人的互動中展現，可能與合作的人有較多的拉扯，也可能在協商中出力。",
+      "strengths": [
+        "互動",
+        "協商",
+        "界線"
+      ],
+      "blindSpots": [
+        "對身邊人不耐煩時，可能一點小事就起衝突。"
+      ],
+      "growthAdvice": "今天可以試試想反應前先停三秒，用「我」開頭說出需要。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MARS_8",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "火星在第 8 宮：深層連結",
+      "summary": "精力傾向深而集中，適合處理需要毅力與專注的事，也可能對共同的事有強烈的立場。",
+      "strengths": [
+        "專注",
+        "毅力",
+        "堅持"
+      ],
+      "blindSpots": [
+        "太堅持己見時，可能讓雙方都僵住。"
+      ],
+      "growthAdvice": "今天可以試試挑一件需要專注的事，投入一段不被打擾的時間。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MARS_9",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "火星在第 9 宮：視野與探索",
+      "summary": "行動傾向向外探索，想挑戰新的、遠一點的事，適合運動與學習。",
+      "strengths": [
+        "探索",
+        "挑戰",
+        "熱情"
+      ],
+      "blindSpots": [
+        "太急著證明時，可能說得太直接。"
+      ],
+      "growthAdvice": "今天可以試試報名或規劃一件新鮮的挑戰。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MARS_10",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "火星在第 10 宮：目標與角色",
+      "summary": "行動傾向以目標為導向，企圖心高，適合推動工作與爭取機會。",
+      "strengths": [
+        "企圖",
+        "目標",
+        "推進"
+      ],
+      "blindSpots": [
+        "太用力時，可能忽略與同事的配合。"
+      ],
+      "growthAdvice": "今天可以試試把一個重要目標拆成今天能做的一步。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MARS_11",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "火星在第 11 宮：夥伴與期待",
+      "summary": "精力傾向用在群體與共同的目標，適合與夥伴一起行動、推動理想。",
+      "strengths": [
+        "夥伴",
+        "行動",
+        "理想"
+      ],
+      "blindSpots": [
+        "在群體裡太急時，可能與人起摩擦。"
+      ],
+      "growthAdvice": "今天可以試試和夥伴分工，一起推動一件共同的小事。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "HOROSCOPE",
+    "key": "MARS_12",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "火星在第 12 宮：沉澱與獨處",
+      "summary": "精力傾向內收，可能較難提起勁，也適合在幕後默默準備。",
+      "strengths": [
+        "蓄力",
+        "幕後",
+        "準備"
+      ],
+      "blindSpots": [
+        "壓著不說的挫折，可能悄悄消耗力氣。"
+      ],
+      "growthAdvice": "今天可以試試先好好休息，再做一件不費力的小事。",
+      "disclaimer": "星座運勢僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  }
+]

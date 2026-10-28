@@ -1,0 +1,926 @@
+[
+  {
+    "contentType": "TAROT",
+    "key": "0_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "愚者（正位）",
+      "summary": "今天的氣氛傾向輕盈與開放，適合用好奇心面對新的人事物，不必急著把一切想清楚。",
+      "strengths": [
+        "新開始",
+        "好奇",
+        "自在"
+      ],
+      "blindSpots": [
+        "太輕忽細節時，可能漏掉該先確認的事。"
+      ],
+      "loveStyle": "傾向用輕鬆坦率的方式靠近人，保持真誠就好。",
+      "workStyle": "可以試著接觸沒做過的做法，先小步嘗試。",
+      "growthAdvice": "今天可以試試做一件一直想嘗試、但還沒開始的小事。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "0_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "愚者（逆位）",
+      "summary": "今天可能有點衝動或猶豫不決，想往前卻又擔心踩空，需要留意準備是否足夠。",
+      "strengths": [
+        "衝動",
+        "猶豫",
+        "準備不足"
+      ],
+      "blindSpots": [
+        "可能把『隨性』當成不做功課，之後反而多花力氣。"
+      ],
+      "loveStyle": "傾向一下熱絡、一下退縮，可以先問問自己真正想要什麼。",
+      "workStyle": "起步前先列出最需要確認的兩三件事，再行動。",
+      "growthAdvice": "今天可以試試先寫下三個擔心，再挑一個動手處理。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "1_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "魔術師（正位）",
+      "summary": "今天傾向覺得手邊的資源其實夠用，把想法化為行動的條件正在成形。",
+      "strengths": [
+        "行動力",
+        "專注",
+        "創造"
+      ],
+      "blindSpots": [
+        "太想證明自己時，可能顯得急著表現。"
+      ],
+      "loveStyle": "傾向主動表達心意，用具體行動讓對方感受到。",
+      "workStyle": "適合把點子做成一個可以展示的小成果。",
+      "growthAdvice": "今天可以試試挑一個想法，把它做出最初的版本。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "1_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "魔術師（逆位）",
+      "summary": "今天可能覺得力氣散掉，點子很多卻難以聚焦，或擔心自己說的與做的不一致。",
+      "strengths": [
+        "分心",
+        "缺乏聚焦",
+        "表裡不一"
+      ],
+      "blindSpots": [
+        "同時開太多線時，可能每一條都停在半路。"
+      ],
+      "loveStyle": "傾向說得多、做得少，可以留意話語是否兌現。",
+      "workStyle": "先收斂到一件事，把其他的暫時放一邊。",
+      "growthAdvice": "今天可以試試只選一件事，做完再看下一件。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "2_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "女祭司（正位）",
+      "summary": "今天傾向安靜、內省，直覺的聲音比較清楚，適合先觀察再決定。",
+      "strengths": [
+        "直覺",
+        "沉靜",
+        "內在聲音"
+      ],
+      "blindSpots": [
+        "太習慣獨自消化時，可能讓身邊的人不知道你的想法。"
+      ],
+      "loveStyle": "傾向不急著說出口，重視默契與深層的了解。",
+      "workStyle": "適合先收集資訊、聽多於說，再做判斷。",
+      "growthAdvice": "今天可以試試留十分鐘安靜的時間，問問自己真正的感受。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "2_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "女祭司（逆位）",
+      "summary": "今天可能忽略自己的直覺，或被外界的聲音牽著走，也容易把話藏在心裡。",
+      "strengths": [
+        "忽略直覺",
+        "隱藏",
+        "壓抑"
+      ],
+      "blindSpots": [
+        "有疑慮卻不說出口，可能讓誤會慢慢累積。"
+      ],
+      "loveStyle": "傾向把心事放著不談，可以試著說出一句真話。",
+      "workStyle": "留意是否只憑他人意見做決定而沒問過自己。",
+      "growthAdvice": "今天可以試試把心裡卡著的那件事，用一兩句話寫下來。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "3_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "皇后（正位）",
+      "summary": "今天傾向溫暖、豐盛，適合照顧自己與身邊的人，也享受生活中的美好。",
+      "strengths": [
+        "滋養",
+        "豐盛",
+        "感受"
+      ],
+      "blindSpots": [
+        "給予太多時，可能忘了自己也需要被照顧。"
+      ],
+      "loveStyle": "傾向表達關心，用陪伴與細節讓人感到被疼惜。",
+      "workStyle": "適合把心力放在需要慢慢培養的事情上。",
+      "growthAdvice": "今天可以試試好好吃一餐，或為自己安排一件舒服的小事。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "3_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "皇后（逆位）",
+      "summary": "今天可能覺得被消耗，或過度依賴別人的認可，也可能忽略身心的需要。",
+      "strengths": [
+        "過度付出",
+        "依賴",
+        "疏於自我照顧"
+      ],
+      "blindSpots": [
+        "把照顧人當成全部時，可能累積沒說出口的疲憊。"
+      ],
+      "loveStyle": "傾向用付出換取安心，可以練習直接說出需要。",
+      "workStyle": "留意是否因為想被需要而攬下太多。",
+      "growthAdvice": "今天可以試試拒絕一件不屬於你的事，把時間留給自己。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "4_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "皇帝（正位）",
+      "summary": "今天傾向穩定、有秩序，適合建立規則、設好界線，把事情一步步做踏實。",
+      "strengths": [
+        "秩序",
+        "責任",
+        "界線"
+      ],
+      "blindSpots": [
+        "太堅持原則時，可能顯得不夠有彈性。"
+      ],
+      "loveStyle": "傾向用可靠與承諾表達重視，需要給對方一些空間。",
+      "workStyle": "適合訂定計畫、整理流程，讓結構更清楚。",
+      "growthAdvice": "今天可以試試為手上的事排出明確的先後順序。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "4_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "皇帝（逆位）",
+      "summary": "今天可能過於僵硬或想掌控一切，也可能覺得缺乏秩序、使不上力。",
+      "strengths": [
+        "控制",
+        "僵化",
+        "失序"
+      ],
+      "blindSpots": [
+        "想掌控所有細節時，可能讓自己與別人都喘不過氣。"
+      ],
+      "loveStyle": "傾向用強硬的方式維持安全感，可以試著放鬆一點。",
+      "workStyle": "留意是否因為不信任而事事親自處理。",
+      "growthAdvice": "今天可以試試放手一件小事，看看結果是否仍然可以接受。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "5_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "教皇（正位）",
+      "summary": "今天傾向重視傳統與共同的價值，向有經驗的人請教或遵循既有方法會有幫助。",
+      "strengths": [
+        "傳承",
+        "學習",
+        "共同價值"
+      ],
+      "blindSpots": [
+        "太依賴既有的做法時，可能忽略自己的想法。"
+      ],
+      "loveStyle": "傾向重視穩定的承諾與彼此認同的價值。",
+      "workStyle": "適合向前輩請益，或按照既定流程把事做好。",
+      "growthAdvice": "今天可以試試向一位信任的人請教一個困擾你的問題。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "5_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "教皇（逆位）",
+      "summary": "今天可能想打破常規，或覺得被既定的規範束縛，需要想清楚什麼適合自己。",
+      "strengths": [
+        "質疑規範",
+        "束縛",
+        "自己的路"
+      ],
+      "blindSpots": [
+        "為了反對而反對時，可能錯過其中有用的部分。"
+      ],
+      "loveStyle": "傾向不想被既有模式定義，可以聊聊彼此真正的期待。",
+      "workStyle": "留意是否只是照著做，卻沒有認同其中的道理。",
+      "growthAdvice": "今天可以試試分辨哪些規矩對你有用，哪些只是習慣。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "6_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "戀人（正位）",
+      "summary": "今天傾向在意關係與選擇，重視誠實與彼此的價值是否契合。",
+      "strengths": [
+        "連結",
+        "選擇",
+        "契合"
+      ],
+      "blindSpots": [
+        "選擇太多時，可能遲遲無法下決定。"
+      ],
+      "loveStyle": "傾向真誠面對彼此，適合談談在乎的事。",
+      "workStyle": "適合與合作對象確認目標是否一致。",
+      "growthAdvice": "今天可以試試對一個重要的人，坦白說出你的真實想法。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "6_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "戀人（逆位）",
+      "summary": "今天可能在關係或選擇上感到失衡、猶豫，或與自己的價值觀有些拉扯。",
+      "strengths": [
+        "失衡",
+        "猶豫",
+        "價值衝突"
+      ],
+      "blindSpots": [
+        "迴避做選擇時，可能讓問題一直懸著。"
+      ],
+      "loveStyle": "傾向溝通不順或各說各話，先聽完再回應會有幫助。",
+      "workStyle": "留意合作中是否有未說明的期待。",
+      "growthAdvice": "今天可以試試寫下你在乎的三件事，再對照目前的選擇。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "7_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "戰車（正位）",
+      "summary": "今天傾向有衝勁與決心，只要方向明確，就容易朝目標穩定前進。",
+      "strengths": [
+        "決心",
+        "前進",
+        "自律"
+      ],
+      "blindSpots": [
+        "太急著往前時，可能忽略身旁的人與節奏。"
+      ],
+      "loveStyle": "傾向積極行動，也別忘了留意對方的步調。",
+      "workStyle": "適合集中力量推進一個明確的目標。",
+      "growthAdvice": "今天可以試試把目標拆成今天能完成的一步。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "7_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "戰車（逆位）",
+      "summary": "今天可能方向不明、動力不足，或像兩股力量互相拉扯，難以順暢前進。",
+      "strengths": [
+        "失去方向",
+        "拉扯",
+        "動力不足"
+      ],
+      "blindSpots": [
+        "硬撐著往前時，可能越用力越消耗。"
+      ],
+      "loveStyle": "傾向各走各的，可以先停下來確認彼此的方向。",
+      "workStyle": "留意是否同時追太多目標，彼此牽制。",
+      "growthAdvice": "今天可以試試先停一下，確認自己真正想去的方向。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "8_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "力量（正位）",
+      "summary": "今天傾向以溫柔而堅定的方式面對挑戰，耐心比硬碰硬更有用。",
+      "strengths": [
+        "耐心",
+        "勇氣",
+        "溫柔堅定"
+      ],
+      "blindSpots": [
+        "過度壓抑情緒時，可能在某個時刻一次爆發。"
+      ],
+      "loveStyle": "傾向包容與體貼，用柔軟的方式化解摩擦。",
+      "workStyle": "適合用穩定的態度處理棘手的人或事。",
+      "growthAdvice": "今天可以試試在想反應之前，先深呼吸三次。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "8_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "力量（逆位）",
+      "summary": "今天可能對自己缺乏信心，或情緒起伏較大，需要溫和地對待自己。",
+      "strengths": [
+        "自我懷疑",
+        "情緒起伏",
+        "疲憊"
+      ],
+      "blindSpots": [
+        "對自己太嚴苛時，可能讓信心越來越低。"
+      ],
+      "loveStyle": "傾向敏感、容易受傷，先安頓自己再談會比較好。",
+      "workStyle": "留意是否因為擔心做不好而遲遲不敢開始。",
+      "growthAdvice": "今天可以試試用對待朋友的語氣，對自己說一句鼓勵的話。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "9_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "隱者（正位）",
+      "summary": "今天傾向想獨處與思考，適合沉澱、整理，找回自己的方向。",
+      "strengths": [
+        "獨處",
+        "思考",
+        "內省"
+      ],
+      "blindSpots": [
+        "獨處太久時，可能與身邊的人漸漸疏遠。"
+      ],
+      "loveStyle": "傾向需要自己的空間，說清楚能讓對方安心。",
+      "workStyle": "適合專注深入研究，不必急著對外表態。",
+      "growthAdvice": "今天可以試試安排一段不被打擾的時間，整理最近的想法。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "9_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "隱者（逆位）",
+      "summary": "今天可能過度孤立，或逃避與人接觸，也可能在迷惘中找不到出口。",
+      "strengths": [
+        "孤立",
+        "逃避",
+        "迷惘"
+      ],
+      "blindSpots": [
+        "把自己關起來時，可能讓煩惱越想越大。"
+      ],
+      "loveStyle": "傾向退縮不談，可以試著先傳一句簡單的問候。",
+      "workStyle": "留意是否因為不想被打擾而錯過可以請教的人。",
+      "growthAdvice": "今天可以試試主動聯絡一位讓你安心的人，聊聊近況。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "10_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "命運之輪（正位）",
+      "summary": "今天傾向感受到事情的流動與轉變，保持彈性，順勢調整會比較輕鬆。",
+      "strengths": [
+        "轉變",
+        "流動",
+        "機會"
+      ],
+      "blindSpots": [
+        "把變化都歸給運氣時，可能少了主動調整的力氣。"
+      ],
+      "loveStyle": "傾向關係出現新的節奏，順著變化溝通就好。",
+      "workStyle": "適合留意新出現的機會，並保持彈性。",
+      "growthAdvice": "今天可以試試接受一個小小的變動，看看它帶來什麼。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "10_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "命運之輪（逆位）",
+      "summary": "今天可能覺得事情不如預期、節奏被打亂，容易感到無力或想抗拒改變。",
+      "strengths": [
+        "不順",
+        "抗拒改變",
+        "無力感"
+      ],
+      "blindSpots": [
+        "太想抓緊舊的狀態時，可能更難適應新的情況。"
+      ],
+      "loveStyle": "傾向在變動中感到不安，說出擔心會有幫助。",
+      "workStyle": "留意計畫被打亂時，先調整步調而不是責怪自己。",
+      "growthAdvice": "今天可以試試列出目前能掌握的三件事，從那裡開始。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "11_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "正義（正位）",
+      "summary": "今天傾向重視公平與誠實，適合客觀看待事情，並為自己的選擇負責。",
+      "strengths": [
+        "公平",
+        "誠實",
+        "負責"
+      ],
+      "blindSpots": [
+        "太講求對錯時，可能忽略對方的感受。"
+      ],
+      "loveStyle": "傾向公平地看待彼此，適合坦誠討論該如何相處。",
+      "workStyle": "適合整理事實、釐清責任與條件。",
+      "growthAdvice": "今天可以試試分開寫出『事實』與『我的感受』。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "11_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "正義（逆位）",
+      "summary": "今天可能覺得不被公平對待，或逃避承擔責任，也容易帶著偏見看事情。",
+      "strengths": [
+        "偏頗",
+        "逃避責任",
+        "不公平感"
+      ],
+      "blindSpots": [
+        "只看對自己有利的部分時，可能看不清全貌。"
+      ],
+      "loveStyle": "傾向各執一詞，先試著理解對方的立場。",
+      "workStyle": "留意是否有一件該說清楚、卻一直拖著的事。",
+      "growthAdvice": "今天可以試試從對方的角度，重新看一次這件事。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "12_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "倒吊人（正位）",
+      "summary": "今天傾向換個角度看事情，放慢腳步、暫時等待，可能帶來新的領悟。",
+      "strengths": [
+        "換位",
+        "暫停",
+        "新視角"
+      ],
+      "blindSpots": [
+        "等待太久而不行動時，可能錯過時機。"
+      ],
+      "loveStyle": "傾向暫時放下堅持，用對方的角度想一想。",
+      "workStyle": "適合暫停手邊的急事，重新檢視方法。",
+      "growthAdvice": "今天可以試試把一件卡住的事放一晚，明天再看。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "12_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "倒吊人（逆位）",
+      "summary": "今天可能覺得卡住、停滯，或因為不願放手而白白耗費力氣。",
+      "strengths": [
+        "停滯",
+        "拖延",
+        "不願放手"
+      ],
+      "blindSpots": [
+        "為了不想犧牲什麼而僵持時，可能讓大家都在原地。"
+      ],
+      "loveStyle": "傾向在關係裡僵持，想想什麼是可以讓步的。",
+      "workStyle": "留意是否在等一個不會自己出現的答案。",
+      "growthAdvice": "今天可以試試決定一件拖了很久的小事，不論結果先做出選擇。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "13_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "死神（正位）",
+      "summary": "今天傾向面對結束與轉換，放下已經不適合的東西，為新的階段騰出空間。",
+      "strengths": [
+        "結束",
+        "轉換",
+        "放下"
+      ],
+      "blindSpots": [
+        "太快切斷時，可能忽略仍有價值的部分。"
+      ],
+      "loveStyle": "傾向重新檢視關係中的模式，願意更新相處方式。",
+      "workStyle": "適合整理、結束已經不再有用的做法。",
+      "growthAdvice": "今天可以試試整理一個不再需要的東西、習慣或想法。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "13_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "死神（逆位）",
+      "summary": "今天可能抗拒改變、緊抓過去，或在轉換期感到停滯與不捨。",
+      "strengths": [
+        "抗拒",
+        "執著",
+        "不捨"
+      ],
+      "blindSpots": [
+        "不願面對結束時，可能讓同樣的情況一再重複。"
+      ],
+      "loveStyle": "傾向對舊的模式放不下，先允許自己有不捨。",
+      "workStyle": "留意是否因為習慣而繼續做已經不適合的事。",
+      "growthAdvice": "今天可以試試承認一件需要告一段落的事，並寫下感謝。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "14_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "節制（正位）",
+      "summary": "今天傾向調和與平衡，慢慢來、拿捏分寸，會讓事情進行得更順。",
+      "strengths": [
+        "平衡",
+        "調和",
+        "耐心"
+      ],
+      "blindSpots": [
+        "太追求平穩時，可能不敢表達真實的需求。"
+      ],
+      "loveStyle": "傾向溫和溝通，在彼此之間找到舒服的節奏。",
+      "workStyle": "適合整合不同意見，穩定地推進。",
+      "growthAdvice": "今天可以試試調整作息或步調，給自己一點緩衝。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "14_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "節制（逆位）",
+      "summary": "今天可能失去平衡，做事過量或太極端，也可能在不同需求間難以拿捏。",
+      "strengths": [
+        "失衡",
+        "過度",
+        "急躁"
+      ],
+      "blindSpots": [
+        "一次投入太多時，可能讓自己很快耗盡。"
+      ],
+      "loveStyle": "傾向忽冷忽熱，先找回自己的節奏。",
+      "workStyle": "留意工作與休息是否失去了界線。",
+      "growthAdvice": "今天可以試試減少一件事，讓行程留一點空白。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "15_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "惡魔（正位）",
+      "summary": "今天傾向看見自己被什麼綁住，如習慣、慾望或不安，覺察是鬆開的第一步。",
+      "strengths": [
+        "束縛",
+        "慾望",
+        "覺察"
+      ],
+      "blindSpots": [
+        "把習慣當成『沒辦法』時，可能忽略自己其實有選擇。"
+      ],
+      "loveStyle": "傾向被強烈的吸引或依賴牽動，留意是否讓彼此自在。",
+      "workStyle": "適合檢視是否被某個目標或比較綁得太緊。",
+      "growthAdvice": "今天可以試試觀察一個重複的習慣，問問它對你有什麼好處與代價。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "15_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "惡魔（逆位）",
+      "summary": "今天可能開始鬆動舊有的依賴，也可能因為抗拒而更焦躁，需要一點耐心。",
+      "strengths": [
+        "鬆綁",
+        "掙扎",
+        "重新選擇"
+      ],
+      "blindSpots": [
+        "急著擺脫時，可能用另一種方式再次被綁住。"
+      ],
+      "loveStyle": "傾向重新檢視不健康的牽絆，慢慢調整就好。",
+      "workStyle": "留意是否可以一步一步減少對某件事的過度依賴。",
+      "growthAdvice": "今天可以試試少做一次習慣性的行為，看看自己的感覺。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "16_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "高塔（正位）",
+      "summary": "今天傾向面對突如其來的變動，原有的想法可能被打破，也有機會重建得更穩。",
+      "strengths": [
+        "突變",
+        "打破",
+        "重建"
+      ],
+      "blindSpots": [
+        "把變化視為打擊時，可能忽略其中的出路。"
+      ],
+      "loveStyle": "傾向關係中的真實浮現，坦誠面對有助於重新開始。",
+      "workStyle": "適合檢查原本不夠穩的部分，及早調整。",
+      "growthAdvice": "今天可以試試檢視一個不太牢靠的假設，並先補強。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "16_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "高塔（逆位）",
+      "summary": "今天可能延後面對問題，或擔心變動而緊繃，也可能還在消化先前的衝擊。",
+      "strengths": [
+        "迴避",
+        "緊繃",
+        "餘波"
+      ],
+      "blindSpots": [
+        "假裝沒事時，小問題可能慢慢累積成大問題。"
+      ],
+      "loveStyle": "傾向壓著不安不說，先安頓自己再談。",
+      "workStyle": "留意是否有一個一直不想處理的隱憂。",
+      "growthAdvice": "今天可以試試處理一件拖延已久的小麻煩，先踏出第一步。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "17_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "星星（正位）",
+      "summary": "今天傾向懷抱希望與平靜，適合修復身心、重新相信接下來會慢慢好轉。",
+      "strengths": [
+        "希望",
+        "療癒",
+        "信心"
+      ],
+      "blindSpots": [
+        "只等待好事發生時，可能少了主動靠近目標的行動。"
+      ],
+      "loveStyle": "傾向以溫柔與信任對待彼此，也願意重新敞開。",
+      "workStyle": "適合朝長期的方向持續累積，不必急著看見結果。",
+      "growthAdvice": "今天可以試試為自己想要的未來，寫下一個小小的心願。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "17_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "星星（逆位）",
+      "summary": "今天可能對未來缺乏信心，或感到疲倦、提不起勁，需要一些溫柔的修復。",
+      "strengths": [
+        "失去信心",
+        "疲倦",
+        "悲觀"
+      ],
+      "blindSpots": [
+        "只看見不順的部分時，可能忽略已經有的進展。"
+      ],
+      "loveStyle": "傾向對關係不太有把握，先照顧好自己的感受。",
+      "workStyle": "留意是否因為累了，就把目標看得太遠。",
+      "growthAdvice": "今天可以試試記下三件最近順利的事，即使很小。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "18_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "月亮（正位）",
+      "summary": "今天傾向情緒敏感、感受細膩，有些事還不明朗，先觀察、不急著下結論。",
+      "strengths": [
+        "敏感",
+        "不確定",
+        "潛意識"
+      ],
+      "blindSpots": [
+        "不安被放大時，可能把想像當成事實。"
+      ],
+      "loveStyle": "傾向多心或不安，向對方確認會比猜測更踏實。",
+      "workStyle": "資訊還不完整時，可以先蒐集再決定。",
+      "growthAdvice": "今天可以試試把擔心寫下來，分成『已知』與『猜測』。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "18_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "月亮（逆位）",
+      "summary": "今天可能漸漸看清先前的迷霧，或仍被焦慮影響，需要分辨感覺與事實。",
+      "strengths": [
+        "釐清",
+        "焦慮",
+        "分辨"
+      ],
+      "blindSpots": [
+        "壓抑不安而不談時，可能讓它在夜裡變得更大。"
+      ],
+      "loveStyle": "傾向開始能說出心裡的恐懼，慢慢說就好。",
+      "workStyle": "留意是否把還沒發生的事當成已經確定。",
+      "growthAdvice": "今天可以試試早點休息，把難決定的事留給明天。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "19_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "太陽（正位）",
+      "summary": "今天傾向明朗、有活力，適合坦率表達，與人分享好心情與成果。",
+      "strengths": [
+        "活力",
+        "喜悅",
+        "坦率"
+      ],
+      "blindSpots": [
+        "太樂觀時，可能低估需要準備的細節。"
+      ],
+      "loveStyle": "傾向熱情開朗，直接表達喜歡與感謝。",
+      "workStyle": "適合展示成果、與人合作，能量比較外放。",
+      "growthAdvice": "今天可以試試主動向一個人道謝，或分享一件開心的事。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "19_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "太陽（逆位）",
+      "summary": "今天可能熱情稍減，或高興之餘仍有些保留，需要一點時間找回自信。",
+      "strengths": [
+        "低落",
+        "保留",
+        "缺乏自信"
+      ],
+      "blindSpots": [
+        "把期待放得太滿時，可能讓小小的落差顯得特別大。"
+      ],
+      "loveStyle": "傾向表達不夠直接，可以試著說出簡單的喜歡。",
+      "workStyle": "留意是否因為擔心評價，而不願展現自己的成果。",
+      "growthAdvice": "今天可以試試做一件讓自己覺得開心的小事。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "20_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "審判（正位）",
+      "summary": "今天傾向回顧與覺醒，適合誠實檢視過去，決定要用什麼樣的方式往前走。",
+      "strengths": [
+        "覺醒",
+        "回顧",
+        "重新出發"
+      ],
+      "blindSpots": [
+        "太苛責過去的自己時，可能忽略當時已經盡力。"
+      ],
+      "loveStyle": "傾向重新看待關係，願意原諒或坦白。",
+      "workStyle": "適合回顧一段時間的成果，決定下一步。",
+      "growthAdvice": "今天可以試試回顧這一年，寫下學到的三件事。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "20_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "審判（逆位）",
+      "summary": "今天可能自我批判，或遲遲不願面對該做的決定，也容易反覆檢討過去。",
+      "strengths": [
+        "自責",
+        "逃避",
+        "反覆檢討"
+      ],
+      "blindSpots": [
+        "一直回頭時，可能難以專注眼前的事。"
+      ],
+      "loveStyle": "傾向被舊事纏住，試著區分已經結束與仍需談的部分。",
+      "workStyle": "留意是否因為怕做錯，而遲遲不下決定。",
+      "growthAdvice": "今天可以試試原諒自己一個舊的失誤，然後繼續往前。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "21_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "世界（正位）",
+      "summary": "今天傾向圓滿與完成感，適合收尾、慶祝，也為下一個階段做準備。",
+      "strengths": [
+        "完成",
+        "圓滿",
+        "整合"
+      ],
+      "blindSpots": [
+        "沉浸在完成感時，可能忽略下一步的規劃。"
+      ],
+      "loveStyle": "傾向感到安定與滿足，適合好好珍惜相處。",
+      "workStyle": "適合把一件事收尾、整理成果並感謝一路幫忙的人。",
+      "growthAdvice": "今天可以試試為最近完成的事，給自己一個小小的肯定。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "TAROT",
+    "key": "21_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "世界（逆位）",
+      "summary": "今天可能覺得差一點就完成，或對收尾感到不捨，也可能少了最後的臨門一腳。",
+      "strengths": [
+        "未完成",
+        "拖延收尾",
+        "不捨"
+      ],
+      "blindSpots": [
+        "快完成時鬆懈，可能讓前面的努力少了句點。"
+      ],
+      "loveStyle": "傾向關係中某個階段還沒真正收尾，慢慢處理就好。",
+      "workStyle": "留意是否有一件做了九成的事，只差最後一步。",
+      "growthAdvice": "今天可以試試挑出一件接近完成的事，把它做完。",
+      "disclaimer": "塔羅牌僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  }
+]

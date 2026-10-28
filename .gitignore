@@ -30,5 +30,16 @@ service_account.json
 service_account.json
 *.pem
 
-# Content data (fixed analyses, test definitions): imported into Firestore, not versioned
-content/
+# Content data (fixed analyses, test definitions): imported into Firestore
+# content/ is versioned, except the SUMMARY combination files: about 56 MB, and the multi-dimension report replaces them
+content/fixed/blood-mbti.json
+content/fixed/blood-numerology.json
+content/fixed/mbti-blood-numerology.json
+content/fixed/mbti-numerology.json
+content/fixed/zodiac-blood-numerology.json
+content/fixed/zodiac-blood.json
+content/fixed/zodiac-mbti-blood.json
+content/fixed/zodiac-mbti-numerology.json
+content/fixed/zodiac-mbti.json
+content/fixed/zodiac-numerology.json
+content/fixed/zodiac-mbti-blood-numerology/

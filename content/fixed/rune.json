@@ -1,0 +1,743 @@
+[
+  {
+    "contentType": "RUNE",
+    "key": "0_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Fehu（正位）：牲畜與財富",
+      "summary": "今天可能特別留意手邊有哪些資源，傾向把它們用在真正重視的事情上。",
+      "strengths": [
+        "資源",
+        "流動",
+        "價值"
+      ],
+      "blindSpots": [
+        "資源被用在分散的地方時，可能越忙越覺得不夠。"
+      ],
+      "growthAdvice": "今天可以試試列出手邊最有價值的三樣資源，挑一樣好好運用。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "0_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Fehu（逆位）：牲畜與財富",
+      "summary": "今天需要留意的是資源的流動：可能覺得該有的沒有到位，或抓得太緊。",
+      "strengths": [
+        "資源",
+        "流動",
+        "價值"
+      ],
+      "blindSpots": [
+        "太擔心不足時，傾向把資源抓得太緊，反而錯過分享與交換。"
+      ],
+      "growthAdvice": "今天可以試試放掉一個『怕不夠』的念頭，看看實際缺的是什麼。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "1_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Uruz（正位）：原牛",
+      "summary": "今天可能感到內在有一股直接的力量，傾向想靠自己的力氣把事情推動。",
+      "strengths": [
+        "原始力量",
+        "幹勁",
+        "韌性"
+      ],
+      "blindSpots": [
+        "力量沒有出口時，可能變得急躁。"
+      ],
+      "growthAdvice": "今天可以試試把幹勁放在一件具體的事上，穩穩做完。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "1_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Uruz（逆位）：原牛",
+      "summary": "今天需要留意的是力量的使用：可能覺得提不起勁，或勁用得過猛。",
+      "strengths": [
+        "原始力量",
+        "幹勁",
+        "韌性"
+      ],
+      "blindSpots": [
+        "硬撐或逞強時，傾向忽略自己真正的疲憊。"
+      ],
+      "growthAdvice": "今天可以試試先休息一下，再決定要把力氣放在哪裡。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "2_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Thurisaz（正位）：巨人與荊棘",
+      "summary": "今天可能感受到一股推開阻礙的力量，傾向想把界線劃清楚。",
+      "strengths": [
+        "防衛",
+        "界線",
+        "衝擊"
+      ],
+      "blindSpots": [
+        "防衛太強時，可能讓身邊的人覺得難以靠近。"
+      ],
+      "growthAdvice": "今天可以試試清楚說出一條自己的底線，語氣保持平穩。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "2_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Thurisaz（逆位）：巨人與荊棘",
+      "summary": "今天需要留意的是防衛的方式：可能覺得被刺到，也可能不自覺地反擊。",
+      "strengths": [
+        "防衛",
+        "界線",
+        "衝擊"
+      ],
+      "blindSpots": [
+        "在氣頭上做決定，傾向事後才覺得可惜。"
+      ],
+      "growthAdvice": "今天可以試試在回應之前先停三秒，再選擇要說什麼。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "3_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Ansuz（正位）：神與話語",
+      "summary": "今天可能有重要的訊息或想法浮現，傾向適合用清楚的話把它說出來。",
+      "strengths": [
+        "訊息",
+        "表達",
+        "靈感"
+      ],
+      "blindSpots": [
+        "話說得太滿時，可能忽略對方的回應。"
+      ],
+      "growthAdvice": "今天可以試試把腦中最清楚的一個想法，寫下來或說給信任的人聽。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "3_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Ansuz（逆位）：神與話語",
+      "summary": "今天需要留意的是溝通：可能有話說不清楚，或誤會了別人的意思。",
+      "strengths": [
+        "訊息",
+        "表達",
+        "靈感"
+      ],
+      "blindSpots": [
+        "只聽自己想聽的部分時，傾向錯過關鍵的訊息。"
+      ],
+      "growthAdvice": "今天可以試試複述一次對方的話，確認自己聽到的是同一件事。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "4_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Raidho（正位）：騎行與旅程",
+      "summary": "今天可能感到事情在往前移動，傾向重視過程中的節奏與路線。",
+      "strengths": [
+        "旅程",
+        "節奏",
+        "方向"
+      ],
+      "blindSpots": [
+        "一直趕路時，可能忽略沿途的風景與休息。"
+      ],
+      "growthAdvice": "今天可以試試為手上的事排一個合適的節奏，不急著一次到達。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "4_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Raidho（逆位）：騎行與旅程",
+      "summary": "今天需要留意的是方向與步調：可能覺得走得不順，或與同行的人不同步。",
+      "strengths": [
+        "旅程",
+        "節奏",
+        "方向"
+      ],
+      "blindSpots": [
+        "步調亂掉時，傾向怪罪外在而忽略調整自己。"
+      ],
+      "growthAdvice": "今天可以試試先停下來，確認要去的方向，再重新出發。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "5_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Kenaz（正位）：火炬",
+      "summary": "今天可能有一點靈光，傾向看清原本模糊的事，也適合動手創作。",
+      "strengths": [
+        "洞察",
+        "創造",
+        "照亮"
+      ],
+      "blindSpots": [
+        "太依賴靈感時，可能少了持續的練習。"
+      ],
+      "growthAdvice": "今天可以試試把一個剛想到的點子，做成最小的版本。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "5_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Kenaz（逆位）：火炬",
+      "summary": "今天需要留意的是光亮的減弱：可能覺得想不出來，或一時看不清方向。",
+      "strengths": [
+        "洞察",
+        "創造",
+        "照亮"
+      ],
+      "blindSpots": [
+        "勉強自己想出答案時，傾向越想越亂。"
+      ],
+      "growthAdvice": "今天可以試試換個環境或活動，讓想法自己慢慢亮起來。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "6_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Gebo（正位）：禮物",
+      "summary": "今天可能感受到給予與接受之間的平衡，傾向重視彼此的往來。",
+      "strengths": [
+        "互惠",
+        "給予",
+        "連結"
+      ],
+      "blindSpots": [
+        "只付出不求回應時，可能累積沒說出口的期待。"
+      ],
+      "growthAdvice": "今天可以試試給身邊的人一份小小的心意，也坦然接受別人的好意。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "7_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Wunjo（正位）：喜悅",
+      "summary": "今天可能感到輕鬆與被接納，傾向與信任的人分享好心情。",
+      "strengths": [
+        "喜悅",
+        "和諧",
+        "歸屬"
+      ],
+      "blindSpots": [
+        "沉浸在好氣氛時，可能忽略仍待處理的小事。"
+      ],
+      "growthAdvice": "今天可以試試和一位讓你舒服的人相處一段時間。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "7_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Wunjo（逆位）：喜悅",
+      "summary": "今天需要留意的是情緒的落差：可能覺得孤單，或與周圍的氣氛有些不合。",
+      "strengths": [
+        "喜悅",
+        "和諧",
+        "歸屬"
+      ],
+      "blindSpots": [
+        "急著讓氣氛變好時，傾向壓下真實的感受。"
+      ],
+      "growthAdvice": "今天可以試試誠實說出自己此刻的心情，不必立刻讓它變好。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "8_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Hagalaz（正位）：冰雹",
+      "summary": "今天可能感到計畫被打亂，傾向需要先接受並重新安排。",
+      "strengths": [
+        "打斷",
+        "重整",
+        "釋放"
+      ],
+      "blindSpots": [
+        "抗拒改變時，可能把力氣耗在不能控制的事上。"
+      ],
+      "growthAdvice": "今天可以試試列出還能掌握的三件事，從那裡重新開始。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "9_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Nauthiz（正位）：需要",
+      "summary": "今天可能感到某種需要或限制，傾向被提醒真正缺的是什麼。",
+      "strengths": [
+        "需要",
+        "限制",
+        "磨練"
+      ],
+      "blindSpots": [
+        "把匱乏感放大時，可能忽略已經擁有的支持。"
+      ],
+      "growthAdvice": "今天可以試試分清楚『真正需要』與『想要』，先照顧前者。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "10_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Isa（正位）：冰",
+      "summary": "今天可能感到事情暫時停住，傾向適合先觀察、不急著行動。",
+      "strengths": [
+        "靜止",
+        "沉澱",
+        "等待"
+      ],
+      "blindSpots": [
+        "停太久時，可能把等待變成逃避。"
+      ],
+      "growthAdvice": "今天可以試試給一件卡住的事設一個『再看一次』的時間。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "11_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Jera（正位）：年與收成",
+      "summary": "今天可能感到事情在自己的節奏裡慢慢成熟，傾向相信過程。",
+      "strengths": [
+        "循環",
+        "耐心",
+        "收穫"
+      ],
+      "blindSpots": [
+        "太急著看成果時，可能忽略累積本來需要時間。"
+      ],
+      "growthAdvice": "今天可以試試回頭看看最近一段時間做對的事，肯定自己的耕耘。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "12_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Eihwaz（正位）：紫杉",
+      "summary": "今天可能感到內在有一股穩住自己的力量，傾向在變動中保持根基。",
+      "strengths": [
+        "韌性",
+        "轉換",
+        "堅持"
+      ],
+      "blindSpots": [
+        "只顧堅持時，可能忽略該調整的地方。"
+      ],
+      "growthAdvice": "今天可以試試在一件長期的事上，再多撐一小段，同時留意是否需要調整。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "13_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Perthro（正位）：骰杯與命運",
+      "summary": "今天可能感到結果尚未明朗，傾向保持開放、留意意外的機會。",
+      "strengths": [
+        "未知",
+        "可能性",
+        "機緣"
+      ],
+      "blindSpots": [
+        "把不確定當成預兆時，可能讓想像跑在事實前面。"
+      ],
+      "growthAdvice": "今天可以試試對一件未知的事保持好奇，同時只依據已知的事實做決定。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "13_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Perthro（逆位）：骰杯與命運",
+      "summary": "今天需要留意的是對未知的反應：可能因為看不清而焦慮，或想抓住確定性。",
+      "strengths": [
+        "未知",
+        "可能性",
+        "機緣"
+      ],
+      "blindSpots": [
+        "太想掌握結果時，傾向忽略眼前能做的事。"
+      ],
+      "growthAdvice": "今天可以試試把擔心分成『已知』與『猜測』，只處理前者。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "14_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Algiz（正位）：駝鹿與守護",
+      "summary": "今天可能感到一種被守護的安全感，傾向留意自己與身邊人的界線。",
+      "strengths": [
+        "保護",
+        "界線",
+        "警覺"
+      ],
+      "blindSpots": [
+        "過度防備時，可能讓關係變得疏遠。"
+      ],
+      "growthAdvice": "今天可以試試為自己設下一個清楚而溫和的界線。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "14_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Algiz（逆位）：駝鹿與守護",
+      "summary": "今天需要留意的是防備的失衡：可能覺得不安全，或對周遭少了警覺。",
+      "strengths": [
+        "保護",
+        "界線",
+        "警覺"
+      ],
+      "blindSpots": [
+        "不安時傾向孤立自己，而不是求助。"
+      ],
+      "growthAdvice": "今天可以試試向一位信任的人說出你的擔心。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "15_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Sowilo（正位）：太陽",
+      "summary": "今天可能感到明亮與有方向，傾向把能量用在想實現的目標上。",
+      "strengths": [
+        "活力",
+        "方向",
+        "成就"
+      ],
+      "blindSpots": [
+        "太專注於成就時，可能忽略休息與身旁的人。"
+      ],
+      "growthAdvice": "今天可以試試為最想完成的事做一個明確的小行動。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "16_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Tiwaz（正位）：戰神提爾",
+      "summary": "今天可能感到需要為某件事挺身，傾向以公平與責任為依據行動。",
+      "strengths": [
+        "正直",
+        "勇氣",
+        "責任"
+      ],
+      "blindSpots": [
+        "太堅持原則時，可能忽略對方的處境。"
+      ],
+      "growthAdvice": "今天可以試試做一件你覺得對、但一直拖著的事。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "16_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Tiwaz（逆位）：戰神提爾",
+      "summary": "今天需要留意的是原則與勇氣的失衡：可能顧慮太多而不敢行動，或過於強硬。",
+      "strengths": [
+        "正直",
+        "勇氣",
+        "責任"
+      ],
+      "blindSpots": [
+        "為了贏而堅持時，傾向忘了當初想守護的是什麼。"
+      ],
+      "growthAdvice": "今天可以試試寫下自己真正想守住的價值，再決定要怎麼做。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "17_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Berkano（正位）：樺樹",
+      "summary": "今天可能感到有新的事物正在醞釀，傾向適合溫柔地照顧它慢慢長大。",
+      "strengths": [
+        "新生",
+        "孕育",
+        "照護"
+      ],
+      "blindSpots": [
+        "太急著看結果時，可能打擾了原本的成長。"
+      ],
+      "growthAdvice": "今天可以試試為一個剛起步的想法或關係，留出安靜成長的空間。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "17_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Berkano（逆位）：樺樹",
+      "summary": "今天需要留意的是照顧的失衡：可能覺得成長停滯，或把自己的需要放在最後。",
+      "strengths": [
+        "新生",
+        "孕育",
+        "照護"
+      ],
+      "blindSpots": [
+        "只顧著照顧別人時，傾向耗盡自己。"
+      ],
+      "growthAdvice": "今天可以試試先為自己做一件滋養的小事。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "18_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Ehwaz（正位）：馬",
+      "summary": "今天可能感到與夥伴或環境的配合很順，傾向靠彼此的信任向前。",
+      "strengths": [
+        "默契",
+        "前進",
+        "信任"
+      ],
+      "blindSpots": [
+        "太依賴默契時，可能少了把期待說清楚。"
+      ],
+      "growthAdvice": "今天可以試試和一位夥伴確認彼此的方向，再一起前進。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "18_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Ehwaz（逆位）：馬",
+      "summary": "今天需要留意的是配合的落差：可能覺得步調不一致，或信任有些動搖。",
+      "strengths": [
+        "默契",
+        "前進",
+        "信任"
+      ],
+      "blindSpots": [
+        "把問題悶在心裡時，傾向讓誤會越積越深。"
+      ],
+      "growthAdvice": "今天可以試試主動談一件彼此沒有說清楚的事。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "19_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Mannaz（正位）：人",
+      "summary": "今天可能更清楚自己在人群中的位置，傾向重視合作與彼此的差異。",
+      "strengths": [
+        "自我",
+        "群體",
+        "合作"
+      ],
+      "blindSpots": [
+        "太在意別人的眼光時，可能忘了自己真正的想法。"
+      ],
+      "growthAdvice": "今天可以試試問自己：不考慮別人怎麼看，我想怎麼做。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "19_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Mannaz（逆位）：人",
+      "summary": "今天需要留意的是自我與群體的拉扯：可能覺得被孤立，或過度迎合別人。",
+      "strengths": [
+        "自我",
+        "群體",
+        "合作"
+      ],
+      "blindSpots": [
+        "過度迎合時，傾向壓抑自己的需要。"
+      ],
+      "growthAdvice": "今天可以試試在一件小事上，誠實說出自己的偏好。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "20_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Laguz（正位）：水",
+      "summary": "今天可能感到直覺與情感特別敏銳，傾向順著感受流動、不硬碰硬。",
+      "strengths": [
+        "直覺",
+        "流動",
+        "情感"
+      ],
+      "blindSpots": [
+        "被情緒帶著走時，可能分不清感覺與事實。"
+      ],
+      "growthAdvice": "今天可以試試讓情緒有出口，例如寫下來、聊一聊或散步。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "20_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Laguz（逆位）：水",
+      "summary": "今天需要留意的是情緒的阻塞或氾濫：可能不想面對感受，或被它淹沒。",
+      "strengths": [
+        "直覺",
+        "流動",
+        "情感"
+      ],
+      "blindSpots": [
+        "壓抑情緒時，傾向在某個時刻一次爆發。"
+      ],
+      "growthAdvice": "今天可以試試先為感受命名，說出『我現在覺得…』。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "21_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Ingwaz（正位）：豐饒神英格",
+      "summary": "今天可能感到某件事在內在慢慢完成，傾向適合安靜地蓄積力量。",
+      "strengths": [
+        "蓄積",
+        "內在完成",
+        "醞釀"
+      ],
+      "blindSpots": [
+        "蓄積太久而不行動時，可能錯過時機。"
+      ],
+      "growthAdvice": "今天可以試試替一件快成熟的事，訂出『可以交出去』的標準。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "22_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Dagaz（正位）：日",
+      "summary": "今天可能感到事情豁然開朗，傾向把握轉換的時機往前一步。",
+      "strengths": [
+        "突破",
+        "曙光",
+        "轉換"
+      ],
+      "blindSpots": [
+        "太急著翻頁時，可能沒有好好整理前一段。"
+      ],
+      "growthAdvice": "今天可以試試為最近的一段時間做一個簡單的收尾，再往前。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "23_upright",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Othala（正位）：祖產與傳承",
+      "summary": "今天可能想起自己的根與歸屬，傾向重視家人、傳統與留下來的東西。",
+      "strengths": [
+        "傳承",
+        "根源",
+        "歸屬"
+      ],
+      "blindSpots": [
+        "太執著於過去的樣子時，可能讓自己難以更新。"
+      ],
+      "growthAdvice": "今天可以試試和家人或長輩聊一件舊事，看看有什麼值得留下。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  },
+  {
+    "contentType": "RUNE",
+    "key": "23_reversed",
+    "status": "PUBLISHED",
+    "body": {
+      "title": "Othala（逆位）：祖產與傳承",
+      "summary": "今天需要留意的是對根源的態度：可能覺得被舊的模式束縛，或與家人有些疏離。",
+      "strengths": [
+        "傳承",
+        "根源",
+        "歸屬"
+      ],
+      "blindSpots": [
+        "為了擺脫而全盤否定時，傾向連有價值的也丟掉。"
+      ],
+      "growthAdvice": "今天可以試試分辨哪些傳承對你有用，哪些可以放下。",
+      "disclaimer": "盧恩符文僅供娛樂與自我反思參考，不預測未來，也不構成醫療、法律或財務建議。"
+    }
+  }
+]

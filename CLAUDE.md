@@ -24,7 +24,7 @@ pnpm e2e:smoke
 
 - ESLint 風格：4 空白縮排、單引號、分號、`comma-dangle: always-multiline`、`object-curly-newline`（2 個以上屬性就換行）、`array-element-newline`（3 個以上元素就換行）。
 - 環境變數見 `.env.example`；本機服務帳戶放根目錄 `service_account.json`（production 不會讀，改用 `FIREBASE_SERVICE_ACCOUNT_KEY`）。部署／TTL／匯入步驟見 `docs/firebase-setup.md`。
-- `content/`（固定內容、測驗題目 JSON）**不進版控**，只存在本機；新增或修改後需重新匯入才生效。
+- `content/`（固定內容、測驗題目 JSON）進版控，新增或修改後需重新匯入才生效。唯一例外：`content/fixed/` 下 14320 組合摘要（`SUMMARY`）的檔案約 56 MB，不進版控，並會在多維度報告取代它之後移除。
 
 ## 架構
 
