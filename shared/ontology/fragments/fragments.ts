@@ -21,6 +21,21 @@ export type FragmentEntry = string | Fragment;
 /** End id ("A1.A") -> context value id ("object:partner") -> the sentence. A pair that makes no sense is left out. */
 export type FragmentTable = Readonly<Record<string, Readonly<Record<string, FragmentEntry>>>>;
 
+/** Puts several tables into one: the sentences of an end that appear in more than one table are all kept. */
+export function mergeFragmentTables(tables: readonly FragmentTable[]): FragmentTable {
+    const merged: Record<string, Record<string, FragmentEntry>> = {};
+
+    for (const table of tables) {
+        for (const [id, byContext] of Object.entries(table)) {
+            merged[id] = {
+                ...merged[id], ...byContext,
+            };
+        }
+    }
+
+    return merged;
+}
+
 export const toFragment = (entry: FragmentEntry): Fragment => (typeof entry === 'string' ? { text: entry } : entry);
 
 export const MIN_FRAGMENT_LENGTH = 8;

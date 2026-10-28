@@ -178,6 +178,18 @@ describe('the written fragments', () => {
         expect(findFragmentCoverageIssues(computeFragmentCoverage(FRAGMENT_TABLE), COVERAGE_TARGETS)).toEqual([]);
     });
 
+    it('give every one of the 56 ends a sentence for each of the 10 objects and each of the 10 domains', () => {
+        const coverage = computeFragmentCoverage(FRAGMENT_TABLE);
+
+        expect(Object.keys(coverage)).toHaveLength(56);
+
+        for (const [id, counts] of Object.entries(coverage)) {
+            expect(counts, id).toEqual({
+                object: 10, domain: 10,
+            });
+        }
+    });
+
     it('have a version', () => {
         expect(FRAGMENT_VERSION).toMatch(/\S/);
     });
