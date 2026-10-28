@@ -34,7 +34,7 @@
 - **THEN** 時間性段落內容不變
 
 ### Requirement: 存取、期限與清除
-快照 MUST 僅本人可讀，API 輸入輸出 MUST 通過 schema 驗證。快照 SHALL 有到期時間，由既有每日到期作業清除，MUST NOT 對此集合開 Firestore TTL。刪除帳號與使用者的刪除資料功能 MUST 清除其全部快照；刪除 MUST NOT 影響其他使用者的快照。
+快照 MUST 僅本人可讀，API 輸入輸出 MUST 通過 schema 驗證。快照 SHALL 有到期時間，由既有每日到期作業清除，MUST NOT 對此集合開 Firestore TTL。刪除帳號 MUST 清除其全部快照；使用者的刪除資料功能中的「報告」範圍 MUST 清除其全部快照（快照就是報告）；其他範圍 MUST NOT 動到快照；刪除 MUST NOT 影響其他使用者的快照。
 
 #### Scenario: 只有本人能讀
 - **WHEN** 另一位使用者以快照 ID 讀取

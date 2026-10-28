@@ -1,7 +1,7 @@
 # version: 1
 # generatedBy: api-modeling
 # updatedAt: 2026-10-27T22:00:00+08:00
-# relatedChanges: [ai-personality-app, add-daily-tarot-draw, realtime-today-category]
+# relatedChanges: [ai-personality-app, add-daily-tarot-draw, realtime-today-category, add-report-snapshots]
 openapi: "3.0.3"
 info:
   title: "AI 多維度人格探索 App API"
@@ -18,6 +18,7 @@ tags:
   - name: HumanDesign
   - name: Summaries
   - name: DetailedReports
+  - name: ReportSnapshots
   - name: Points
   - name: Payments
   - name: Share
@@ -1241,6 +1242,56 @@ paths:
         domainModel: [ENT-018, AGG-015, ENT-005, AGG-005]
         businessRules: [RULE-035, RULE-036, RULE-038, RULE-047, RULE-049, RULE-050]
         requirements: [NFR-003, NFR-018, NFR-019, NFR-020]
+  "/report-snapshots":
+    get:
+      operationId: listReportSnapshots
+      summary: "列出我的報告快照"
+      description: "只回傳呼叫者自己未到期的報告，新到舊，不含全文。快照保存 6 個月。"
+      tags: [ReportSnapshots]
+      responses:
+        "200":
+          description: "報告快照清單"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/ReportSnapshotItem"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+      x-trace:
+        id: API-053
+        useCases: []
+        domainModel: []
+        businessRules: []
+        requirements: []
+        pending: "待確認：新的報告架構尚未納入系統分析；來源為 docs/trait-ontology-draft.md 與 change add-report-snapshots"
+  "/report-snapshots/{snapshotId}":
+    get:
+      operationId: getReportSnapshot
+      summary: "查看報告快照"
+      description: "回傳報告產生當時的全文、各段的種類與來源、版本與計算依據。僅本人可讀：他人的 id、不存在的 id 與已到期的都回 404。不呼叫 AI、不扣點。"
+      tags: [ReportSnapshots]
+      parameters:
+        - "$ref": "#/components/parameters/SnapshotIdPath"
+      responses:
+        "200":
+          description: "報告快照"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ReportSnapshotDetail"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+      x-trace:
+        id: API-054
+        useCases: []
+        domainModel: []
+        businessRules: []
+        requirements: []
+        pending: "待確認：新的報告架構尚未納入系統分析；來源為 docs/trait-ontology-draft.md 與 change add-report-snapshots"
   "/rune/daily":
     get:
       operationId: getDailyRune
@@ -1571,6 +1622,12 @@ components:
         type: string
     ReportIdPath:
       name: reportId
+      in: path
+      required: true
+      schema:
+        type: string
+    SnapshotIdPath:
+      name: snapshotId
       in: path
       required: true
       schema:
@@ -2467,6 +2524,73 @@ components:
           nullable: true
           description: "插畫來源；尚無插畫時為 null"
       required: [index, name, glyph, meaning, orientation, illustration]
+    ReportSnapshotItem:
+      type: object
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+          enum: [SINGLE, MULTI]
+        systems:
+          type: array
+          items:
+            type: string
+        position:
+          type: string
+          description: "位置結論，例如「太陽天蠍座」"
+        aiAugmented:
+          type: boolean
+        generatedAt:
+          type: integer
+          description: "epoch 毫秒"
+        expiresAt:
+          type: integer
+          description: "epoch 毫秒；產生後 6 個月"
+      required: [id, kind, systems, position, aiAugmented, generatedAt, expiresAt]
+    ReportSnapshotDetail:
+      allOf:
+        - "$ref": "#/components/schemas/ReportSnapshotItem"
+        - type: object
+          properties:
+            blocks:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                  title:
+                    type: string
+                  segments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        text:
+                          type: string
+                        kind:
+                          type: string
+                          enum: [FACT, SYSTEM_INTERPRETATION, AI_INFERENCE, USER_STATEMENT]
+                        sources:
+                          type: array
+                          items:
+                            type: object
+                        timeSensitive:
+                          type: boolean
+                        asOf:
+                          type: string
+                          format: date
+                          nullable: true
+            versions:
+              type: object
+              description: "ontology、mapping、fragments、templates 與（AI 部分才有的）prompt 版本"
+            basis:
+              type: array
+              items:
+                type: object
+              description: "各系統的計算依據（輸入、方法、規則版本）"
+          required: [blocks, versions, basis]
     DailyRuneState:
       type: object
       properties:

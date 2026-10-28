@@ -23,6 +23,8 @@ async function seed(db: FakeFirestore) {
     await db.doc('users/u1/kinUnlocks/2026-10-28').set({ kin: { kinNumber: 2 } });
     await db.doc('users/u1/runeDraws/2026-10-27').set({ symbolIndex: 3 });
     await db.doc('users/u1/runeDraws/2026-10-28').set({ symbolIndex: 5 });
+    await db.doc('users/u1/reportSnapshots/s1').set({ position: 'a' });
+    await db.doc('users/u1/reportSnapshots/s2').set({ position: 'b' });
     await db.doc('users/u1/pointAccount/main').set({ x: 1 });
     await db.doc('users/u1/pointBatches/b1').set({ remaining: 3 });
     await db.doc('users/u1/payments/p1').set({ x: 1 });
@@ -31,6 +33,7 @@ async function seed(db: FakeFirestore) {
     await db.doc('users/u2/tarotDraws/2026-10-27').set({ cardIndex: 9 });
     await db.doc('users/u2/kinUnlocks/2026-10-27').set({ kin: { kinNumber: 3 } });
     await db.doc('users/u2/runeDraws/2026-10-27').set({ symbolIndex: 9 });
+    await db.doc('users/u2/reportSnapshots/s9').set({ position: 'c' });
     await db.doc('welcomeGrants/hash1').set({ googleUidHash: 'hash1' });
     await db.doc('aiUsageRecords/r1').set({
         userId: 'u1', estimatedCost: 1,
@@ -58,6 +61,19 @@ describe('DeletionService.deleteData', () => {
         expect(db.paths()).toContain('users/u1/summaries/s1');
         expect(db.paths()).toContain('users/u1/testAttempts/a1');
         expect(db.paths()).toContain('users/u1/payments/p1');
+    });
+
+    it('deletes the report snapshots together with the reports, and keeps those of other users', async () => {
+        await service.deleteData('u1', ['REPORTS']);
+
+        expect(db.paths().filter((p) => p.includes('/reportSnapshots/'))).toEqual(['users/u2/reportSnapshots/s9']);
+    });
+
+    it('leaves the report snapshots alone when other data is deleted', async () => {
+        await service.deleteData('u1', ['RESULTS', 'SUMMARIES']);
+
+        expect(db.paths()).toContain('users/u1/reportSnapshots/s1');
+        expect(db.paths()).toContain('users/u1/reportSnapshots/s2');
     });
 
     it('clears the stored mbti together with test results', async () => {
@@ -120,6 +136,12 @@ describe('DeletionService.deleteAccount', () => {
         await new DeletionService({ deleteAuthUser: async () => undefined }).deleteAccount('u1');
 
         expect(db.paths().filter((p) => p.includes('/runeDraws/'))).toEqual(['users/u2/runeDraws/2026-10-27']);
+    });
+
+    it('removes every report snapshot of the user and keeps those of other users', async () => {
+        await new DeletionService({ deleteAuthUser: async () => undefined }).deleteAccount('u1');
+
+        expect(db.paths().filter((p) => p.includes('/reportSnapshots/'))).toEqual(['users/u2/reportSnapshots/s9']);
     });
 
     it('removes the gender together with the profile', async () => {

@@ -34,6 +34,8 @@ describe('classifyRoute', () => {
         expect(classifyRoute('DELETE', '/api/account')).toBe('required');
         expect(classifyRoute('GET', '/api/unknown')).toBe('required');
         expect(classifyRoute('GET', '/api/kin/today')).toBe('required');
+        expect(classifyRoute('GET', '/api/report-snapshots')).toBe('required');
+        expect(classifyRoute('GET', '/api/report-snapshots/abc')).toBe('required');
         expect(classifyRoute('GET', '/api/horoscope/daily')).toBe('required');
         expect(classifyRoute('GET', '/api/rune/daily')).toBe('required');
         expect(classifyRoute('POST', '/api/rune/daily')).toBe('required');
