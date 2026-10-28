@@ -58,6 +58,10 @@
                 :result="result"
             >
                 <template #after-insight>
+                    <MbtiDimensionStrength
+                        v-if="dimensions"
+                        :dimensions="dimensions"
+                    />
                     <MbtiGuide :current="type" />
                 </template>
             </FixedResultView>
@@ -80,6 +84,7 @@
 import { mbtiTypeSchema } from '../../../../shared/schemas/common';
 import type { FixedResultResponse } from '../../../../shared/schemas/api/fixedResult.schema';
 import { useFixedResult } from '../../../composables/useFixedResult';
+import { useMbtiDimensions } from '../../../composables/useMbtiDimensions';
 
 const route = useRoute();
 const parsed = mbtiTypeSchema.safeParse(route.params.type);
@@ -91,4 +96,6 @@ useHead({ title: valid ? `${type} 分析` : 'MBTI 分析' });
 const {
     result, status,
 } = useFixedResult<FixedResultResponse>(valid ? `/api/fixed-results/mbti/${type}` : null);
+
+const { dimensions } = useMbtiDimensions(type);
 </script>

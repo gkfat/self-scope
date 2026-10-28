@@ -134,6 +134,7 @@
 
 <script lang="ts" setup>
 import { submissionResponseSchema } from '../../shared/schemas/api/test.schema';
+import { MBTI_RESULT_STORAGE_KEY as RESULT_STORAGE_KEY } from '../composables/useMbtiDimensions';
 import type {
     PublicTest, SubmissionResponse, TestSummary,
 } from '../../shared/schemas/api/test.schema';
@@ -141,7 +142,6 @@ import type {
 useHead({ title: '16 型人格測驗' });
 
 const QUESTIONS_PER_PAGE = 8;
-const RESULT_STORAGE_KEY = 'self-scope:mbti-result';
 
 const route = useRoute();
 const { isAuthenticated } = useAuth();
