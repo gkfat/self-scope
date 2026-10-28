@@ -22,6 +22,7 @@
         <template v-else-if="result">
             <FixedResultView :result="result.content">
                 <template #after-insight>
+                    <MbtiDimensionStrength :dimensions="result.dimensions" />
                     <MbtiGuide :current="result.result" />
                 </template>
             </FixedResultView>

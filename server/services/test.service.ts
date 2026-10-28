@@ -3,7 +3,7 @@ import { FixedContentService } from './fixedContent.service';
 import { GuestSessionService } from './guestSession.service';
 import { TestRepository } from '../repositories/test.repository';
 import {
-    findAnswerIssues, scorePersonality,
+    findAnswerIssues, scoreDimensions, scorePersonality,
 } from '../../shared/utils/personalityScoring';
 import {
     testAttemptDocSchema, type TestAttemptDoc, type TestResult,
@@ -11,6 +11,7 @@ import {
 import type {
     PublicTest, SubmissionRequest, SubmissionResponse, TestAttemptItem, TestSummary,
 } from '../../shared/schemas/api/test.schema';
+import type { TestVersionDoc } from '../../shared/schemas/firestore/test.schema';
 import { addMonths } from '../../shared/utils/time';
 import {
     NotFoundError, ValidationError,
@@ -122,6 +123,7 @@ export class TestService extends BaseService {
         }
 
         const result = scorePersonality(version.questions, input.answers, version.scoringRule);
+        const dimensions = scoreDimensions(version.questions, input.answers, version.scoringRule);
         // Fetch the content before saving anything: a result we cannot present must not be stored.
         const content = await this.fixedContent.getPublished('MBTI', result);
 
@@ -145,6 +147,7 @@ export class TestService extends BaseService {
             attemptId: saved.attemptId,
             testVersion: input.testVersion,
             result,
+            dimensions,
             content,
             persisted: saved.attemptId !== null,
             saveFailed: saved.failed,
@@ -162,22 +165,48 @@ export class TestService extends BaseService {
             .limit(ATTEMPT_LIST_LIMIT)
             .get();
 
-        return snap.docs
+        // The scoring rule belongs to the version an attempt was answered against, so each version is read once.
+        const versions = new Map<string, Promise<TestVersionDoc | null>>();
+
+        return Promise.all(snap.docs
             .map((doc) => ({
                 attemptId: doc.id,
                 doc: testAttemptDocSchema.parse(doc.data()),
             }))
             .filter(({ doc }) => doc.expiresAt > now)
-            .map(({
+            .map(async ({
                 attemptId, doc, 
             }) => ({
                 attemptId,
                 testId: doc.testId,
                 testVersion: doc.testVersion,
                 result: doc.result,
+                dimensions: await this.dimensionsOf(doc, versions),
                 completedAt: doc.completedAt,
                 expiresAt: doc.expiresAt,
-            }));
+            })));
+    }
+
+    /** The per-dimension scores of a saved attempt, worked out again from its answers and its own test version. */
+    private async dimensionsOf(
+        doc: TestAttemptDoc,
+        versions: Map<string, Promise<TestVersionDoc | null>>,
+    ): Promise<TestAttemptItem['dimensions']> {
+        const key = `${doc.testId}/${doc.testVersion}`;
+        let pending = versions.get(key);
+
+        if (!pending) {
+            pending = this.repository.getVersion(doc.testId, doc.testVersion);
+            versions.set(key, pending);
+        }
+
+        const version = await pending;
+
+        if (!version) {
+            throw new NotFoundError('Test version');
+        }
+
+        return scoreDimensions(version.questions, doc.answers, version.scoringRule);
     }
 
     private async loadCurrent(testId: string) {

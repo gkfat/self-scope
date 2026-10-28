@@ -7,6 +7,7 @@ import { TestRepository } from '../repositories/test.repository';
 import { UserRepository } from '../repositories/user.repository';
 import { getAiProvider } from '../ai';
 import { buildAnalysisInput } from '../ai/analysisInput';
+import { buildReportBasis } from '../../shared/utils/analysisBasis';
 import {
     buildBaziReportFacts, type BaziReportFacts,
 } from '../bazi/reportFacts';
@@ -224,7 +225,7 @@ export class DetailedReportService extends BaseService {
         }
 
         const {
-            input, combinationKey,
+            input, basis, combinationKey,
         } = await this.collectInput(uid, request);
 
         await this.rateLimit.consume(`report_hour_${uid}`, REPORT_LIMIT_PER_HOUR, HOUR_MS);
@@ -250,6 +251,7 @@ export class DetailedReportService extends BaseService {
             const doc: DetailedReportDoc = {
                 combinationKey,
                 input,
+                basis,
                 status: 'GENERATING',
                 sections: [],
                 disclaimer: null,
@@ -386,8 +388,15 @@ export class DetailedReportService extends BaseService {
             mayaKin,
         });
 
+        const basis = buildReportBasis({
+            dimensions: request.dimensions,
+            birth: user.birthData,
+            testVersion: input.test?.testVersion ?? null,
+        });
+
         return {
             input,
+            basis,
             combinationKey: {
                 zodiac: input.profile.zodiac,
                 mbti: input.profile.mbti,

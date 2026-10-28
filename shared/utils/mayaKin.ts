@@ -53,6 +53,8 @@ export const kinFromNumber = (kinNumber: number): Kin => ({
  * The Dreamspell Kin of a calendar date (`YYYY-MM-DD`). Every day counts one Kin, wrapping from 260 to 1,
  * except 29 February, which is not counted: it takes the Kin of 28 February of the same year.
  * Pure date arithmetic, no time zone involved. The date must be a real one (the API validates it first).
+ *
+ * Changing what this calculates: raise RULE_VERSIONS.MAYA_KIN in shared/utils/analysisBasis.ts.
  */
 export function kinOf(isoDate: string): Kin {
     const match = ISO_DATE.exec(isoDate);

@@ -24,6 +24,7 @@ export type BodyHouse = {
 };
 
 /** Where today's bodies fall for a member: the sign each is in and the house it makes of the member's own. */
+/** Changing what this calculates: raise RULE_VERSIONS.HOROSCOPE in shared/utils/analysisBasis.ts. */
 export function houses(memberSign: Zodiac, signOf: Record<HoroscopeBody, Zodiac>): BodyHouse[] {
     return HOROSCOPE_BODIES.map((body) => ({
         body, sign: signOf[body], house: houseOf(memberSign, signOf[body]),

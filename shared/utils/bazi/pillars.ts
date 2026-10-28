@@ -186,6 +186,7 @@ function termDayNote(moment: BirthMoment, birthYear: number): TermDayNote | null
 }
 
 /** The four pillars for a birth moment, under the fixed rules in `BAZI_RULES`. */
+/** Changing what this calculates: raise RULE_VERSIONS.BAZI in shared/utils/analysisBasis.ts. */
 export function calculatePillars(moment: BirthMoment): FourPillars {
     const birthYear = Number(moment.birthDate.slice(0, 4));
     const day = dayPillarOf(moment.birthDate);

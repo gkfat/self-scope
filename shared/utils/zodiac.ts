@@ -92,6 +92,8 @@ export function zodiacFromMonthDay(month: number, day: number): Zodiac {
 /**
  * Resolve the zodiac sign from an ISO date string (YYYY-MM-DD).
  * The caller must have validated the format first.
+ *
+ * Changing what this calculates: raise RULE_VERSIONS.ZODIAC in shared/utils/analysisBasis.ts.
  */
 export function zodiacFromIsoDate(isoDate: string): Zodiac {
     const [

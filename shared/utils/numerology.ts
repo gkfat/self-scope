@@ -44,6 +44,7 @@ function partsOf(isoDate: string): DateParts {
 }
 
 /** 生命靈數: year, month and day are reduced on their own, then added and reduced again. */
+/** Changing what this calculates: raise RULE_VERSIONS.NUMEROLOGY in shared/utils/analysisBasis.ts. */
 export function lifePathNumber(isoDate: string): number {
     const {
         year, month, day,

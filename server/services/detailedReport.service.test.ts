@@ -17,6 +17,7 @@ import { PROMPT_VERSION } from '../ai/prompt';
 import {
     REPORT_SECTIONS, type AnalysisInput, type ReportDimension,
 } from '../../shared/schemas/firestore/detailedReport.schema';
+import { RULE_VERSIONS } from '../../shared/utils/analysisBasis';
 import {
     InsufficientPointsError, NotFoundError, RateLimitError, UnprocessableError,
 } from '../../shared/types/errors';
@@ -212,6 +213,34 @@ describe('DetailedReportService', () => {
             expect(ai.calls[0]?.test).toBeNull();
             expect((await report('key-aaaaaaaa'))?.combinationKey).toMatchObject({
                 zodiac: null, bloodType: 'O', mbti: null, humanDesignType: chart.type,
+            });
+        });
+
+        describe('calculation basis', () => {
+            it('records a basis for each chosen dimension that was calculated, and none for blood type', async () => {
+                await service.create('u1', {
+                    dimensions: [
+                        'BLOOD',
+                        'HUMAN_DESIGN',
+                        'MAYA_KIN',
+                    ], 
+                }, 'key-basisbasis');
+                await settle();
+
+                const doc = await report('key-basisbasis');
+
+                expect((doc?.basis as Array<{ system: string }>).map((b) => b.system)).toEqual(['HUMAN_DESIGN', 'MAYA_KIN']);
+                expect(doc?.basis).toContainEqual(expect.objectContaining({
+                    system: 'MAYA_KIN', ruleVersion: RULE_VERSIONS.MAYA_KIN, inputs: { birthDate: '1995-03-25' },
+                }));
+            });
+
+            it('keeps the basis out of the facts the model gets, so the input version is untouched', async () => {
+                await service.create('u1', request, 'key-aaaaaaaa');
+                await settle();
+
+                expect((await report('key-aaaaaaaa'))?.input).not.toHaveProperty('basis');
+                expect(ai.calls[0]).not.toHaveProperty('basis');
             });
         });
 

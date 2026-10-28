@@ -109,6 +109,8 @@ function crossGates(
  * Derive everything except the gate activations from the two activation lists
  * (Personality = at birth, Design = 88° of solar arc earlier). Pure, so it can be
  * tested with hand-picked gates.
+ *
+ * Changing what this calculates: raise RULE_VERSIONS.HUMAN_DESIGN in shared/utils/analysisBasis.ts.
  */
 export function deriveChart(
     personality: readonly HumanDesignActivation[],

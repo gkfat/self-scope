@@ -67,6 +67,7 @@ export function ascendantLongitude(time: Astronomy.AstroTime, latitude: number, 
 }
 
 /** Signs of the seven classical bodies and the ascendant for a moment and a place. */
+/** Changing what this calculates: raise RULE_VERSIONS.NATAL_CHART in shared/utils/analysisBasis.ts. */
 export function computeNatalChart(birthUtc: Date, latitude: number, longitude: number): NatalChart {
     const time = Astronomy.MakeTime(birthUtc);
 

@@ -131,6 +131,29 @@ describe('TestService', () => {
             expect(response.attemptId).toBeNull();
         });
 
+        it('returns the strength of each dimension, agreeing with the type', async () => {
+            const response = await service.submit('personality16', request(), anon);
+
+            expect(Object.keys(response.dimensions)).toEqual(scoringRule.dimensions.map((d) => d.id));
+            expect(Object.values(response.dimensions).map((d) => d.leaning).join('')).toBe(response.result);
+
+            for (const dimension of Object.values(response.dimensions)) {
+                expect(Math.abs(dimension.score)).toBeLessThanOrEqual(dimension.maxScore);
+                expect(dimension.maxScore).toBeGreaterThan(0);
+            }
+        });
+
+        it('breaks a tied dimension with the rule\'s tie-break, as the type does', async () => {
+            const neutral = questions.map((q) => ({
+                questionId: q.questionId, value: scoringRule.neutralValue,
+            }));
+            const response = await service.submit('personality16', request(neutral), anon);
+
+            expect(Object.values(response.dimensions).every((d) => d.score === 0)).toBe(true);
+            expect(Object.values(response.dimensions).map((d) => d.leaning)).toEqual(scoringRule.dimensions.map((d) => d.tieBreak));
+            expect(Object.values(response.dimensions).map((d) => d.leaning).join('')).toBe(response.result);
+        });
+
         it('rejects incomplete or invalid answers without saving anything', async () => {
             await db.doc('users/u1').set(userDoc);
 
@@ -257,7 +280,7 @@ describe('TestService', () => {
             const attempt = (completedAt: number, expiresAt: number) => ({
                 testId: 'personality16',
                 testVersion: '1',
-                answers: [],
+                answers: leaning('first', { responseTimeMs: null }),
                 result: 'INTJ',
                 completedAt,
                 expiresAt,
@@ -270,6 +293,36 @@ describe('TestService', () => {
             const attempts = await service.listAttempts('u1');
 
             expect(attempts.map((a) => a.attemptId)).toEqual(['b', 'a']);
+        });
+
+        describe('dimension scores', () => {
+            const saved = (testVersion: string, id: string, completedAt = NOW - 100) => db.doc(`users/u1/testAttempts/${id}`).set({
+                testId: 'personality16',
+                testVersion,
+                answers: leaning('first', { responseTimeMs: null }),
+                result: 'ESTJ',
+                completedAt,
+                expiresAt: NOW + 1000,
+            });
+
+            it('works them out from the answers with the attempt\'s own version', async () => {
+                // A newer version with no questions must not change what an older attempt scored
+                await db.doc('tests/personality16/versions/2').set({
+                    questions: [], scoringRule, publishedAt: NOW,
+                });
+                await saved('1', 'a');
+
+                const [attempt] = await service.listAttempts('u1');
+
+                expect(attempt?.dimensions).not.toBeNull();
+                expect(Object.values(attempt?.dimensions ?? {}).map((d) => d.leaning).join('')).toBe('ESTJ');
+            });
+
+            it('fails when the version of an attempt is gone, rather than guessing a score', async () => {
+                await saved('gone', 'a');
+
+                await expect(service.listAttempts('u1')).rejects.toBeInstanceOf(NotFoundError);
+            });
         });
     });
 });

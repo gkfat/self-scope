@@ -37,11 +37,22 @@ export const submissionRequestSchema = z.object({
     responseTimeConsent: z.boolean().optional(),
 });
 
+/** How clear-cut one dimension of the result is; `score` is positive toward the dimension's first letter. */
+export const dimensionScoreSchema = z.object({
+    score: z.number(),
+    maxScore: z.number().nonnegative(),
+    leaning: z.string().length(1),
+});
+
+/** Per-dimension scores keyed by dimension id (EI, SN, TF, JP). */
+export const dimensionScoresSchema = z.record(z.string(), dimensionScoreSchema);
+
 export const submissionResponseSchema = z.object({
     /** null when nothing was saved (guest, or saving failed) */
     attemptId: z.string().nullable(),
     testVersion: z.string(),
     result: mbtiTypeSchema,
+    dimensions: dimensionScoresSchema,
     content: fixedResultResponseSchema,
     /** Guests are only held for a day on the server; this is true only for a saved attempt. */
     persisted: z.boolean(),
@@ -55,6 +66,7 @@ export const testAttemptItemSchema = z.object({
     testId: z.string(),
     testVersion: z.string(),
     result: mbtiTypeSchema,
+    dimensions: dimensionScoresSchema,
     completedAt: z.number().int(),
     expiresAt: z.number().int(),
 });

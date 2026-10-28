@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { analysisBasisSchema } from '../analysisBasis.schema';
 import {
     bloodTypeSchema, epochMsSchema, mbtiTypeSchema, numerologySchema, zodiacSchema,
 } from '../common';
@@ -125,6 +126,8 @@ export const reportSectionSchema = aiSectionSchema.extend({ title: z.string() })
 export const detailedReportDocSchema = z.object({
     combinationKey: reportCombinationSchema,
     input: analysisInputSchema,
+    /** What each calculated dimension was made from and by which rules. */
+    basis: z.array(analysisBasisSchema),
     status: reportStatusSchema,
     sections: z.array(reportSectionSchema),
     disclaimer: z.string().nullable(),
