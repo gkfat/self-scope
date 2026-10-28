@@ -14,6 +14,7 @@
     "content:check": "node scripts/check-fixed-content.ts",
     "content:import-test": "node scripts/import-test.ts",
     "content:import-packages": "node scripts/import-point-packages.ts",
+    "ontology:check": "node --import ./scripts/lib/registerResolver.mjs scripts/check-trait-ontology.ts",
     "check:bundle": "node scripts/check-client-bundle.ts",
     "firebase:provision": "node scripts/provision-firebase.ts",
     "e2e:smoke": "node scripts/e2e-smoke.ts"
