@@ -224,6 +224,33 @@ describe('RUNE keys', () => {
     });
 });
 
+describe('HOROSCOPE keys', () => {
+    it('accepts the five bodies in each of the twelve houses', () => {
+        expect(isValidContentKey('HOROSCOPE', 'MOON_5')).toBe(true);
+        expect(isValidContentKey('HOROSCOPE', 'VENUS_12')).toBe(true);
+        expect(isValidContentKey('HOROSCOPE', 'SUN_1')).toBe(true);
+        expect(isValidContentKey('HOROSCOPE', 'MARS_7')).toBe(true);
+        expect(isValidContentKey('HOROSCOPE', 'MERCURY_3')).toBe(true);
+    });
+
+    it('rejects other bodies, houses out of 1 to 12 and malformed keys', () => {
+        for (const key of [
+            'MOON_0',
+            'MOON_13',
+            'MOON_05',
+            'JUPITER_1',
+            'SATURN_4',
+            'MOON-5',
+            'MOON_',
+            'moon_5',
+            '5',
+            'MOON_5_extra',
+        ]) {
+            expect(isValidContentKey('HOROSCOPE', key), key).toBe(false);
+        }
+    });
+});
+
 describe('baziContentKeys', () => {
     const keys = baziContentKeys();
     const countOf = (prefix: string) => keys.filter((key) => key.startsWith(prefix)).length;
@@ -254,9 +281,9 @@ describe('baziContentKeys', () => {
 describe('expectedFixedContentIds', () => {
     const ids = expectedFixedContentIds();
 
-    it('lists 14320 summaries, 44 single results, 123 BaZi contents and 44 tarot contents, 520 Kin contents and 39 rune contents, all unique', () => {
-        expect(ids).toHaveLength(15090);
-        expect(new Set(ids).size).toBe(15090);
+    it('lists 14320 summaries, 44 single results, 123 BaZi contents and 44 tarot contents, 520 Kin contents and 39 rune contents and 60 sign horoscope contents, all unique', () => {
+        expect(ids).toHaveLength(15150);
+        expect(new Set(ids).size).toBe(15150);
         expect(ids.filter((id) => id.startsWith('SUMMARY_'))).toHaveLength(14320);
         expect(ids.filter((id) => id.startsWith('ZODIAC_'))).toHaveLength(12);
         expect(ids.filter((id) => id.startsWith('BLOOD_'))).toHaveLength(4);
@@ -267,6 +294,7 @@ describe('expectedFixedContentIds', () => {
         expect(ids.filter((id) => id.startsWith('KIN_BIRTH_'))).toHaveLength(260);
         expect(ids.filter((id) => id.startsWith('KIN_TODAY_'))).toHaveLength(260);
         expect(ids.filter((id) => id.startsWith('RUNE_'))).toHaveLength(39);
+        expect(ids.filter((id) => id.startsWith('HOROSCOPE_'))).toHaveLength(60);
     });
 
     it('splits summaries into 688 pairs, 4416 triples and 9216 with all four parts', () => {

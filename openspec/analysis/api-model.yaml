@@ -1358,6 +1358,29 @@ paths:
         domainModel: [ENT-001, ENT-005, AGG-005]
         businessRules: [RULE-017, RULE-040, RULE-041, RULE-049]
         requirements: [NFR-001, NFR-020]
+  "/horoscope/daily":
+    get:
+      operationId: getDailyHoroscope
+      summary: "今日星座運勢"
+      description: "以會員的太陽星座為第 1 宮（整宮制），回傳今日（台北當日 00:00）太陽、月亮、水星、金星、火星各落在第幾宮與該宮的固定內容。免費、不呼叫 AI、不寫入任何資料。沒有出生日期回 422；內容尚未發佈回 404。同星座同日結果相同。"
+      tags: [Today]
+      responses:
+        "200":
+          description: "今日星座運勢"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/DailyHoroscopeState"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+        "422":
+          description: "沒有出生日期，請先填寫"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
   "/transit-reports":
     post:
       operationId: createTransitReport
@@ -2458,6 +2481,42 @@ components:
           "$ref": "#/components/schemas/FixedResultContent"
       required: [date, drawn]
       description: "drawn 為 false 時只有 date；為 true 時含 rune 與 content"
+    HoroscopeBody:
+      type: object
+      properties:
+        body:
+          type: string
+          enum: [MOON, SUN, MERCURY, VENUS, MARS]
+        name:
+          type: string
+        area:
+          type: string
+          description: "這顆天體今天讀的生活面向，例如今日心情與節奏"
+        transitSign:
+          type: string
+          description: "天體今天所在的星座"
+        house:
+          type: integer
+          minimum: 1
+          maximum: 12
+          description: "以會員的太陽星座為第 1 宮，該星座是第幾宮"
+        content:
+          "$ref": "#/components/schemas/FixedResultContent"
+      required: [body, name, area, transitSign, house, content]
+    DailyHoroscopeState:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        sign:
+          type: string
+          description: "會員的太陽星座"
+        bodies:
+          type: array
+          items:
+            "$ref": "#/components/schemas/HoroscopeBody"
+      required: [date, sign, bodies]
     KinResult:
       type: object
       properties:

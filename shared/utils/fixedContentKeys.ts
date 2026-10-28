@@ -12,6 +12,7 @@ import {
     BONE_MAX_QIAN,
     BONE_MIN_QIAN,
 } from '../constants/bazi.ts';
+import { horoscopeContentKeys } from '../constants/horoscope.ts';
 import { KIN_COUNT } from '../constants/mayaKin.ts';
 import { runeContentKeys } from '../constants/runes.ts';
 import {
@@ -37,6 +38,7 @@ export const FIXED_CONTENT_TYPES = [
     'KIN_BIRTH',
     'KIN_TODAY',
     'RUNE',
+    'HOROSCOPE',
 ] as const;
 
 export type FixedContentType = typeof FIXED_CONTENT_TYPES[number];
@@ -168,6 +170,9 @@ const KIN_KEY_SET: ReadonlySet<string> = new Set(kinContentKeys());
 /** The 39 rune content keys: 24 upright, and reversed only for the 15 runes that can be reversed. */
 const RUNE_KEY_SET: ReadonlySet<string> = new Set(runeContentKeys());
 
+/** The 60 sign horoscope keys: five bodies in twelve houses, as `<BODY>_<1 to 12>`. */
+const HOROSCOPE_KEY_SET: ReadonlySet<string> = new Set(horoscopeContentKeys());
+
 export function fixedContentId(type: FixedContentType, key: string): string {
     return `${type}_${key}`;
 }
@@ -185,13 +190,14 @@ export function isValidContentKey(type: FixedContentType, key: string): boolean 
     case 'KIN_BIRTH':
     case 'KIN_TODAY': return KIN_KEY_SET.has(key);
     case 'RUNE': return RUNE_KEY_SET.has(key);
+    case 'HOROSCOPE': return HOROSCOPE_KEY_SET.has(key);
     }
 }
 
 /**
  * Every document id that must exist before launch:
  * every summary combination (2 to 4 of zodiac, MBTI, blood type and life path number), 12 + 4 + 16 + 12 single results,
- * the 123 BaZi contents, the 44 tarot contents, the 260 + 260 Kin contents and the 39 rune contents.
+ * the 123 BaZi contents, the 44 tarot contents, the 260 + 260 Kin contents, the 39 rune contents and the 60 sign horoscope contents.
  */
 export function expectedFixedContentIds(): string[] {
     const ids: string[] = [];
@@ -229,6 +235,7 @@ export function expectedFixedContentIds(): string[] {
     for (const key of tarotContentKeys()) ids.push(fixedContentId('TAROT', key));
     for (const key of kinContentKeys()) ids.push(fixedContentId('KIN_BIRTH', key), fixedContentId('KIN_TODAY', key));
     for (const key of runeContentKeys()) ids.push(fixedContentId('RUNE', key));
+    for (const key of horoscopeContentKeys()) ids.push(fixedContentId('HOROSCOPE', key));
 
     return ids;
 }

@@ -53,6 +53,7 @@
 </template>
 
 <script lang="ts" setup>
+import { HOROSCOPE_ENTRY_ENABLED } from '../../../shared/constants/horoscope';
 import { KIN_ENTRY_ENABLED } from '../../../shared/constants/mayaKin';
 import {
     RUNE_ENTRY_ENABLED, RUNE_ORIENTATION_LABELS,
@@ -60,6 +61,7 @@ import {
 import {
     TAROT_ENTRY_ENABLED, TAROT_ORIENTATION_LABELS,
 } from '../../../shared/constants/tarot';
+import { ZODIAC_LABELS } from '../../../shared/constants/zodiacLabels';
 import { kinName } from '../../../shared/utils/mayaKin';
 
 const {
@@ -74,10 +76,14 @@ const {
 const {
     today: runeToday, load: loadRune,
 } = useDailyRune();
+const {
+    today: horoscopeToday, status: horoscopeStatus, load: loadHoroscope,
+} = useDailyHoroscope();
 
 const tarotDrawn = computed(() => (tarotToday.value?.drawn ? tarotToday.value : null));
 const kinUnlocked = computed(() => (kinToday.value?.unlocked ? kinToday.value : null));
 const runeDrawn = computed(() => (runeToday.value?.drawn ? runeToday.value : null));
+const horoscopeMoon = computed(() => horoscopeToday.value?.bodies.find((entry) => entry.body === 'MOON') ?? null);
 
 /** One line for each part that is switched on. */
 const entries = computed(() => [
@@ -85,6 +91,7 @@ const entries = computed(() => [
         ? [{
             label: '今日塔羅',
             done: Boolean(tarotDrawn.value),
+            counted: true,
             text: tarotDrawn.value
                 ? `${tarotDrawn.value.card.name}（${TAROT_ORIENTATION_LABELS[tarotDrawn.value.card.orientation]}）`
                 : '還沒翻牌，每天可以翻一張',
@@ -94,6 +101,7 @@ const entries = computed(() => [
         ? [{
             label: '今日 Kin',
             done: Boolean(kinUnlocked.value),
+            counted: true,
             text: kinUnlocked.value
                 ? `${kinName(kinUnlocked.value.kin)}（Kin ${kinUnlocked.value.kin.kinNumber}）`
                 : '還沒計算，每天可以計算一次',
@@ -103,14 +111,26 @@ const entries = computed(() => [
         ? [{
             label: '盧恩符文',
             done: Boolean(runeDrawn.value),
+            counted: true,
             text: runeDrawn.value
                 ? `${runeDrawn.value.rune.glyph} ${runeDrawn.value.rune.name}（${RUNE_ORIENTATION_LABELS[runeDrawn.value.rune.orientation]}）`
                 : '還沒抽符，每天可以抽一枚',
         }]
         : []),
+    // Read, not drawn: it is always there, so it never counts as something still to do
+    ...(HOROSCOPE_ENTRY_ENABLED
+        ? [{
+            label: '星座運勢',
+            done: true,
+            counted: false,
+            text: horoscopeToday.value && horoscopeMoon.value
+                ? `${ZODIAC_LABELS[horoscopeToday.value.sign]}，月亮在你的第 ${horoscopeMoon.value.house} 宮`
+                : horoscopeStatus.value === 'needsProfile' ? '先填寫出生日期，就能看你的星座運勢' : '以你的星座看今天',
+        }]
+        : []),
 ]);
 
-const allDone = computed(() => entries.value.every((entry) => entry.done));
+const allDone = computed(() => entries.value.filter((entry) => entry.counted).every((entry) => entry.done));
 // Only a member's cards are asked for; a visitor sees the invitation and nothing of today's results.
 watch(() => initialized.value && isAuthenticated.value, (member) => {
     if (!member) return;
@@ -118,5 +138,6 @@ watch(() => initialized.value && isAuthenticated.value, (member) => {
     if (TAROT_ENTRY_ENABLED) void loadTarot();
     if (KIN_ENTRY_ENABLED) void loadKin();
     if (RUNE_ENTRY_ENABLED) void loadRune();
+    if (HOROSCOPE_ENTRY_ENABLED) void loadHoroscope();
 }, { immediate: true });
 </script>

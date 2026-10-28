@@ -10,7 +10,7 @@
             <p class="overview text-body-2 text-medium-emphasis">
                 <span class="overview__date">{{ todayKey }}</span>
                 <span aria-hidden="true">·</span>
-                <span>今天已揭曉 {{ revealedCount }}／{{ entries.length }}</span>
+                <span>今天已揭曉 {{ revealedCount }}／{{ rituals.length }}</span>
             </p>
 
             <v-row class="entries">
@@ -19,7 +19,7 @@
                     :key="entry.value"
                     cols="12"
                     sm="6"
-                    :md="entries.length > 2 ? 4 : 6"
+                    :md="entries.length >= 4 ? 3 : entries.length > 2 ? 4 : 6"
                 >
                     <v-card
                         variant="outlined"
@@ -40,8 +40,17 @@
                                     size="20"
                                 />
                                 <span class="entry__label">{{ entry.label }}</span>
+                                <!-- The sign horoscope is read, not drawn: nothing to reveal, it renews every day -->
                                 <v-chip
-                                    v-if="entry.result"
+                                    v-if="entry.kind === 'reading'"
+                                    size="x-small"
+                                    variant="outlined"
+                                    class="entry__status"
+                                >
+                                    每日更新
+                                </v-chip>
+                                <v-chip
+                                    v-else-if="entry.result"
                                     size="x-small"
                                     color="primary"
                                     variant="tonal"
@@ -97,7 +106,7 @@
                             </div>
 
                             <footer class="entry__foot">
-                                {{ entry.result ? '查看報告' : entry.action }}
+                                {{ entry.kind === 'reading' || !entry.result ? entry.action : '查看報告' }}
                                 <v-icon
                                     icon="mdi-arrow-right"
                                     size="16"
@@ -123,12 +132,14 @@
             </div>
             <FortuneTarotPanel v-if="selected === 'tarot'" />
             <FortuneKinPanel v-else-if="selected === 'kin'" />
-            <FortuneRunePanel v-else />
+            <FortuneRunePanel v-else-if="selected === 'rune'" />
+            <FortuneHoroscopePanel v-else />
         </template>
     </div>
 </template>
 
 <script lang="ts" setup>
+import { HOROSCOPE_ENTRY_ENABLED } from '../../shared/constants/horoscope';
 import { KIN_ENTRY_ENABLED } from '../../shared/constants/mayaKin';
 import {
     RUNE_ENTRY_ENABLED, RUNE_ORIENTATION_LABELS,
@@ -139,12 +150,13 @@ import {
 import {
     kinName, sealName, toneName,
 } from '../../shared/utils/mayaKin';
+import { ZODIAC_LABELS } from '../../shared/constants/zodiacLabels';
 import { taipeiDateKey } from '../../shared/utils/time';
 
 definePageMeta({ middleware: 'member' });
 useHead({ title: '今日運勢' });
 
-type FortuneView = 'tarot' | 'kin' | 'rune';
+type FortuneView = 'tarot' | 'kin' | 'rune' | 'horoscope';
 
 const route = useRoute();
 const router = useRouter();
@@ -153,6 +165,9 @@ const router = useRouter();
 const { today: tarotToday, load: loadTarot } = useDailyTarot();
 const { today: kinToday, load: loadKin } = useKinToday();
 const { today: runeToday, load: loadRune } = useDailyRune();
+const {
+    today: horoscopeToday, status: horoscopeStatus, load: loadHoroscope,
+} = useDailyHoroscope();
 
 type EntryResult = {
     main: string;
@@ -203,27 +218,55 @@ const runeResult = computed<EntryResult | null>(() => {
         : null;
 });
 
+/** Today's Moon in the member's houses, the headline of the sign horoscope: there is nothing to reveal, so it is shown at once. */
+const horoscopeResult = computed<EntryResult | null>(() => {
+    const moon = horoscopeToday.value?.bodies.find((entry) => entry.body === 'MOON');
+
+    return horoscopeToday.value && moon
+        ? {
+            main: `月亮在你的第 ${moon.house} 宮`,
+            sub: `你是${ZODIAC_LABELS[horoscopeToday.value.sign]} · ${moon.area}`,
+            mark: String(moon.house),
+            eyebrow: 'HOUSE',
+        }
+        : null;
+});
+
 /** The parts that are switched on, in the order they are shown. */
 const entries = computed(() => [
     ...(TAROT_ENTRY_ENABLED
         ? [{
-            value: 'tarot' as const, label: '塔羅', icon: 'mdi-cards-playing-outline', hint: '每天翻一張牌', action: '去翻牌', result: tarotResult.value,
+            value: 'tarot' as const, label: '塔羅', icon: 'mdi-cards-playing-outline', kind: 'ritual' as const, hint: '每天翻一張牌', action: '去翻牌', result: tarotResult.value,
         }]
         : []),
     ...(KIN_ENTRY_ENABLED
         ? [{
-            value: 'kin' as const, label: '瑪雅 Kin', icon: 'mdi-calendar-star', hint: '每天算一次今日 Kin', action: '去計算', result: kinResult.value,
+            value: 'kin' as const, label: '瑪雅 Kin', icon: 'mdi-calendar-star', kind: 'ritual' as const, hint: '每天算一次今日 Kin', action: '去計算', result: kinResult.value,
         }]
         : []),
     ...(RUNE_ENTRY_ENABLED
         ? [{
-            value: 'rune' as const, label: '盧恩符文', icon: 'mdi-alpha-r-circle-outline', hint: '每天抽一枚符文', action: '去抽符', result: runeResult.value,
+            value: 'rune' as const, label: '盧恩符文', icon: 'mdi-alpha-r-circle-outline', kind: 'ritual' as const, hint: '每天抽一枚符文', action: '去抽符', result: runeResult.value,
+        }]
+        : []),
+    ...(HOROSCOPE_ENTRY_ENABLED
+        ? [{
+            value: 'horoscope' as const,
+            label: '星座運勢',
+            icon: 'mdi-zodiac-leo',
+            kind: 'reading' as const,
+            // Without a birth date there is no sign to read the sky from
+            hint: horoscopeStatus.value === 'needsProfile' ? '先填寫出生日期' : '以你的星座看今天',
+            action: horoscopeStatus.value === 'needsProfile' ? '去填寫' : '看運勢',
+            result: horoscopeResult.value,
         }]
         : []),
 ]);
 
 /** How many of today's parts have been revealed, and the Taipei date they belong to */
-const revealedCount = computed(() => entries.value.filter((entry) => entry.result).length);
+/** The parts that are drawn or worked out once a day; the sign horoscope is read, so it is not counted. */
+const rituals = computed(() => entries.value.filter((entry) => entry.kind === 'ritual'));
+const revealedCount = computed(() => rituals.value.filter((entry) => entry.result).length);
 const todayKey = taipeiDateKey(new Date());
 
 // Ask what has been revealed today, so the cards can show it. Nothing is written by asking.
@@ -231,6 +274,7 @@ onMounted(() => {
     if (TAROT_ENTRY_ENABLED) void loadTarot();
     if (KIN_ENTRY_ENABLED) void loadKin();
     if (RUNE_ENTRY_ENABLED) void loadRune();
+    if (HOROSCOPE_ENTRY_ENABLED) void loadHoroscope();
 });
 
 // Which one is open lives in the address (/fortune#tarot, #kin, #rune), so the browser's back button, a

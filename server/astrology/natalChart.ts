@@ -42,7 +42,8 @@ const BODY_OF: Record<Exclude<NatalBody, 'SUN' | 'MOON'>, Astronomy.Body> = {
     PLUTO: Astronomy.Body.Pluto,
 };
 
-function bodyLongitude(body: NatalBody, time: Astronomy.AstroTime): number {
+/** Ecliptic longitude in degrees of a body at a moment. */
+export function bodyLongitude(body: NatalBody, time: Astronomy.AstroTime): number {
     if (body === 'SUN') return Astronomy.SunPosition(time).elon;
     if (body === 'MOON') return Astronomy.EclipticGeoMoon(time).lon;
 
@@ -74,5 +75,23 @@ export function computeNatalChart(birthUtc: Date, latitude: number, longitude: n
         bodies: Object.fromEntries(
             NATAL_BODIES.map((body) => [body, placementFromLongitude(bodyLongitude(body, time))]),
         ) as Record<NatalBody, Placement>,
+    };
+}
+
+/** The exact ecliptic longitudes behind a natal chart, for work that needs more than whole degrees (aspects). */
+export type NatalLongitudes = {
+    ascendant: number;
+    bodies: Record<NatalBody, number>;
+};
+
+/** Exact longitudes of the ten bodies and the ascendant. `computeNatalChart` is these, cut into signs and degrees. */
+export function computeNatalLongitudes(birthUtc: Date, latitude: number, longitude: number): NatalLongitudes {
+    const time = Astronomy.MakeTime(birthUtc);
+
+    return {
+        ascendant: normalizeDegrees(ascendantLongitude(time, latitude, longitude)),
+        bodies: Object.fromEntries(
+            NATAL_BODIES.map((body) => [body, normalizeDegrees(bodyLongitude(body, time))]),
+        ) as Record<NatalBody, number>,
     };
 }
