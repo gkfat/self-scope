@@ -21,6 +21,7 @@ describe('classifyRoute', () => {
         expect(classifyRoute('POST', '/api/tests/mbti/submissions')).toBe('optional');
         expect(classifyRoute('POST', '/api/human-design/calculations')).toBe('optional');
         expect(classifyRoute('POST', '/api/share-cards')).toBe('optional');
+        expect(classifyRoute('POST', '/api/single-reports')).toBe('optional');
     });
 
     it('lets webhook and cron verify themselves', () => {

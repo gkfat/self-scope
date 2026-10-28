@@ -15,13 +15,13 @@
 一份報告一個文件。理由：與既有集合（`summaries`、`detailedReports`）同層、刪帳號時整個 `users/{uid}` 子集合由既有清除程式涵蓋（需加進刪除清單並測試）。替代：塞進 `detailedReports` → 兩種報告性質不同（免費規則組裝 vs AI）；否決。
 
 ### D2：結構
-`{ kind: 'SINGLE' | 'MULTI', systems[], position（位置結論）, blocks[], versions, basis[], generatedAt, expiresAt, aiAugmented }`。`blocks[]` 每塊含 `key`、`title`、`segments[]`；`segments[]` 每段含 `text`（全文）、`kind`（四類）、`sources`（系統、原語彙、片段或軸端點 ID）、`timeSensitive`（布林）。文件大小為數 KB 至十數 KB，遠低於 Firestore 單文件上限。
+`{ kind: 'SINGLE' | 'MULTI', systems[], position（位置結論）, blocks[], versions, basis[], ai, generatedAt, expiresAt }`；`ai` 是 AI 進階分析，**獨立欄位、與規則產生的 `blocks` 並存**（含 `blocks`、`modelName`、`promptVersion`、`generatedAt`），尚未分析時為 null。`blocks[]` 每塊含 `key`、`title`、`segments[]`；`segments[]` 每段含 `text`（全文）、`kind`（四類）、`sources`（系統、原語彙、片段或軸端點 ID）、`timeSensitive`（布林）。文件大小為數 KB 至十數 KB，遠低於 Firestore 單文件上限。
 
 ### D3：種類與既有 `evidenceKind` 的對應
 `OBSERVED` ↔ 事實／系統解讀；`INFERRED` ↔ AI 綜合推論。對應函式在 shared，**不修改**既有 `evidenceKindSchema`。使用者自述列舉保留但目前不產生。
 
 ### D4：版本欄位集中為 `versions`
-`ontology`、`mapping`、`fragments`、`templates`、`prompt`（AI）與各系統 `basis`，使任一段文字可追溯到產生它的版本。
+`ontology`、`mapping`、`fragments`、`templates` 與各系統 `basis`，使規則產生的每段文字可追溯到產生它的版本；AI 部分的 `modelName`、`promptVersion` 放在 `ai` 欄位內。
 
 ### D5：保存期限
 單維度與多維度快照預設沿用 **6 個月**（與 AI 報告一致，因為使用者為其付出點數或可能再讀）；到期由既有 data-expiry cron 清除（加入新集合，不開 TTL）。

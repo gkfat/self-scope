@@ -38,6 +38,8 @@ export const snapshotSegmentSchema = z.object({
     timeSensitive: z.boolean(),
     /** The date (YYYY-MM-DD) a time-sensitive sentence was made for; null otherwise */
     asOf: isoDateSchema.nullable(),
+    /** For a guess about the past: the question that lets the reader check it against their own life (the answer is not kept) */
+    confirmQuestion: z.string().min(1).optional(),
 }).superRefine((segment, ctx) => {
     if (segment.timeSensitive && segment.asOf === null) {
         ctx.addIssue({
@@ -52,14 +54,23 @@ export const snapshotBlockSchema = z.object({
     segments: z.array(snapshotSegmentSchema).min(1),
 });
 
-/** The versions of everything a report was made from, so any sentence can be traced to what produced it. */
+/** The versions of everything the rule-made part of a report was made from, so any sentence can be traced to what produced it. */
 export const snapshotVersionsSchema = z.object({
     ontology: z.string().min(1),
     mapping: z.string().min(1),
     fragments: z.string().min(1),
     templates: z.string().min(1),
-    /** Only for a report with a part written by the AI */
-    prompt: z.string().min(1).nullable(),
+});
+
+/**
+ * The AI's advanced analysis of a report, kept in a field of its own beside the rule-made `blocks`. It never replaces
+ * them: the base report stays as it was made, and this is added to it (and replaced by a newer analysis, never the base).
+ */
+export const snapshotAiSchema = z.object({
+    blocks: z.array(snapshotBlockSchema).min(1),
+    modelName: z.string().min(1),
+    promptVersion: z.string().min(1),
+    generatedAt: epochMsSchema,
 });
 
 const contentShape = {
@@ -70,7 +81,6 @@ const contentShape = {
     blocks: z.array(snapshotBlockSchema).min(1),
     versions: snapshotVersionsSchema,
     basis: z.array(analysisBasisSchema),
-    aiAugmented: z.boolean(),
 };
 
 type ContentCheck = { kind: 'SINGLE' | 'MULTI'; systems: readonly unknown[] };
@@ -91,6 +101,8 @@ export const reportSnapshotContentSchema = z.object(contentShape).superRefine(ch
 /** users/{uid}/reportSnapshots/{snapshotId} */
 export const reportSnapshotDocSchema = z.object({
     ...contentShape,
+    /** The AI analysis, once the member has asked for it; null until then */
+    ai: snapshotAiSchema.nullable(),
     generatedAt: epochMsSchema,
     /** generatedAt + 6 months; removed by the daily expiry job (no TTL) */
     expiresAt: epochMsSchema,
@@ -100,5 +112,6 @@ export type SnapshotSegmentKind = typeof SNAPSHOT_SEGMENT_KINDS[number];
 export type SnapshotSegment = z.infer<typeof snapshotSegmentSchema>;
 export type SnapshotBlock = z.infer<typeof snapshotBlockSchema>;
 export type SnapshotVersions = z.infer<typeof snapshotVersionsSchema>;
+export type SnapshotAi = z.infer<typeof snapshotAiSchema>;
 export type ReportSnapshotContent = z.infer<typeof reportSnapshotContentSchema>;
 export type ReportSnapshotDoc = z.infer<typeof reportSnapshotDocSchema>;

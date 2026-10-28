@@ -72,10 +72,9 @@ describe('the segment and source schemas', () => {
                 },
             ],
             versions: {
-                ontology: 'o', mapping: 'm', fragments: 'f', templates: 't', prompt: null,
+                ontology: 'o', mapping: 'm', fragments: 'f', templates: 't',
             },
             basis: [],
-            aiAugmented: false,
         };
 
         expect(reportSnapshotContentSchema.safeParse(report).success).toBe(true);

@@ -47,10 +47,9 @@ const content = (overrides: Partial<ReportSnapshotContent> = {}): ReportSnapshot
         },
     ],
     versions: {
-        ontology: 'ontology-v1', mapping: 'mapping-v1', fragments: 'fragments-v1', templates: 'templates-v1', prompt: null,
+        ontology: 'ontology-v1', mapping: 'mapping-v1', fragments: 'fragments-v1', templates: 'templates-v1',
     },
     basis: [],
-    aiAugmented: false,
     ...overrides,
 });
 
@@ -137,6 +136,106 @@ describe('ReportSnapshotService', () => {
             expect((await service.get('u1', id)).blocks[0]?.segments[0]).toMatchObject({
                 timeSensitive: true, asOf: '2026-10-28',
             });
+        });
+    });
+
+    describe('the AI analysis', () => {
+        const ai = (text = 'AI 的進階分析。') => ({
+            blocks: [
+                {
+                    key: 'ai-overview',
+                    title: '進階分析',
+                    segments: [
+                        {
+                            text,
+                            kind: 'AI_INFERENCE' as const,
+                            sources: [
+                                {
+                                    system: 'ZODIAC' as const, term: 'zodiac:scorpio',
+                                },
+                            ],
+                            timeSensitive: false,
+                            asOf: null,
+                        },
+                    ],
+                },
+            ],
+            modelName: 'gpt-5-mini',
+            promptVersion: 'single-ai-v1',
+            generatedAt: NOW + 1000,
+        });
+
+        it('starts empty and is not counted as part of the report', async () => {
+            const { id } = await service.save('u1', content());
+            const detail = await service.get('u1', id);
+
+            expect(detail.ai).toBeNull();
+            expect(detail.aiAugmented).toBe(false);
+        });
+
+        it('is kept beside the report in a field of its own, and the report is left exactly as it was', async () => {
+            const { id } = await service.save('u1', content());
+            const before = await service.get('u1', id);
+
+            await service.attachAi('u1', id, ai());
+
+            const after = await service.get('u1', id);
+
+            expect(after.ai?.blocks[0]?.segments[0]?.text).toBe('AI 的進階分析。');
+            expect(after.aiAugmented).toBe(true);
+            expect(after.blocks).toEqual(before.blocks);
+            expect(after.versions).toEqual(before.versions);
+            expect(after.basis).toEqual(before.basis);
+            expect(after.generatedAt).toBe(before.generatedAt);
+            expect(after.expiresAt).toBe(before.expiresAt);
+        });
+
+        it('is replaced by a newer analysis, and only that field changes', async () => {
+            const { id } = await service.save('u1', content());
+
+            await service.attachAi('u1', id, ai('第一次'));
+            await service.attachAi('u1', id, ai('第二次'));
+
+            const detail = await service.get('u1', id);
+
+            expect(detail.ai?.blocks[0]?.segments[0]?.text).toBe('第二次');
+            expect(detail.blocks).toHaveLength(1);
+        });
+
+        it('does not make the report another report: asking for it again returns the same one, with its analysis', async () => {
+            const first = await service.saveOrReuse('u1', content());
+
+            await service.attachAi('u1', first.id, ai());
+
+            const again = await service.saveOrReuse('u1', content());
+
+            expect(again).toMatchObject({
+                id: first.id, reused: true,
+            });
+            expect((await service.get('u1', first.id)).ai).not.toBeNull();
+            expect(db.paths().filter((p) => p.includes('reportSnapshots'))).toHaveLength(1);
+        });
+
+        it('is not attached to someone else\'s report, to a missing one or to an expired one', async () => {
+            const { id } = await service.save('u1', content());
+
+            await expect(service.attachAi('u2', id, ai())).rejects.toBeInstanceOf(NotFoundError);
+            await expect(service.attachAi('u1', 'nope', ai())).rejects.toBeInstanceOf(NotFoundError);
+
+            clock.now = addMonths(NOW, SNAPSHOT_RETENTION_MONTHS) + 1000;
+            await expect(service.attachAi('u1', id, ai())).rejects.toBeInstanceOf(NotFoundError);
+        });
+
+        it('is turned away when it is empty or has no model or prompt version, and the report stays as it was', async () => {
+            const { id } = await service.save('u1', content());
+
+            await expect(service.attachAi('u1', id, {
+                ...ai(), blocks: [],
+            })).rejects.toBeInstanceOf(ValidationError);
+            await expect(service.attachAi('u1', id, {
+                ...ai(), promptVersion: '',
+            })).rejects.toBeInstanceOf(ValidationError);
+            expect((await service.get('u1', id)).ai).toBeNull();
         });
     });
 

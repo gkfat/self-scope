@@ -43,6 +43,9 @@ const RULES: readonly Rule[] = [
         method: 'POST', pattern: /^\/api\/tests\/[^/]+\/submissions$/, access: 'optional',
     },
     {
+        method: 'POST', pattern: /^\/api\/single-reports$/, access: 'optional',
+    },
+    {
         method: 'POST', pattern: /^\/api\/human-design\/calculations$/, access: 'optional',
     },
     {

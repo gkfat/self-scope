@@ -7,6 +7,11 @@
             tone="amber"
         />
 
+        <FullReportLink
+            v-if="mine"
+            slug="zodiac"
+        />
+
         <v-alert
             v-if="!label"
             type="info"
@@ -334,6 +339,9 @@ const advancedReady = computed(() => Boolean(
     && birth.value.birthPlace
     && zodiacFromIsoDate(birth.value.birthDate) === sign,
 ));
+
+// The full report is the visitor's own: only shown on the page of their own sign
+const mine = computed(() => Boolean(birth.value?.birthDate && zodiacFromIsoDate(birth.value.birthDate) === sign));
 
 const sunSignDiffers = computed(() => Boolean(natal.value && natal.value.bodies.SUN.sign !== sign));
 

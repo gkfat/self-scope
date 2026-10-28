@@ -1114,6 +1114,46 @@ paths:
           "$ref": "#/components/responses/Unauthorized"
         "404":
           "$ref": "#/components/responses/NotFound"
+  "/single-reports":
+    post:
+      operationId: createSingleReport
+      summary: "取得單維度報告"
+      description: "以固定規則與已審的固定內容組裝一個系統的報告：位置結論、系統的事實與解讀、本系統的歸納、影響地圖、建議與反思、依據與限制。免費、不呼叫 AI、不扣點。已登入者的報告保存為快照，相同的報告只保存一份（重複請求回傳既有的）；訪客帶 X-Guest-Session-Id，依其暫存的資料組裝，不保存任何東西（persisted 為 false，id 與 expiresAt 為 null）。缺資料回 422（PROFILE_REQUIRED、BLOOD_REQUIRED、MBTI_REQUIRED），內容尚未發佈回 404。"
+      tags: [ReportSnapshots]
+      security:
+        - bearerAuth: []
+        - guestSession: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                system:
+                  type: string
+                  enum: [ZODIAC, BLOOD, NUMEROLOGY, MBTI]
+              required: [system]
+      responses:
+        "200":
+          description: "報告（已登入者為保存的快照；訪客為即時組裝、不保存）"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleReport"
+        "400":
+          "$ref": "#/components/responses/ValidationError"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+        "422":
+          description: "缺少報告需要的資料（PROFILE_REQUIRED、BLOOD_REQUIRED、MBTI_REQUIRED）"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
   "/rune/daily":
     get:
       operationId: getDailyRune
@@ -2513,6 +2553,7 @@ components:
           description: "位置結論，例如「太陽天蠍座」"
         aiAugmented:
           type: boolean
+          description: "是否已有 AI 進階分析（存放在獨立欄位 ai，不在基本內容裡）"
         generatedAt:
           type: integer
           description: "epoch 毫秒"
@@ -2556,13 +2597,33 @@ components:
                           nullable: true
             versions:
               type: object
-              description: "ontology、mapping、fragments、templates 與（AI 部分才有的）prompt 版本"
+              description: "規則產生部分的 ontology、mapping、fragments、templates 版本"
             basis:
               type: array
               items:
                 type: object
               description: "各系統的計算依據（輸入、方法、規則版本）"
-          required: [blocks, versions, basis]
+            ai:
+              type: object
+              nullable: true
+              description: "AI 進階分析：與規則產生的 blocks 分開存放、並存，不取代基本內容；尚未要求時為 null。含 blocks、modelName、promptVersion、generatedAt"
+          required: [blocks, versions, basis, ai]
+    SingleReport:
+      allOf:
+        - "$ref": "#/components/schemas/ReportSnapshotDetail"
+        - type: object
+          properties:
+            id:
+              type: string
+              nullable: true
+              description: "訪客的報告沒有 id"
+            expiresAt:
+              type: integer
+              nullable: true
+              description: "訪客的報告沒有到期時間"
+            persisted:
+              type: boolean
+          required: [persisted]
     DailyRuneState:
       type: object
       properties:

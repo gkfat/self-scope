@@ -1,13 +1,14 @@
 import { BaseService } from './base.service';
 import { ReportSnapshotRepository } from '../repositories/reportSnapshot.repository';
 import {
-    reportSnapshotContentSchema, reportSnapshotDocSchema, type ReportSnapshotContent, type ReportSnapshotDoc,
+    reportSnapshotContentSchema, reportSnapshotDocSchema, snapshotAiSchema,
+    type ReportSnapshotContent, type ReportSnapshotDoc, type SnapshotAi,
 } from '../../shared/schemas/firestore/reportSnapshot.schema';
 import type {
     ReportSnapshotDetail, ReportSnapshotItem,
 } from '../../shared/schemas/api/reportSnapshot.schema';
 import {
-    MAX_SNAPSHOTS_PER_USER, SNAPSHOT_RETENTION_MONTHS,
+    MAX_SNAPSHOTS_PER_USER, SNAPSHOT_RETENTION_MONTHS, reportFingerprint,
 } from '../../shared/utils/reportSnapshot';
 import { addMonths } from '../../shared/utils/time';
 import {
@@ -45,7 +46,7 @@ export class ReportSnapshotService extends BaseService {
 
         const now = this.clock();
         const doc: ReportSnapshotDoc = {
-            ...parsed.data, generatedAt: now, expiresAt: addMonths(now, SNAPSHOT_RETENTION_MONTHS),
+            ...parsed.data, ai: null, generatedAt: now, expiresAt: addMonths(now, SNAPSHOT_RETENTION_MONTHS),
         };
         const repo = this.repository;
         const existing = await repo.snapshotsRef(uid).orderBy('generatedAt', 'asc').get();
@@ -72,6 +73,37 @@ export class ReportSnapshotService extends BaseService {
         };
     }
 
+    /**
+     * Keep the report, unless the member already has this very report (see `reportFingerprint`): then that one is
+     * returned and nothing is written. A report that is free and made from fixed rules is the same every time it is
+     * asked for, and opening a page must not fill the member's limit with copies of it.
+     */
+    async saveOrReuse(uid: string, content: ReportSnapshotContent): Promise<{ id: string; expiresAt: number; reused: boolean }> {
+        const parsed = reportSnapshotContentSchema.safeParse(content);
+
+        if (!parsed.success) {
+            throw new ValidationError('Invalid report snapshot', { issues: parsed.error.issues });
+        }
+
+        const fingerprint = reportFingerprint(parsed.data);
+        const now = this.clock();
+        const recent = await this.repository.snapshotsRef(uid).orderBy('generatedAt', 'desc').limit(MAX_SNAPSHOTS_PER_USER).get();
+
+        for (const snap of recent.docs) {
+            const doc = reportSnapshotDocSchema.parse(snap.data());
+
+            if (doc.expiresAt > now && reportFingerprint(doc) === fingerprint) {
+                return {
+                    id: snap.id, expiresAt: doc.expiresAt, reused: true,
+                };
+            }
+        }
+
+        return {
+            ...await this.save(uid, parsed.data), reused: false,
+        };
+    }
+
     /** One report of the member, or not found: someone else's id, a missing one and an expired one look the same. */
     async get(uid: string, snapshotId: string): Promise<ReportSnapshotDetail> {
         const snap = await this.repository.snapshotRef(uid, snapshotId).get();
@@ -87,8 +119,31 @@ export class ReportSnapshotService extends BaseService {
         }
 
         return {
-            ...this.toItem(snapshotId, doc), blocks: doc.blocks, versions: doc.versions, basis: doc.basis,
+            ...this.toItem(snapshotId, doc), blocks: doc.blocks, versions: doc.versions, basis: doc.basis, ai: doc.ai,
         };
+    }
+
+    /**
+     * Put the AI analysis beside the report, in its own field. The report itself is not touched, and a newer analysis
+     * replaces an older one. The report must be the member's own and still within its time.
+     */
+    async attachAi(uid: string, snapshotId: string, ai: SnapshotAi): Promise<void> {
+        const parsed = snapshotAiSchema.safeParse(ai);
+
+        if (!parsed.success) {
+            throw new ValidationError('Invalid AI analysis', { issues: parsed.error.issues });
+        }
+
+        await this.get(uid, snapshotId);
+        await this.repository.snapshotRef(uid, snapshotId).update({ ai: parsed.data });
+
+        this.logInfo('ai analysis attached', {
+            action: 'attachAi',
+            userId: uid,
+            data: {
+                snapshotId, blocks: parsed.data.blocks.length, promptVersion: parsed.data.promptVersion,
+            },
+        });
     }
 
     /** The member's reports that have not expired, newest first. */
@@ -115,7 +170,7 @@ export class ReportSnapshotService extends BaseService {
             kind: doc.kind,
             systems: doc.systems,
             position: doc.position,
-            aiAugmented: doc.aiAugmented,
+            aiAugmented: doc.ai !== null,
             generatedAt: doc.generatedAt,
             expiresAt: doc.expiresAt,
         };

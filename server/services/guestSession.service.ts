@@ -106,6 +106,21 @@ export class GuestSessionService extends BaseService {
     }
 
     /**
+     * The guest's latest test result, or null when the session is missing, expired, claimed or has none.
+     */
+    async getTestResult(sessionId: string): Promise<TestResult | null> {
+        const snap = await this.repository.sessionRef(sessionId).get();
+
+        if (!snap.exists) return null;
+
+        const session = guestSessionDocSchema.parse(this.fromFirestore(snap.data()));
+
+        if (session.expiresAt.getTime() <= this.clock() || session.claimedBy) return null;
+
+        return session.tempResults?.test ?? null;
+    }
+
+    /**
      * Everything the guest has entered so far. Missing, expired and claimed sessions are all "not found".
      */
     async getProfile(sessionId: string): Promise<GuestProfileResponse> {

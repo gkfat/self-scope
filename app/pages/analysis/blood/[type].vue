@@ -7,6 +7,11 @@
             tone="red"
         />
 
+        <FullReportLink
+            v-if="mine"
+            slug="blood"
+        />
+
         <v-alert
             v-if="!label"
             type="info"
@@ -79,4 +84,8 @@ useHead({ title: label ? `${label}分析` : '血型分析' });
 const {
     result, status,
 } = useFixedResult<FixedResultResponse>(valid ? `/api/fixed-results/blood-types/${type}` : null);
+
+// The full report is the visitor's own: only shown on the page of their own blood type
+const { state: exploration } = useExploration();
+const mine = computed(() => valid && exploration.value.bloodType === type);
 </script>

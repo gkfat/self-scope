@@ -7,6 +7,11 @@
             tone="amber"
         />
 
+        <FullReportLink
+            v-if="number"
+            slug="numerology"
+        />
+
         <v-alert
             v-if="exploration.loaded && !birthDate"
             type="info"

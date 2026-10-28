@@ -7,6 +7,11 @@
             tone="green"
         />
 
+        <FullReportLink
+            v-if="mine"
+            slug="mbti"
+        />
+
         <v-alert
             v-if="!valid"
             type="info"
@@ -98,4 +103,8 @@ const {
 } = useFixedResult<FixedResultResponse>(valid ? `/api/fixed-results/mbti/${type}` : null);
 
 const { dimensions } = useMbtiDimensions(type);
+
+// The full report is the visitor's own: only shown on the page of their own type
+const { state: exploration } = useExploration();
+const mine = computed(() => valid && exploration.value.mbti === type);
 </script>
