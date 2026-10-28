@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: 片段以端點與情境值為鍵
-系統 SHALL 以（特質軸端點 ID、情境值 ID）為鍵存放預寫片段；每個片段含 `text`（約 20 至 50 字的一句話）與可選的 `confirmQuestion`。鍵 MUST 引用存在的端點與存在的情境值；不存在的引用 MUST 使驗證失敗。沒有對應片段時，取用函式 MUST 回傳 null，MUST NOT 以其他組合代替。
+系統 SHALL 以（特質軸端點 ID、情境值 ID）為鍵存放預寫片段；每個片段含 `text`（一句話，約 20 至 50 字；驗證上限為 8 至 60 字）與可選的 `confirmQuestion`。鍵 MUST 引用存在的端點與存在的情境值；不存在的引用 MUST 使驗證失敗。沒有對應片段時，取用函式 MUST 回傳 null，MUST NOT 以其他組合代替。
 
 #### Scenario: 取得片段
 - **WHEN** 查詢有片段的（端點、情境值）
