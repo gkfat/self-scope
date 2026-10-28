@@ -1,7 +1,7 @@
 version: 1
 generatedBy: system-analysis
-updatedAt: 2026-10-25T17:00:00+08:00
-relatedChanges: [ai-personality-app]
+updatedAt: 2026-10-27T19:00:00+08:00
+relatedChanges: [ai-personality-app, add-daily-tarot-draw, realtime-today-category]
 source: ai_personality_app_plan.md
 
 actors:
@@ -59,6 +59,12 @@ externalSystems:
     name: Email 寄送服務
     description: "寄送詳細分析報告書 PDF 與到期通知 email；供應商待選（選與 Vercel 搭配簡單者），失敗重試 2 到 3 次"
     source: "user 補充（報告書寄送到 email）"
+
+  - id: CTX-EXT-008
+    name: 天文曆計算庫（astronomy-engine）
+    description: 以本地函式庫計算各天體在指定時刻的黃經位置，供本命盤與即時行運盤使用；非網路服務，無額外費用
+    source: "既有程式 server/astrology/natalChart.ts、server/humanDesign/ephemeris.ts；user 對話（即時星象需合併今日星盤）"
+    note: "目前僅提供日月水金火木土；是否納入天王、海王、冥王見 CTX-ASM-014"
 
 constraints:
   - id: CTX-CON-001
@@ -126,6 +132,30 @@ constraints:
     description: AI 報告的價值須建立在個人化與實際作答依據，且須區分「直接觀察」與「AI 推測」
     source: "plan §4, §6.2"
 
+  - id: CTX-CON-016
+    category: business
+    description: "「此刻／今日」類內容（每日塔羅、今日盧恩、今日瑪雅 Kin、即時星象）為娛樂與自我反思參考，不預測具體事件，不給醫療／法律／財務建議；日期一律以台北時間（Asia/Taipei，UTC+8）換日，由伺服器計算，不接受客戶端傳入的日期"
+    source: "openspec/changes/add-daily-tarot-draw/proposal.md；user 對話（2026-10-27，新增有時效性、測當下狀態的類別）"
+  - id: CTX-CON-017
+    category: business
+    description: "即時星象報告為付費、由 AI 將「今日星盤（行運盤）」與使用者本命盤合併分析；使用點數取得，並保存報告，保存期限 3 個月（user 已確認），與詳細分析的 6 個月（CTX-CON-012）不同"
+    source: "user 對話（2026-10-27：因串 AI 合併分析需付費、需紀錄報告、3 個月效期）"
+    note: "點數價格待定，沿用 CTX-CON-014 的定價原則（售價須涵蓋單份 AI 成本）"
+  - id: CTX-CON-018
+    category: business
+    description: "每日抽取型（每日塔羅、今日盧恩）免費、不扣點、需登入；每帳號每台北日期僅能抽一次；結果為事先寫好的固定內容，不呼叫 AI（CTX-CON-007）；抽取紀錄保存 3 個月"
+    source: "openspec/changes/add-daily-tarot-draw/proposal.md；user 對話（盧恩比照塔羅）"
+    note: "盧恩符文集與逆位規則見 CTX-ASM-016（已確認）"
+  - id: CTX-CON-019
+    category: business
+    description: "開發順序（user 已確認）：每日塔羅先做；第二個抽取型（盧恩）出現時再抽出共用機制，不預先抽象。即時星象依賴行運計算模組，與抽取型機制無關，可獨立規劃"
+    source: "user 對話（2026-10-27，「看哪個先做，後者再抽」）"
+  - id: CTX-CON-020
+    category: business
+    description: "瑪雅 Kin 分兩處呈現且共用同一套演算法：今日 Kin（依台北當日日期，歸入「此刻／今日」類，免抽取）與生日 Kin（依使用者生日，歸入命理系統常駐分析，屬恆定特質）（user 已確認）"
+    source: "user 對話（2026-10-27）"
+    note: "曆法已確認為 Dreamspell；內容量未定，見 CTX-ASM-015"
+
 assumptions:
   - id: CTX-ASM-001
     description: 首發平台為 Web App（計畫書 §14.1 列為待決，§15 建議 Web；user 已指定 Nuxt/Vercel，視為已確認）
@@ -187,3 +217,44 @@ assumptions:
     impact: 後台 API（API-031 至 API-036）延後至 MVP 之後；UC-019、UC-020 的操作介面延後
     status: confirmed
     confirmedBy: user 採納建議
+
+  - id: CTX-ASM-013
+    description: "即時星象的行運盤固定以台北當日 00:00（UTC+8）為計算時刻（user 已確認）；因此同一台北日期的行運盤唯一，同一帳號、同一日期、同一份本命資料版本只扣一次點，之後回傳既有報告。代價是月亮一天約移動 13°，報告反映的是當日 00:00 的星象而非使用者按下按鈕的當下"
+    impact: 影響 FR-050（計算時刻）、FR-052（避免重複扣點）、報告文件編號與資料模型
+    status: confirmed
+    confirmedBy: "user 對話（2026-10-27：「當日 UTC+8 00:00 固定」）"
+    note: "「同日只扣一次」由固定時刻推導而來，user 未另行重申；報告與頁面須標明以當日 00:00 為準，避免使用者誤解為即時"
+  - id: CTX-ASM-014
+    description: "行運分析納入十顆天體：日月水金火木土，加上天王、海王、冥王（user 已確認）。另需新增相位計算模組（目前不存在）"
+    impact: 影響 FR-050、CTX-EXT-008 與 AI 輸入內容
+    status: confirmed
+    confirmedBy: "user 對話（2026-10-27：「加入天王、海王、冥王」）"
+    note: "本命盤也同步加入三顆外行星（user 已確認，2026-10-27），見 FR-055；本命盤為固定計算、不儲存，故無資料遷移"
+  - id: CTX-ASM-015
+    description: "瑪雅 Kin 採 Dreamspell 曆法（13 月亮曆，跳過 2/29），內容為 260 個 Kin 全部預寫（user 已確認），且今日 Kin 與生日 Kin 各寫一份、不共用，共 520 筆（user 已確認）；2/29 出生者與 2/29 當日的今日 Kin 皆沿用 2/28 的 Kin（user 已確認，依 UmbraLux Dreamspell 計算器的說明）"
+    impact: 影響 FR-047、FR-048、FR-049 的固定內容金鑰規則（今日、生日各 Kin 1 至 260）與撰寫量
+    status: confirmed
+    confirmedBy: "user 對話（2026-10-27：「dreamspell」「260 筆」；並提供 2/29 沿用 2/28 的截圖）"
+    note: "固定內容須有兩種類型（今日 Kin、生日 Kin），各 260 筆"
+  - id: CTX-ASM-016
+    description: "今日盧恩採 Elder Futhark 24 枚，有逆位，但逆位只適用於方向可辨識的符文（上下顛倒後形狀不同者），對稱符文只有正位（user 已確認）；抽取方式與塔羅相同（帳號＋日期的決定性雜湊）；不含空白符文（user 已確認）。不可逆（上下旋轉 180° 外觀不變）9 枚：Gebo、Hagalaz、Nauthiz、Isa、Jera、Eihwaz、Sowilo、Ingwaz、Dagaz；可逆 15 枚：Fehu、Uruz、Thurisaz、Ansuz、Raidho、Kenaz、Wunjo、Perthro、Algiz、Tiwaz、Berkano、Ehwaz、Mannaz、Laguz、Othala"
+    impact: 影響 FR-046、固定內容筆數（24 筆正位 + 15 筆逆位 = 39 筆）與抽取規則
+    status: confirmed
+    confirmedBy: "user 對話（2026-10-27：「Elder Futhark, 用逆位，但只適用於方向可辨識的符文」，並提供 9 枚與 15 枚的清單截圖）"
+    note: "清單來自 user 提供的截圖（與常見的盧恩逆位慣例一致）；字形以常見 Elder Futhark 為準；不含空白符文已確認"
+  - id: CTX-ASM-017
+    description: "今日瑪雅 Kin 由日期唯一決定、全站同日同結果，無「抽」的行為；須登入才能使用（user 已確認）。限量的機制是「每會員每日可計算一次」：計算即解鎖當日 Kin 的查看，不花費點數；解鎖後當日查看次數不限（user 已確認）。API 存取規則為 required"
+    impact: 影響 FR-047、FR-044 的入口呈現、API 存取規則，以及需保存「當日已解鎖」的紀錄
+    status: confirmed
+    confirmedBy: "user 對話（2026-10-27：「需登入, 因需限量」「設每日計算上限，不用限制查看次數；每會員每日可計算一次(即解鎖查看, 不花費點數)」）"
+    note: "因需要記錄當日是否已解鎖，今日 Kin 與抽取型一樣會產生每日紀錄；該紀錄保存 3 個月，比照抽取紀錄（user 已確認）"
+  - id: CTX-ASM-018
+    description: "即時星象所需資料與現有「進階星座分析」相同：出生日期、出生時間與出生城市（首頁卡片已標示此需求）；未備齊時不可生成"
+    impact: 影響 FR-051 的前置條件
+    status: partially-confirmed
+    confirmedBy: "現有首頁卡片文案（app/pages/index.vue）；user 未明確重申"
+  - id: CTX-ASM-019
+    description: "即時星象報告需支援匯出 PDF（user 已確認需求，功能尚未實作）；匯出是否扣點、是下載還是寄送 email、與詳細分析報告書下載（FR-034）是否共用 PDF 產生機制尚未決定"
+    impact: 影響 FR-054、CTX-EXT-007（若寄送 email）與點數規則
+    status: pending-confirmation
+    confirmedBy: "user 對話（2026-10-27：「仍能重複查看以及匯出 pdf（此功能尚未實作）」）"

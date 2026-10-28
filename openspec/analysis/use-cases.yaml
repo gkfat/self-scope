@@ -1,7 +1,7 @@
 version: 1
 generatedBy: requirement-modeling
-updatedAt: 2026-10-25T18:00:00+08:00
-relatedChanges: [ai-personality-app]
+updatedAt: 2026-10-27T20:00:00+08:00
+relatedChanges: [ai-personality-app, add-daily-tarot-draw, realtime-today-category]
 
 stories:
   - id: STORY-001
@@ -130,6 +130,61 @@ stories:
     benefit: "在報告到期前自行保存"
     requirements: ["FR-034", "FR-038"]
     useCases: ["UC-021"]
+
+  - id: STORY-022
+    actor: CTX-ACTOR-001
+    want: "在首頁看到「此刻／今日」區塊"
+    benefit: "知道今天有哪些隨時間變化的內容可以玩，並有理由每天回來"
+    requirements: ["FR-044"]
+    useCases: ["UC-022"]
+  - id: STORY-023
+    actor: CTX-ACTOR-001
+    want: "每天翻一張塔羅牌"
+    benefit: "得到今天的提示與自我反思的切入點"
+    requirements: ["FR-045"]
+    useCases: ["UC-023"]
+  - id: STORY-024
+    actor: CTX-ACTOR-001
+    want: "每天抽一枚盧恩符文"
+    benefit: "得到今天的提示，並可看到正位或逆位的不同面向"
+    requirements: ["FR-046"]
+    useCases: ["UC-024"]
+  - id: STORY-025
+    actor: CTX-ACTOR-001
+    want: "每天計算一次今日的瑪雅 Kin"
+    benefit: "解鎖並反覆查看今天的能量，不必花點數"
+    requirements: ["FR-047", "FR-049"]
+    useCases: ["UC-025"]
+  - id: STORY-026
+    actor: CTX-ACTOR-001
+    want: "依生日查看自己的瑪雅 Kin"
+    benefit: "在命理系統中多了解一個屬於自己的恆定特質"
+    requirements: ["FR-048", "FR-049"]
+    useCases: ["UC-026"]
+  - id: STORY-027
+    actor: CTX-ACTOR-002
+    want: "用點數取得即時星象報告"
+    benefit: "看到今日星象如何與我的本命盤互相呼應，了解我現在的節奏"
+    requirements: ["FR-050", "FR-051", "FR-052", "FR-014", "FR-038", "FR-042", "FR-019", "FR-022", "FR-017"]
+    useCases: ["UC-027"]
+  - id: STORY-028
+    actor: CTX-ACTOR-002
+    want: "之後再回來重複查看已生成的即時星象報告"
+    benefit: "不用再花點數，也不必重新等待生成"
+    requirements: ["FR-053", "FR-021", "FR-033"]
+    useCases: ["UC-028"]
+  - id: STORY-029
+    actor: CTX-ACTOR-002
+    want: "將即時星象報告匯出成 PDF"
+    benefit: "保存或分享成固定的檔案"
+    requirements: ["FR-054"]
+    useCases: ["UC-029"]
+  - id: STORY-030
+    actor: CTX-ACTOR-001
+    want: "在本命盤中看到天王、海王、冥王的位置"
+    benefit: "本命盤更完整，也與即時星象使用同一套天體"
+    requirements: ["FR-055"]
+    useCases: ["UC-030"]
 
 useCases:
   - id: UC-001
@@ -561,3 +616,201 @@ useCases:
     postconditions:
       - "PDF 已寄至使用者 email；已扣 1 點（失敗則返還）；該報告下載次數 +1"
     note: "Email 寄送服務供應商未選定（CTX-EXT-007）；重複下載每次再扣 1 點"
+
+  - id: UC-022
+    title: "瀏覽「此刻／今日」區塊"
+    actor: CTX-ACTOR-001
+    requirements: ["FR-044"]
+    stories: ["STORY-022"]
+    preconditions:
+      - "使用者開啟首頁（已登入或訪客）"
+    mainFlow:
+      - { step: 1, action: "系統顯示與維度卡分開的「此刻／今日」區塊，列出每日塔羅、今日盧恩、今日瑪雅 Kin、即時星象" }
+      - { step: 2, action: "已登入時，系統依各項狀態顯示：可抽取、已抽取（顯示當日結果摘要）、可計算、已解鎖、需付費、資料不足" }
+      - { step: 3, action: "每一項標示其結果隨時間變動，使用者選擇其中一項進入對應頁面" }
+    alternateFlows:
+      - { condition: "訪客", handling: "只顯示說明與「立即登入」按鈕，MUST NOT 載入任何抽取結果內容" }
+      - { condition: "跨過台北午夜", handling: "重新取得各項狀態並回到未抽取／未計算", constraints: ["NFR-019"] }
+      - { condition: "某項內容尚未發佈", handling: "該項顯示「內容準備中」，不影響其他項目" }
+      - { condition: "狀態查詢失敗", handling: "顯示明確錯誤，其他項目照常顯示" }
+    postconditions:
+      - "不寫入任何資料"
+
+  - id: UC-023
+    title: "翻每日塔羅"
+    actor: CTX-ACTOR-001
+    requirements: ["FR-045"]
+    stories: ["STORY-023"]
+    preconditions:
+      - "使用者已登入"
+      - "塔羅固定內容（44 筆）已發佈"
+    mainFlow:
+      - { step: 1, action: "使用者進入每日塔羅頁，系統查詢當日（台北日期）是否已翻牌", constraints: ["NFR-019"] }
+      - { step: 2, action: "未翻牌時顯示牌背；使用者點擊翻牌" }
+      - { step: 3, action: "後端以帳號與台北日期決定性地選出牌與正逆位，先確認內容可交付", constraints: ["NFR-018"] }
+      - { step: 4, action: "後端以交易建立當日紀錄（不存在才建立），回傳牌與固定內容", constraints: ["NFR-018"] }
+      - { step: 5, action: "系統顯示牌名、正逆位、關鍵字、今日訊息、建議與免責說明", constraints: ["NFR-020"] }
+    alternateFlows:
+      - { condition: "當日已翻過（含另一裝置、重複點擊）", handling: "不重新計算，直接回傳既有紀錄", constraints: ["NFR-018"] }
+      - { condition: "並行請求", handling: "只建立一份紀錄，後到者讀到既有紀錄", constraints: ["NFR-018"] }
+      - { condition: "未登入", handling: "拒絕並導回首頁" }
+      - { condition: "內容尚未發佈", handling: "回 404 並顯示「今天的內容還在準備中」，MUST NOT 寫入紀錄" }
+      - { condition: "頁面開著跨過台北午夜", handling: "重新查詢並回到牌背", constraints: ["NFR-019"] }
+    postconditions:
+      - "當日紀錄已建立，保存 3 個月；不扣點、不呼叫 AI"
+
+  - id: UC-024
+    title: "抽每日盧恩"
+    actor: CTX-ACTOR-001
+    requirements: ["FR-046"]
+    stories: ["STORY-024"]
+    preconditions:
+      - "使用者已登入"
+      - "盧恩固定內容（24 筆正位 + 15 筆逆位）已發佈"
+    mainFlow:
+      - { step: 1, action: "使用者進入每日盧恩頁，系統查詢當日是否已抽符", constraints: ["NFR-019"] }
+      - { step: 2, action: "使用者點擊抽符" }
+      - { step: 3, action: "後端以帳號與台北日期決定性地選出符文；僅 15 枚方向可辨識的符文可抽到逆位，9 枚對稱符文只有正位", constraints: ["NFR-018"] }
+      - { step: 4, action: "後端以交易建立當日紀錄並回傳符文與固定內容", constraints: ["NFR-018"] }
+      - { step: 5, action: "系統顯示符文、正逆位、訊息、建議與免責說明", constraints: ["NFR-020"] }
+    alternateFlows:
+      - { condition: "當日已抽過", handling: "直接回傳既有紀錄", constraints: ["NFR-018"] }
+      - { condition: "並行請求", handling: "只建立一份紀錄", constraints: ["NFR-018"] }
+      - { condition: "未登入", handling: "拒絕並導回首頁" }
+      - { condition: "內容尚未發佈", handling: "回 404，MUST NOT 寫入紀錄" }
+      - { condition: "跨過台北午夜", handling: "重新查詢並回到未抽符狀態", constraints: ["NFR-019"] }
+    postconditions:
+      - "當日紀錄已建立，保存 3 個月；不扣點、不呼叫 AI"
+    note: "開發順序晚於 UC-023，共用抽取機制在此時才從塔羅抽出（CTX-CON-019、NFR-021）"
+
+  - id: UC-025
+    title: "計算今日瑪雅 Kin（解鎖）"
+    actor: CTX-ACTOR-001
+    requirements: ["FR-047", "FR-049"]
+    stories: ["STORY-025"]
+    preconditions:
+      - "使用者已登入"
+      - "今日 Kin 固定內容（260 筆）已發佈"
+    mainFlow:
+      - { step: 1, action: "使用者進入今日 Kin 頁，系統查詢當日是否已解鎖", constraints: ["NFR-019"] }
+      - { step: 2, action: "未解鎖時顯示「計算今日 Kin」；使用者點擊" }
+      - { step: 3, action: "後端依台北當日日期以 Dreamspell 曆法計算 Kin（圖騰與調性）" }
+      - { step: 4, action: "後端建立當日解鎖紀錄（不存在才建立），不扣點", constraints: ["NFR-018"] }
+      - { step: 5, action: "系統顯示今日 Kin 的固定內容與免責說明", constraints: ["NFR-020"] }
+      - { step: 6, action: "解鎖後當日內使用者可不限次數重新查看" }
+    alternateFlows:
+      - { condition: "當日已解鎖（重複計算、另一裝置）", handling: "不重新計算，直接回傳既有結果", constraints: ["NFR-018"] }
+      - { condition: "並行請求", handling: "只建立一份解鎖紀錄", constraints: ["NFR-018"] }
+      - { condition: "今日為 2/29", handling: "沿用 2/28 的 Kin" }
+      - { condition: "未登入", handling: "拒絕並導回首頁" }
+      - { condition: "內容尚未發佈", handling: "回 404，MUST NOT 寫入解鎖紀錄" }
+      - { condition: "跨過台北午夜", handling: "重新查詢，回到未解鎖狀態", constraints: ["NFR-019"] }
+    postconditions:
+      - "當日解鎖紀錄已建立，保存 3 個月；不扣點、不呼叫 AI"
+
+  - id: UC-026
+    title: "查看生日瑪雅 Kin（命理系統）"
+    actor: CTX-ACTOR-001
+    requirements: ["FR-048", "FR-049"]
+    stories: ["STORY-026"]
+    preconditions:
+      - "使用者已提供生日（UC-003）"
+      - "生日 Kin 固定內容（260 筆）已發佈"
+    mainFlow:
+      - { step: 1, action: "使用者在命理系統中選擇瑪雅 Kin" }
+      - { step: 2, action: "後端依生日以 Dreamspell 曆法計算 Kin" }
+      - { step: 3, action: "系統顯示生日 Kin 的固定內容與免責說明（與今日 Kin 內容分開撰寫）", constraints: ["NFR-020"] }
+    alternateFlows:
+      - { condition: "生日為 2/29", handling: "沿用 2/28 的 Kin" }
+      - { condition: "尚未填寫生日", handling: "引導至填寫生日（UC-003）" }
+      - { condition: "內容尚未發佈", handling: "顯示「內容準備中」" }
+    postconditions:
+      - "不扣點、不呼叫 AI；是否需登入、是否儲存結果比照單項免費結果（FR-040，推導）"
+    note: "FR-048 的免費與訪客規則為推導，需確認"
+
+  - id: UC-027
+    title: "生成即時星象報告"
+    actor: CTX-ACTOR-002
+    requirements: ["FR-050", "FR-051", "FR-052", "FR-014", "FR-038", "FR-042", "FR-019", "FR-022", "FR-017"]
+    stories: ["STORY-027"]
+    preconditions:
+      - "使用者已登入並已提供出生日期、時間與城市"
+      - "點數餘額足夠（價格待定）"
+    mainFlow:
+      - { step: 1, action: "使用者在即時星象頁選擇生成報告" }
+      - { step: 2, action: "後端以本命資料版本與台北日期檢查是否已有當日報告；已有則回傳既有報告且不扣點（見 UC-028）", constraints: ["NFR-017"] }
+      - { step: 3, action: "後端驗證請求者與點數，並檢查生成頻率限制", constraints: ["NFR-003", "NFR-008"] }
+      - { step: 4, action: "後端以交易原子扣點並建立「生成中」的報告紀錄", constraints: ["NFR-017"] }
+      - { step: 5, action: "後端計算本命盤與台北當日 00:00 的行運盤（十顆天體）及兩者相位", constraints: ["NFR-022"] }
+      - { step: 6, action: "後端將正規化資料送交 AI 供應商生成報告，區分資料依據與推測", constraints: ["NFR-009", "NFR-020"] }
+      - { step: 7, action: "後端驗證品質後保存報告（模型、提示詞版本、輸入版本、計算時刻、完成時間），保存 3 個月，並記錄 AI 用量", constraints: ["NFR-005", "NFR-015"] }
+      - { step: 8, action: "系統顯示報告，並標明以當日 00:00（UTC+8）的星象為準，以及免責說明", constraints: ["NFR-020"] }
+    alternateFlows:
+      - { condition: "未提供出生時間或城市", handling: "引導至填寫，不扣點" }
+      - { condition: "點數不足或已過期", handling: "拒絕並引導購買點數" }
+      - { condition: "訪客", handling: "要求先登入" }
+      - { condition: "重複點擊或並行請求", handling: "只扣一次點、只生成一份", constraints: ["NFR-017"] }
+      - { condition: "同日、本命資料已變更", handling: "視為新的一份，依一般流程扣點" }
+      - { condition: "AI 逾時、失敗或品質檢查不通過", handling: "標示失敗並返還已扣點，回報明確錯誤", constraints: ["NFR-009", "NFR-011"] }
+      - { condition: "超過生成頻率限制", handling: "拒絕並提示稍後再試" }
+    postconditions:
+      - "成功：已扣點、報告已保存 3 個月；失敗：點數已返還，無有效報告"
+    note: "點數價格待量測 AI 成本後決定（CTX-CON-017）；報告集合獨立於詳細分析"
+
+  - id: UC-028
+    title: "重複查看即時星象報告"
+    actor: CTX-ACTOR-002
+    requirements: ["FR-053", "FR-021", "FR-033"]
+    stories: ["STORY-028"]
+    preconditions:
+      - "使用者已登入且曾生成過即時星象報告"
+    mainFlow:
+      - { step: 1, action: "使用者開啟報告清單或單份報告" }
+      - { step: 2, action: "後端驗證請求者為報告擁有者", constraints: ["NFR-003"] }
+      - { step: 3, action: "後端讀取已保存內容回傳，MUST NOT 呼叫 AI、不扣點" }
+      - { step: 4, action: "系統顯示報告與其計算所用的時刻" }
+    alternateFlows:
+      - { condition: "非擁有者請求", handling: "拒絕存取", constraints: ["NFR-003"] }
+      - { condition: "報告已滿 3 個月到期刪除", handling: "回傳不存在訊息", constraints: ["NFR-005"] }
+      - { condition: "報告仍在生成中", handling: "顯示生成中狀態" }
+      - { condition: "報告生成失敗", handling: "顯示失敗與已返還點數的說明" }
+    postconditions:
+      - "不改變點數與報告內容"
+
+  - id: UC-029
+    title: "匯出即時星象報告 PDF"
+    actor: CTX-ACTOR-002
+    requirements: ["FR-054"]
+    stories: ["STORY-029"]
+    preconditions:
+      - "使用者已登入"
+      - "報告已生成且未到期"
+    mainFlow:
+      - { step: 1, action: "使用者在報告頁選擇匯出 PDF" }
+      - { step: 2, action: "後端驗證請求者為報告擁有者", constraints: ["NFR-003"] }
+      - { step: 3, action: "後端讀取已保存內容產生 PDF，MUST NOT 呼叫 AI" }
+      - { step: 4, action: "系統提供 PDF 給使用者" }
+    alternateFlows:
+      - { condition: "非擁有者請求", handling: "拒絕存取", constraints: ["NFR-003"] }
+      - { condition: "報告已到期刪除", handling: "回傳不存在訊息" }
+      - { condition: "PDF 產生失敗", handling: "回報明確錯誤；若匯出需扣點則返還" }
+    postconditions:
+      - "報告內容不變"
+    note: "此功能尚未實作；是否扣點、下載或寄送 email、是否共用 UC-021 的機制待確認（CTX-ASM-019）"
+
+  - id: UC-030
+    title: "查看含外行星的本命盤"
+    actor: CTX-ACTOR-001
+    requirements: ["FR-055"]
+    stories: ["STORY-030"]
+    preconditions:
+      - "使用者已提供出生日期、時間與城市"
+    mainFlow:
+      - { step: 1, action: "使用者進入進階星座分析並查看本命盤" }
+      - { step: 2, action: "後端計算上升與日、月、水、金、火、木、土、天王、海王、冥王的星座與度數", constraints: ["NFR-022"] }
+      - { step: 3, action: "系統顯示完整本命盤，三顆外行星與既有天體一併呈現" }
+    alternateFlows:
+      - { condition: "未提供出生時間或城市", handling: "沿用既有行為，不顯示本命盤並引導填寫" }
+      - { condition: "出生城市不在預設清單", handling: "回傳驗證錯誤", constraints: ["NFR-001"] }
+    postconditions:
+      - "既有天體與上升的結果與先前一致；本命盤為固定計算，不儲存"

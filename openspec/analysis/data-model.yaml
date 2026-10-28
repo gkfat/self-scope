@@ -1,7 +1,7 @@
 version: 1
 generatedBy: data-modeling
-updatedAt: 2026-10-25T21:00:00+08:00
-relatedChanges: [ai-personality-app]
+updatedAt: 2026-10-27T23:00:00+08:00
+relatedChanges: [ai-personality-app, add-daily-tarot-draw, realtime-today-category]
 store: firestore
 storeNotes: "資料庫為 Firestore（CTX-CON-004）；僅由 Nuxt 伺服器端以 Admin SDK 存取，firestore.rules 全擋 client（CTX-CON-013）。以集合／子集合表達「表」，以決定性文件 ID 取代唯一約束。"
 
@@ -89,10 +89,10 @@ tables:
     primaryKey: "contentType 與 key 組成的決定性 ID，例如 SUMMARY_aries_INTJ_A、ZODIAC_aries"
     aggregate: AGG-005
     domainModel: ["ENT-005", "VO-004"]
-    api: ["API-007", "API-008", "API-011", "API-014", "API-016", "API-031", "API-032", "API-033", "API-034", "API-027"]
+    api: ["API-007", "API-008", "API-011", "API-014", "API-016", "API-031", "API-032", "API-033", "API-034", "API-027", "API-042", "API-044", "API-046", "API-047"]
     columns:
-      - { name: "contentType", type: "string", constraints: "required；SUMMARY|ZODIAC|BLOOD|MBTI" }
-      - { name: "key", type: "string", constraints: "required；summary 為組合鍵，單項為對應值" }
+      - { name: "contentType", type: "string", constraints: "required；SUMMARY|ZODIAC|BLOOD|MBTI|TAROT|RUNE|KIN_TODAY|KIN_BIRTH" }
+      - { name: "key", type: "string", constraints: "required；summary 為組合鍵，單項為對應值；TAROT 為 <牌序 0–21>_<upright|reversed>；RUNE 為 <符文序 0–23>_<upright|reversed>（9 枚對稱符文只有 upright）；KIN_TODAY 與 KIN_BIRTH 為 Kin 1–260" }
       - { name: "combinationKey", type: "map", constraints: "nullable；SUMMARY 才有：zodiac, mbti, bloodType?" }
       - { name: "body", type: "map", constraints: "title, summary, strengths[], blindSpots[], loveStyle, workStyle, communicationStyle, growthAdvice, disclaimer" }
       - { name: "contentVersion", type: "string", constraints: "required" }
@@ -101,7 +101,7 @@ tables:
       - { name: "publishedAt", type: "timestamp", constraints: "nullable" }
     indexes:
       - { fields: ["contentType ASC", "status ASC"], scope: "COLLECTION", purpose: "後台列表與覆蓋檢查（960 種 summary）" }
-    notes: "以決定性文件 ID 保證組合唯一（RULE-021，取代 SQL UNIQUE）；僅 PUBLISHED 可供使用者讀取。含 192 + 768 = 960 筆 summary，另含星座、血型、MBTI 單項內容。"
+    notes: "以決定性文件 ID 保證組合唯一（RULE-021，取代 SQL UNIQUE）；僅 PUBLISHED 可供使用者讀取。含 192 + 768 = 960 筆 summary，另含星座、血型、MBTI 單項內容。此次新增 TAROT 44 筆、RUNE 39 筆（24 正位 + 15 逆位）、KIN_TODAY 260 筆、KIN_BIRTH 260 筆，共 603 筆；今日 Kin 與生日 Kin 內容分開撰寫（RULE-041）。"
   - id: DATA-007
     name: summaries
     path: "users/{userId}/summaries/{summaryId}"
@@ -184,12 +184,12 @@ tables:
     primaryKey: "由操作決定的 ID，例如 welcome、summary_{summaryId}、report_{reportId}、refund_{reportId}、purchase_{paymentId}"
     aggregate: AGG-008
     domainModel: ["ENT-010"]
-    api: ["API-001", "API-014", "API-017", "API-020", "API-026", "API-022", "API-029"]
+    api: ["API-001", "API-014", "API-017", "API-020", "API-026", "API-022", "API-029", "API-048"]
     columns:
       - { name: "transactionId", type: "string", constraints: "PK；決定性 ID 作為冪等鍵（RULE-007、RULE-025）" }
       - { name: "type", type: "string", constraints: "required；GRANT|PURCHASE|DEDUCT|REFUND" }
       - { name: "amount", type: "int", constraints: "required；正整數，方向由 type 決定" }
-      - { name: "reason", type: "string", constraints: "required；WELCOME|SUMMARY|DETAILED_REPORT|REGENERATE|DOWNLOAD|PURCHASE" }
+      - { name: "reason", type: "string", constraints: "required；WELCOME|SUMMARY|DETAILED_REPORT|REGENERATE|DOWNLOAD|PURCHASE|TRANSIT_REPORT" }
       - { name: "batchAllocations", type: "array<map>", constraints: "每筆 {batchId, amount}；扣點可跨批次" }
       - { name: "reference", type: "string", constraints: "nullable；summaryId／reportId／paymentId" }
       - { name: "createdAt", type: "timestamp", constraints: "required" }
@@ -236,11 +236,12 @@ tables:
     primaryKey: "recordId（自動產生）"
     aggregate: AGG-010
     domainModel: ["ENT-012"]
-    api: ["API-017", "API-020", "API-035", "API-029"]
+    api: ["API-017", "API-020", "API-035", "API-029", "API-048"]
     columns:
       - { name: "recordId", type: "string", constraints: "PK" }
       - { name: "userId", type: "string", constraints: "nullable；帳號刪除時清除" }
-      - { name: "reportId", type: "string", constraints: "required；參照 DATA-008" }
+      - { name: "reportId", type: "string", constraints: "required；參照 DATA-008（reportKind 為 DETAILED）或 DATA-023（reportKind 為 TRANSIT）" }
+      - { name: "reportKind", type: "string", constraints: "nullable；DETAILED|TRANSIT；缺值視為 DETAILED，舊紀錄不需遷移" }
       - { name: "modelName", type: "string", constraints: "required" }
       - { name: "inputTokens", type: "int", constraints: "required" }
       - { name: "outputTokens", type: "int", constraints: "required" }
@@ -321,6 +322,85 @@ tables:
       - { name: "grantedAt", type: "timestamp", constraints: "required" }
       - { name: "expiresAt", type: "timestamp", constraints: "required；= grantedAt + 3 個月；Firestore TTL 欄位（RULE-031）" }
     notes: "贈點紀錄獨立於 users，刪除帳號時保留；僅用於避免重複贈點，不作他用。首次登入時於同一 transaction 內檢查是否存在未到期紀錄：存在則不發贈點，不存在則建立帳號、點數帳戶、贈點批次與此紀錄（RULE-031）。"
+
+  - id: DATA-020
+    name: tarotDraws
+    path: "users/{userId}/tarotDraws/{dateKey}"
+    primaryKey: "dateKey（台北日期 YYYY-MM-DD；同會員同日只有一筆，取代 SQL UNIQUE）"
+    aggregate: AGG-015
+    domainModel: ["ENT-018", "VO-018"]
+    api: ["API-041", "API-042", "API-040"]
+    columns:
+      - { name: "dateKey", type: "string", constraints: "PK；伺服器以 Asia/Taipei 計算（RULE-038）" }
+      - { name: "userId", type: "string", constraints: "required" }
+      - { name: "symbolIndex", type: "int", constraints: "required；塔羅 0 至 21（VO-018）" }
+      - { name: "orientation", type: "string", constraints: "required；UPRIGHT|REVERSED" }
+      - { name: "drawVersion", type: "string", constraints: "required；抽取規則版本（例如 tarot-v1），規則改版不影響舊紀錄" }
+      - { name: "drawnAt", type: "timestamp", constraints: "required" }
+      - { name: "expiresAt", type: "timestamp", constraints: "required；= drawnAt + 3 個月（RULE-047）" }
+    indexes:
+      - { fields: ["expiresAt ASC"], scope: "COLLECTION_GROUP", purpose: "排程清除到期資料（UC-017）" }
+    notes: "以日期為文件 ID，在交易內「不存在才建立」，並行請求只會留下一筆（RULE-035、NFR-018）。牌的內容不複製進來，以 symbolIndex 與 orientation 組成 fixedContents 的金鑰查詢。內容尚未發佈時不寫入（RULE-036）。與既有 add-daily-tarot-draw 的設計一致；供 dataExpiry 與 deletion 清除時須加入 collection group 索引例外清單。"
+  - id: DATA-021
+    name: runeDraws
+    path: "users/{userId}/runeDraws/{dateKey}"
+    primaryKey: "dateKey（台北日期；同會員同日只有一筆）"
+    aggregate: AGG-015
+    domainModel: ["ENT-018", "VO-018"]
+    api: ["API-043", "API-044", "API-040"]
+    columns:
+      - { name: "dateKey", type: "string", constraints: "PK" }
+      - { name: "userId", type: "string", constraints: "required" }
+      - { name: "symbolIndex", type: "int", constraints: "required；盧恩 0 至 23（Elder Futhark）" }
+      - { name: "orientation", type: "string", constraints: "required；UPRIGHT|REVERSED；Gebo、Hagalaz、Nauthiz、Isa、Jera、Eihwaz、Sowilo、Ingwaz、Dagaz 只能是 UPRIGHT（RULE-037）" }
+      - { name: "drawVersion", type: "string", constraints: "required" }
+      - { name: "drawnAt", type: "timestamp", constraints: "required" }
+      - { name: "expiresAt", type: "timestamp", constraints: "required；= drawnAt + 3 個月" }
+    indexes:
+      - { fields: ["expiresAt ASC"], scope: "COLLECTION_GROUP", purpose: "排程清除到期資料（UC-017）" }
+    notes: "與 tarotDraws 同形，都對應 ENT-018，只是分開集合；開發順序晚於塔羅，共用機制待此時才抽出（CTX-CON-019）。若之後決定合併為單一 dailyDraws 集合（加 drawType 欄位），屬資料遷移，需另案決定。"
+  - id: DATA-022
+    name: kinUnlocks
+    path: "users/{userId}/kinUnlocks/{dateKey}"
+    primaryKey: "dateKey（台北日期；同會員同日只有一筆）"
+    aggregate: AGG-016
+    domainModel: ["ENT-019", "VO-017"]
+    api: ["API-045", "API-046", "API-040"]
+    columns:
+      - { name: "dateKey", type: "string", constraints: "PK" }
+      - { name: "userId", type: "string", constraints: "required" }
+      - { name: "kin", type: "map", constraints: "KinResult 內嵌：kinNumber(1-260), solarSeal(1-20), galacticTone(1-13)；當日 Kin 的快照" }
+      - { name: "unlockedAt", type: "timestamp", constraints: "required" }
+      - { name: "expiresAt", type: "timestamp", constraints: "required；= unlockedAt + 3 個月（RULE-047）" }
+    indexes:
+      - { fields: ["expiresAt ASC"], scope: "COLLECTION_GROUP", purpose: "排程清除到期資料（UC-017）" }
+    notes: "紀錄只表達「當日已解鎖」，每會員每日一次（RULE-039）；解鎖後查看不限次數，不另存查看次數。內容以 KIN_TODAY_{kinNumber} 查 fixedContents。生日 Kin 由 users.birthData 即時計算，不落地。"
+  - id: DATA-023
+    name: transitReports
+    path: "users/{userId}/transitReports/{reportId}"
+    primaryKey: "reportId = {transitDate}_{inputVersion 的前段}（決定性 ID：同會員、同台北日期、同本命資料版本只有一份，取代 SQL UNIQUE，RULE-045）"
+    aggregate: AGG-017
+    domainModel: ["ENT-020", "VO-016", "VO-013", "VO-014", "VO-015", "VO-012", "VO-008"]
+    api: ["API-048", "API-049", "API-050", "API-051", "API-040"]
+    columns:
+      - { name: "reportId", type: "string", constraints: "PK" }
+      - { name: "userId", type: "string", constraints: "required" }
+      - { name: "transitDate", type: "string", constraints: "required；台北日期" }
+      - { name: "transitAt", type: "timestamp", constraints: "required；固定為台北當日 00:00（UTC+8，RULE-042）" }
+      - { name: "input", type: "map", constraints: "TransitAnalysisInput 內嵌：inputVersion, natalChart（十顆天體與上升的落點）, transitChart（十顆天體）, aspects；只含計算後的事實，不含原始出生時間與地點（NFR-005）" }
+      - { name: "status", type: "string", constraints: "required；GENERATING|COMPLETED|FAILED" }
+      - { name: "sections", type: "array<map>", constraints: "ReportSection 內嵌：title, content, evidence, evidenceKind；章節結構待定" }
+      - { name: "disclaimer", type: "string", constraints: "nullable" }
+      - { name: "modelName", type: "string", constraints: "nullable；完成時寫入" }
+      - { name: "promptVersion", type: "string", constraints: "nullable" }
+      - { name: "failureReason", type: "string", constraints: "nullable" }
+      - { name: "createdAt", type: "timestamp", constraints: "required" }
+      - { name: "completedAt", type: "timestamp", constraints: "nullable" }
+      - { name: "expiresAt", type: "timestamp", constraints: "nullable；完成時設為 completedAt + 3 個月（RULE-047）" }
+    indexes:
+      - { fields: ["createdAt DESC"], scope: "COLLECTION", purpose: "報告列表" }
+      - { fields: ["expiresAt ASC"], scope: "COLLECTION_GROUP", purpose: "排程清除到期報告（UC-017）" }
+    notes: "獨立於 detailedReports。建立報告與扣點（reason 為 TRANSIT_REPORT，異動 ID 為 transit_{reportId}）在同一 transaction；失敗時返還點數並寫入 REFUND 異動（RULE-046）。因決定性 ID 已防止重複建立，不需要另存 idempotencyKey；API 的 Idempotency-Key 用於防止同一請求重複扣點。風險：inputVersion 若是出生資料的單純雜湊，出現在 reportId 與網址時可被暴力反推出生資料（日期、時間、城市的組合空間小），實作時應改用伺服器密鑰的 HMAC 並只取前段，需確認。"
 
 relationships:
   - id: REL-001
@@ -422,3 +502,43 @@ relationships:
     to: DATA-001
     type: one-to-one
     description: "一個 Google 身分連結一個內部使用者；刪除帳號時連結移除"
+  - id: REL-020
+    from: DATA-001
+    to: DATA-020
+    type: one-to-many
+    description: "會員每個台北日期至多一筆塔羅抽取紀錄"
+  - id: REL-021
+    from: DATA-001
+    to: DATA-021
+    type: one-to-many
+    description: "會員每個台北日期至多一筆盧恩抽取紀錄"
+  - id: REL-022
+    from: DATA-001
+    to: DATA-022
+    type: one-to-many
+    description: "會員每個台北日期至多一筆今日 Kin 解鎖紀錄"
+  - id: REL-023
+    from: DATA-001
+    to: DATA-023
+    type: one-to-many
+    description: "會員擁有多份即時星象報告，同日同本命資料版本只有一份"
+  - id: REL-024
+    from: DATA-023
+    to: DATA-014
+    type: one-to-many
+    description: "一份即時星象報告可能有多次 AI 呼叫（reportKind 為 TRANSIT）"
+  - id: REL-025
+    from: DATA-006
+    to: DATA-020
+    type: one-to-many
+    description: "邏輯關聯：以牌序與方位組成 TAROT 內容金鑰查詢，不存外鍵"
+  - id: REL-026
+    from: DATA-006
+    to: DATA-021
+    type: one-to-many
+    description: "邏輯關聯：以符文序與方位組成 RUNE 內容金鑰查詢，不存外鍵"
+  - id: REL-027
+    from: DATA-006
+    to: DATA-022
+    type: one-to-many
+    description: "邏輯關聯：以 Kin 編號組成 KIN_TODAY 內容金鑰查詢，不存外鍵"

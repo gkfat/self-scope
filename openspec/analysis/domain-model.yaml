@@ -1,14 +1,14 @@
 version: 1
 generatedBy: domain-modeling
-updatedAt: 2026-10-25T19:00:00+08:00
-relatedChanges: [ai-personality-app]
+updatedAt: 2026-10-27T21:00:00+08:00
+relatedChanges: [ai-personality-app, add-daily-tarot-draw, realtime-today-category]
 
 entities:
   - id: ENT-001
     name: User
     nameZh: "使用者帳號"
     description: "以 Google 帳號登入建立的會員，持有個人資料"
-    useCases: ["UC-001", "UC-002", "UC-003", "UC-015", "UC-016"]
+    useCases: ["UC-001", "UC-002", "UC-003", "UC-015", "UC-016", "UC-026", "UC-030"]
     attributes:
       - { name: userId, type: "string", description: "Firebase Auth uid" }
       - { name: email, type: "string", description: "Google 帳號 email" }
@@ -55,9 +55,9 @@ entities:
     name: FixedContent
     nameZh: "固定內容"
     description: "事先算好的固定結果內容：單項（星座／血型／MBTI）與多維度分析報告"
-    useCases: ["UC-004", "UC-005", "UC-007", "UC-019"]
+    useCases: ["UC-004", "UC-005", "UC-007", "UC-019", "UC-023", "UC-024", "UC-025", "UC-026"]
     attributes:
-      - { name: contentType, type: "enum", description: "SUMMARY｜ZODIAC｜BLOOD｜MBTI" }
+      - { name: contentType, type: "enum", description: "SUMMARY｜ZODIAC｜BLOOD｜MBTI｜TAROT｜RUNE｜KIN_TODAY｜KIN_BIRTH" }
       - { name: key, type: "VO-004 | string", description: "summary 用組合鍵，單項用對應值" }
       - { name: body, type: "object", description: "標題、摘要、優勢、盲點等" }
       - { name: contentVersion, type: "string", description: "" }
@@ -207,6 +207,52 @@ entities:
       - { name: date, type: "date", description: "指標日期" }
       - { name: counters, type: "map", description: "測驗完成、summary 取得、報告成功／失敗、付款完成、分享卡產生等計數" }
 
+  - id: ENT-018
+    name: DailyDraw
+    nameZh: "每日抽取紀錄"
+    description: "會員在某個台北日期、某一類抽取（塔羅、盧恩）的結果；同帳號同日同類只有一筆，一旦建立即不再改變"
+    useCases: ["UC-022", "UC-023", "UC-024"]
+    attributes:
+      - { name: userId, type: "string", description: "" }
+      - { name: drawType, type: "enum", description: "TAROT｜RUNE" }
+      - { name: dateKey, type: "string", description: "台北日期 YYYY-MM-DD，與 userId、drawType 共同決定唯一性" }
+      - { name: drawn, type: "VO-018", description: "抽到的牌或符文與正逆位（寫入當下的快照）" }
+      - { name: drawVersion, type: "string", description: "抽取規則版本，規則改版不影響舊紀錄" }
+      - { name: drawnAt, type: "timestamp", description: "" }
+      - { name: expiresAt, type: "timestamp", description: "抽取後 3 個月" }
+    note: "開發順序：先做塔羅，共用機制待盧恩出現再抽出（CTX-CON-019）"
+  - id: ENT-019
+    name: DailyKinUnlock
+    nameZh: "今日 Kin 解鎖紀錄"
+    description: "會員在某個台北日期已計算並解鎖今日瑪雅 Kin；Kin 本身由日期決定，此紀錄只表達「已解鎖」"
+    useCases: ["UC-022", "UC-025"]
+    attributes:
+      - { name: userId, type: "string", description: "" }
+      - { name: dateKey, type: "string", description: "台北日期，與 userId 共同決定唯一性" }
+      - { name: kin, type: "VO-017", description: "當日 Kin 的快照" }
+      - { name: unlockedAt, type: "timestamp", description: "" }
+      - { name: expiresAt, type: "timestamp", description: "解鎖後 3 個月" }
+  - id: ENT-020
+    name: TransitReport
+    nameZh: "即時星象報告"
+    description: "AI 將台北當日 00:00 的行運盤與會員本命盤合併分析的報告；付費、保存 3 個月，獨立於詳細分析"
+    useCases: ["UC-022", "UC-027", "UC-028", "UC-029"]
+    attributes:
+      - { name: reportId, type: "string", description: "" }
+      - { name: userId, type: "string", description: "" }
+      - { name: transitDate, type: "string", description: "台北日期，行運盤取該日 00:00（UTC+8）" }
+      - { name: transitAt, type: "timestamp", description: "行運盤實際計算的時刻" }
+      - { name: input, type: "VO-016", description: "本命盤、行運盤、相位與輸入版本" }
+      - { name: status, type: "enum", description: "GENERATING｜COMPLETED｜FAILED" }
+      - { name: sections, type: "VO-008[]", description: "報告章節（章節結構待定）" }
+      - { name: modelName, type: "string", description: "" }
+      - { name: promptVersion, type: "string", description: "" }
+      - { name: failureReason, type: "string | null", description: "" }
+      - { name: createdAt, type: "timestamp", description: "" }
+      - { name: completedAt, type: "timestamp | null", description: "" }
+      - { name: expiresAt, type: "timestamp | null", description: "完成後 3 個月" }
+    note: "章節結構與點數價格待定（CTX-CON-017）"
+
 valueObjects:
   - id: VO-001
     name: BirthData
@@ -301,6 +347,65 @@ valueObjects:
       - { name: summaryText, type: "string", description: "不含不必要個資" }
       - { name: imageRef, type: "string | null", description: "" }
 
+  - id: VO-012
+    name: Placement
+    nameZh: "天體落點"
+    useCases: ["UC-027", "UC-030"]
+    attributes:
+      - { name: sign, type: "enum", description: "12 星座之一" }
+      - { name: degree, type: "int", description: "星座內的整數度數 0 至 29" }
+  - id: VO-013
+    name: NatalChart
+    nameZh: "本命盤"
+    useCases: ["UC-027", "UC-030"]
+    attributes:
+      - { name: ascendant, type: "VO-012", description: "上升" }
+      - { name: bodies, type: "map<body, VO-012>", description: "日、月、水、金、火、木、土、天王、海王、冥王十顆" }
+    note: "固定計算、不儲存；天王、海王、冥王為此次新增，既有七顆與上升結果不變"
+  - id: VO-014
+    name: TransitChart
+    nameZh: "行運盤"
+    useCases: ["UC-027"]
+    attributes:
+      - { name: computedAt, type: "timestamp", description: "台北當日 00:00（UTC+8）" }
+      - { name: bodies, type: "map<body, VO-012>", description: "十顆天體" }
+  - id: VO-015
+    name: TransitAspect
+    nameZh: "行運相位"
+    useCases: ["UC-027"]
+    attributes:
+      - { name: transitBody, type: "enum", description: "行運天體" }
+      - { name: natalBody, type: "enum", description: "被觸動的本命天體或上升" }
+      - { name: aspectType, type: "enum", description: "相位種類（待定）" }
+      - { name: orb, type: "number", description: "與精確相位的角度差（容許範圍待定）" }
+    note: "相位種類與容許度尚未在需求中定義，需確認；相位計算為新模組"
+  - id: VO-016
+    name: TransitAnalysisInput
+    nameZh: "即時星象分析輸入"
+    useCases: ["UC-027"]
+    attributes:
+      - { name: inputVersion, type: "string", description: "輸入資料的雜湊，用於判斷本命資料是否變更" }
+      - { name: natalChart, type: "VO-013", description: "" }
+      - { name: transitChart, type: "VO-014", description: "" }
+      - { name: aspects, type: "VO-015[]", description: "" }
+    note: "只含事實資料，不含使用者自由文字（NFR-001 精神）"
+  - id: VO-017
+    name: KinResult
+    nameZh: "瑪雅 Kin 結果"
+    useCases: ["UC-025", "UC-026"]
+    attributes:
+      - { name: kinNumber, type: "int", description: "1 至 260" }
+      - { name: solarSeal, type: "int", description: "20 圖騰之一" }
+      - { name: galacticTone, type: "int", description: "13 調性之一" }
+    note: "由日期以 Dreamspell 曆法決定；2/29 沿用 2/28"
+  - id: VO-018
+    name: DrawnSymbol
+    nameZh: "抽到的牌或符文"
+    useCases: ["UC-023", "UC-024"]
+    attributes:
+      - { name: symbolIndex, type: "int", description: "塔羅 0 至 21、盧恩 0 至 23" }
+      - { name: orientation, type: "enum", description: "UPRIGHT｜REVERSED；9 枚對稱盧恩只有 UPRIGHT" }
+
 aggregates:
   - id: AGG-001
     name: UserAccount
@@ -330,7 +435,7 @@ aggregates:
     name: FixedContentItem
     root: ENT-005
     members: ["VO-004"]
-    useCases: ["UC-004", "UC-007", "UC-019"]
+    useCases: ["UC-004", "UC-007", "UC-019", "UC-023", "UC-024", "UC-025", "UC-026"]
     rationale: "單筆固定內容的版本與審核狀態須一致；組合唯一"
   - id: AGG-006
     name: MemberSummaryRecord
@@ -348,7 +453,7 @@ aggregates:
     name: PointLedger
     root: ENT-008
     members: ["ENT-009", "ENT-010"]
-    useCases: ["UC-002", "UC-007", "UC-009", "UC-011", "UC-013", "UC-014"]
+    useCases: ["UC-002", "UC-007", "UC-009", "UC-011", "UC-013", "UC-014", "UC-027"]
     rationale: "餘額、批次與異動必須同一交易內更新，防止超扣與重複入帳"
   - id: AGG-009
     name: PaymentRecord
@@ -360,7 +465,7 @@ aggregates:
     name: AiUsage
     root: ENT-012
     members: []
-    useCases: ["UC-009", "UC-013", "UC-020"]
+    useCases: ["UC-009", "UC-013", "UC-020", "UC-027"]
     rationale: "追加式用量紀錄，單筆即一致性邊界"
   - id: AGG-011
     status: deprecated
@@ -390,6 +495,25 @@ aggregates:
     members: []
     useCases: ["UC-020"]
     rationale: "每日指標以日期為單位，計數原子遞增"
+
+  - id: AGG-015
+    name: DailyDrawRecord
+    root: ENT-018
+    members: ["VO-018"]
+    useCases: ["UC-022", "UC-023", "UC-024"]
+    rationale: "同帳號、同台北日期、同類抽取只能有一筆；以日期為唯一編號，在交易內「不存在才建立」，並行請求不會寫出兩份不同的結果"
+  - id: AGG-016
+    name: DailyKinUnlockRecord
+    root: ENT-019
+    members: ["VO-017"]
+    useCases: ["UC-022", "UC-025"]
+    rationale: "同帳號同日只能解鎖一次；解鎖紀錄與當日 Kin 快照同時建立"
+  - id: AGG-017
+    name: TransitReportRecord
+    root: ENT-020
+    members: ["VO-016", "VO-008", "VO-013", "VO-014", "VO-015", "VO-012"]
+    useCases: ["UC-022", "UC-027", "UC-028", "UC-029"]
+    rationale: "單份報告的狀態、章節與輸入快照須一致；同帳號、同台北日期、同本命資料版本只有一份，與扣點在同一交易內建立"
 
 domainEvents:
   - id: EVT-001
@@ -421,12 +545,12 @@ domainEvents:
     name: PointsDeducted
     triggeredBy: AGG-008
     description: "點數被扣除"
-    useCases: ["UC-007", "UC-009", "UC-013"]
+    useCases: ["UC-007", "UC-009", "UC-013", "UC-027"]
   - id: EVT-007
     name: PointsRefunded
     triggeredBy: AGG-008
     description: "生成失敗後點數返還"
-    useCases: ["UC-009", "UC-013"]
+    useCases: ["UC-009", "UC-013", "UC-027"]
   - id: EVT-008
     name: DetailedReportGenerated
     triggeredBy: AGG-007
@@ -460,18 +584,18 @@ domainEvents:
   - id: EVT-014
     name: DataExpired
     triggeredBy: AGG-004
-    description: "測驗結果、summary、MBTI、人類圖（3 個月）或詳細分析（6 個月）到期被清除（亦由 AGG-006、AGG-007 觸發）"
-    useCases: ["UC-017"]
+    description: "測驗結果、summary、MBTI、人類圖、每日抽取紀錄、今日 Kin 解鎖紀錄、即時星象報告（3 個月）或詳細分析（6 個月）到期被清除（亦由 AGG-006、AGG-007、AGG-015、AGG-016、AGG-017 觸發）"
+    useCases: ["UC-017", "UC-028"]
   - id: EVT-015
     name: UserAccountDeleted
     triggeredBy: AGG-001
-    description: "帳號與其全部紀錄被刪除（僅保留贈點紀錄）"
-    useCases: ["UC-016"]
+    description: "帳號與其全部紀錄被刪除（含每日抽取、今日 Kin 解鎖與即時星象報告；僅保留贈點紀錄）"
+    useCases: ["UC-016", "UC-023", "UC-024", "UC-025", "UC-027"]
   - id: EVT-016
     name: AiUsageRecorded
     triggeredBy: AGG-010
     description: "AI 呼叫用量被記錄"
-    useCases: ["UC-009", "UC-013", "UC-020"]
+    useCases: ["UC-009", "UC-013", "UC-020", "UC-027"]
   - id: EVT-017
     name: HumanDesignCalculated
     triggeredBy: AGG-012
@@ -482,6 +606,27 @@ domainEvents:
     triggeredBy: AGG-007
     description: "詳細分析報告書 PDF 已寄送至使用者 email（已扣點）"
     useCases: ["UC-021"]
+
+  - id: EVT-019
+    name: DailyDrawn
+    triggeredBy: AGG-015
+    description: "會員翻出當日的塔羅牌或抽出當日的盧恩符文"
+    useCases: ["UC-023", "UC-024"]
+  - id: EVT-020
+    name: DailyKinUnlocked
+    triggeredBy: AGG-016
+    description: "會員計算並解鎖當日的今日 Kin"
+    useCases: ["UC-025"]
+  - id: EVT-021
+    name: TransitReportGenerated
+    triggeredBy: AGG-017
+    description: "即時星象報告生成完成"
+    useCases: ["UC-027"]
+  - id: EVT-022
+    name: TransitReportFailed
+    triggeredBy: AGG-017
+    description: "即時星象報告生成失敗（已扣點數返還，見 EVT-007）"
+    useCases: ["UC-027"]
 
 businessRules:
   - id: RULE-001
@@ -620,3 +765,67 @@ businessRules:
     description: "下載詳細分析報告書每次扣 1 點，以 PDF 寄送至使用者 email；僅限報告擁有者且報告未到期；已下載過者須提醒並經確認才可重複下載"
     appliesTo: ["AGG-007"]
     useCases: ["UC-021"]
+  - id: RULE-035
+    description: "每日抽取：同一帳號、同一台北日期、同一類抽取（塔羅、盧恩）只有一筆紀錄；結果由帳號與日期決定性地決定；已存在時直接回傳既有紀錄，不重新計算"
+    appliesTo: ["AGG-015"]
+    useCases: ["UC-023", "UC-024"]
+  - id: RULE-036
+    description: "每日抽取與今日 Kin 免費、不呼叫 AI；固定內容尚未發佈時不得寫入任何紀錄"
+    appliesTo: ["AGG-015", "AGG-016"]
+    useCases: ["UC-023", "UC-024", "UC-025"]
+  - id: RULE-037
+    description: "盧恩逆位只適用於 15 枚方向可辨識的符文；Gebo、Hagalaz、Nauthiz、Isa、Jera、Eihwaz、Sowilo、Ingwaz、Dagaz 共 9 枚上下旋轉後外觀不變，只有正位；不含空白符文"
+    appliesTo: ["AGG-015"]
+    useCases: ["UC-024"]
+  - id: RULE-038
+    description: "「今日」以 Asia/Taipei（UTC+8）換日，由伺服器計算，不接受客戶端傳入的日期；頁面跨過午夜後須重新查詢"
+    appliesTo: ["AGG-015", "AGG-016", "AGG-017"]
+    useCases: ["UC-022", "UC-023", "UC-024", "UC-025", "UC-027"]
+  - id: RULE-039
+    description: "今日 Kin：每會員每台北日期可計算一次，計算即解鎖查看且不扣點；解鎖後當日查看次數不限；同日重複計算回傳既有結果"
+    appliesTo: ["AGG-016"]
+    useCases: ["UC-025"]
+  - id: RULE-040
+    description: "瑪雅 Kin 採 Dreamspell 曆法；2/29 不計入，生日或查詢日為 2/29 時沿用 2/28 的 Kin；今日 Kin 與生日 Kin 使用同一套演算法"
+    appliesTo: ["AGG-016", "ENT-001"]
+    useCases: ["UC-025", "UC-026"]
+  - id: RULE-041
+    description: "今日 Kin 與生日 Kin 的固定內容分開撰寫，各 260 筆，不共用"
+    appliesTo: ["AGG-005"]
+    useCases: ["UC-025", "UC-026"]
+  - id: RULE-042
+    description: "行運盤固定以台北當日 00:00（UTC+8）計算，同一台北日期的行運盤唯一；報告與頁面須標明以此時刻為準"
+    appliesTo: ["AGG-017"]
+    useCases: ["UC-027"]
+  - id: RULE-043
+    description: "本命盤與行運盤皆納入日、月、水、金、火、木、土、天王、海王、冥王十顆天體（本命盤另含上升）；既有七顆與上升的結果不因擴充而改變"
+    appliesTo: ["AGG-017", "ENT-001"]
+    useCases: ["UC-027", "UC-030"]
+  - id: RULE-044
+    description: "生成即時星象報告須已備齊出生日期、出生時間與出生城市；缺少時不得生成也不得扣點"
+    appliesTo: ["AGG-017"]
+    useCases: ["UC-027", "UC-030"]
+  - id: RULE-045
+    description: "同一帳號、同一台北日期、同一本命資料版本只有一份即時星象報告，只扣一次點，並行或重複請求只處理一次；本命資料變更後視為新的一份"
+    appliesTo: ["AGG-017", "AGG-008"]
+    useCases: ["UC-027"]
+  - id: RULE-046
+    description: "即時星象報告生成失敗、逾時或品質檢查不通過時，已扣點數須返還"
+    appliesTo: ["AGG-017", "AGG-008"]
+    useCases: ["UC-027"]
+  - id: RULE-047
+    description: "即時星象報告與每日抽取、今日 Kin 解鎖紀錄均保存 3 個月（報告以完成時間起算、其餘以建立時間起算），到期自動刪除，刪除帳號時一併移除"
+    appliesTo: ["AGG-015", "AGG-016", "AGG-017"]
+    useCases: ["UC-023", "UC-024", "UC-025", "UC-027", "UC-028"]
+  - id: RULE-048
+    description: "即時星象報告僅擁有者可存取；重複查看與匯出都讀取已保存內容，不呼叫 AI、不重新計算；報告到期後不可存取"
+    appliesTo: ["AGG-017"]
+    useCases: ["UC-028", "UC-029"]
+  - id: RULE-049
+    description: "「此刻／今日」類的結果與報告須附娛樂與自我反思的免責說明，語氣用「可能、傾向」，不預測具體事件，不給醫療、法律、財務建議"
+    appliesTo: ["AGG-015", "AGG-016", "AGG-017"]
+    useCases: ["UC-022", "UC-023", "UC-024", "UC-025", "UC-026", "UC-027"]
+  - id: RULE-050
+    description: "訪客不可取得每日抽取、今日 Kin 或即時星象的內容，只顯示說明與登入提示；使用前必須已登入"
+    appliesTo: ["AGG-015", "AGG-016", "AGG-017"]
+    useCases: ["UC-022", "UC-023", "UC-024", "UC-025", "UC-027"]

@@ -16,6 +16,14 @@ erDiagram
     pointPackages ||--o{ payments : "一個點數方案對應多筆付款"
     users ||--o{ aiUsageRecords : "會員產生的 AI 用量"
     users ||--|| humanDesign : "每位會員至多一份已儲存的人類圖結果"
+    users ||--o{ tarotDraws : "會員每個台北日期至多一筆塔羅抽取紀錄"
+    users ||--o{ runeDraws : "會員每個台北日期至多一筆盧恩抽取紀錄"
+    users ||--o{ kinUnlocks : "會員每個台北日期至多一筆今日 Kin 解鎖紀錄"
+    users ||--o{ transitReports : "會員擁有多份即時星象報告，同日同本命資料版本只有一份"
+    transitReports ||--o{ aiUsageRecords : "一份即時星象報告可能有多次 AI 呼叫"
+    fixedContents ||--o{ tarotDraws : "以牌序與方位查詢內容，不存外鍵"
+    fixedContents ||--o{ runeDraws : "以符文序與方位查詢內容，不存外鍵"
+    fixedContents ||--o{ kinUnlocks : "以 Kin 編號查詢內容，不存外鍵"
     users {
         string userId PK
         string email
@@ -137,6 +145,7 @@ erDiagram
         string recordId PK
         string userId
         string reportId
+        string reportKind
         string modelName
         int inputTokens
         int outputTokens
@@ -158,5 +167,46 @@ erDiagram
     welcomeGrants {
         string googleUidHash PK
         timestamp grantedAt
+        timestamp expiresAt
+    }
+    tarotDraws {
+        string dateKey PK
+        string userId
+        int symbolIndex
+        string orientation
+        string drawVersion
+        timestamp drawnAt
+        timestamp expiresAt
+    }
+    runeDraws {
+        string dateKey PK
+        string userId
+        int symbolIndex
+        string orientation
+        string drawVersion
+        timestamp drawnAt
+        timestamp expiresAt
+    }
+    kinUnlocks {
+        string dateKey PK
+        string userId
+        map kin
+        timestamp unlockedAt
+        timestamp expiresAt
+    }
+    transitReports {
+        string reportId PK
+        string userId
+        string transitDate
+        timestamp transitAt
+        map input
+        string status
+        array_map_ sections
+        string disclaimer
+        string modelName
+        string promptVersion
+        string failureReason
+        timestamp createdAt
+        timestamp completedAt
         timestamp expiresAt
     }

@@ -1,7 +1,7 @@
 version: 1
 generatedBy: system-analysis
-updatedAt: 2026-10-25T17:00:00+08:00
-relatedChanges: [ai-personality-app]
+updatedAt: 2026-10-27T19:00:00+08:00
+relatedChanges: [ai-personality-app, add-daily-tarot-draw, realtime-today-category]
 source: ai_personality_app_plan.md
 
 # phase: 對應計畫書 §11 Phase 1-5；mvp 表示屬 §15 第一版範圍
@@ -337,13 +337,13 @@ functional:
     source: "user 補充（點數需有效期）；user 採納建議（購買點數無限期、贈點 90 天）"
   - id: FR-033
     title: 資料到期刪除
-    description: 系統 SHALL 在會員的測驗作答與結果、多維度分析報告、MBTI 欄位與人類圖結果滿 3 個月後、詳細分析滿 6 個月後（各以產生時間點起算）自動刪除；付款紀錄 MUST NOT 因保留期限被刪除。
+    description: 系統 SHALL 在會員的測驗作答與結果、多維度分析報告、MBTI 欄位、人類圖結果、每日抽取紀錄與即時星象報告滿 3 個月後、詳細分析滿 6 個月後（各以產生時間點起算）自動刪除；付款紀錄 MUST NOT 因保留期限被刪除。
     priority: must
     phase: 2
     mvp: true
-    context: [CTX-CON-012, CTX-CON-006, CTX-EXT-005, CTX-ACTOR-001, CTX-ACTOR-002]
-    source: "user 補充（測驗結果、summary、MBTI 3 個月；詳細分析 6 個月）"
-    note: "各項保存期限已全部確認"
+    context: [CTX-CON-012, CTX-CON-006, CTX-EXT-005, CTX-ACTOR-001, CTX-ACTOR-002, CTX-CON-017, CTX-CON-018]
+    source: "user 補充（測驗結果、summary、MBTI 3 個月；詳細分析 6 個月）；user 對話 2026-10-27（即時星象報告 3 個月）；add-daily-tarot-draw（抽取紀錄 3 個月）"
+    note: "各項保存期限已全部確認；2026-10-27 追加：每日抽取紀錄與即時星象報告各 3 個月"
   - id: FR-035
     title: 資料到期前通知
     description: 系統 SHALL 以 email 在會員的測驗結果、多維度分析報告、人類圖與詳細分析到期前 14 天與 3 天各通知一次；同一使用者同時有多筆到期時合併為一封。
@@ -371,6 +371,116 @@ functional:
     context: [CTX-ACTOR-002, CTX-CON-012, CTX-CON-014, CTX-EXT-007]
     source: "user 補充（下載報告書 1 點、PDF、寄送 email、重複下載再扣點並提醒）"
     note: "PDF 以輕量純 JS 庫產生（避免在 Vercel 跑無頭瀏覽器）；寄送失敗重試 2 到 3 次，仍失敗返還 1 點；email 供應商待選；新增套件前先經使用者同意"
+
+  - id: FR-044
+    title: 「此刻／今日」類入口
+    description: 系統 SHALL 在首頁提供與維度卡分開的「此刻／今日」區塊，收納每日塔羅、今日盧恩、今日瑪雅 Kin 與即時星象；區塊內各項 MUST 標示其結果隨時間變動，且依各項規則呈現未登入、可抽取／已抽取、需付費與資料不足等狀態；未登入時 MUST NOT 載入任何抽取結果內容。
+    priority: should
+    phase: 6
+    mvp: false
+    context: [CTX-ACTOR-001, CTX-ACTOR-002, CTX-CON-016, CTX-ASM-004]
+    source: "user 對話（2026-10-27：即時星象與每日塔羅、瑪雅文字、抽盧恩併成有時效性、測當下狀態的類別）"
+    note: "首頁卡片原本把即時星象放在維度卡（app/pages/index.vue），需移到新區塊"
+  - id: FR-045
+    title: 每日塔羅抽牌
+    description: 系統 SHALL 允許已登入使用者每台北日期翻一張大阿爾克那（22 張，含正逆位）；同一帳號同一日 MUST 得到同一結果（跨裝置、重試、並行皆同），第一次翻牌 SHALL 寫入當日紀錄；結果為事先寫好的固定內容（共 44 筆），MUST NOT 呼叫 AI 且不扣點；內容未發佈時 MUST NOT 寫入紀錄。
+    priority: must
+    phase: 6
+    mvp: false
+    context: [CTX-ACTOR-001, CTX-CON-016, CTX-CON-018, CTX-CON-007, CTX-EXT-005, CTX-EXT-006]
+    source: "openspec/changes/add-daily-tarot-draw/proposal.md、design.md"
+    note: "已有 change 規劃（24 個 tasks），本條為其在 analysis 層的需求登錄"
+  - id: FR-046
+    title: 每日盧恩抽符
+    description: 系統 SHALL 允許已登入使用者每台北日期抽一枚 Elder Futhark 盧恩符文（24 枚）；15 枚方向可辨識的符文 SHALL 可抽到正位或逆位，9 枚上下旋轉 180° 後外觀不變的符文（Gebo、Hagalaz、Nauthiz、Isa、Jera、Eihwaz、Sowilo、Ingwaz、Dagaz）MUST 僅有正位；同一帳號同一日 MUST 得到同一結果，第一次抽取 SHALL 寫入當日紀錄；結果為事先寫好的固定內容，MUST NOT 呼叫 AI 且不扣點。
+    priority: should
+    phase: 6
+    mvp: false
+    context: [CTX-ACTOR-001, CTX-CON-016, CTX-CON-018, CTX-CON-019, CTX-ASM-016]
+    source: "user 對話（2026-10-27）"
+    note: "符文集、逆位規則與兩份清單已確認（CTX-ASM-016），固定內容共 39 筆（24 正位 + 15 逆位）；開發順序晚於塔羅，且在此時才抽出共用機制（CTX-CON-019）"
+  - id: FR-047
+    title: 今日瑪雅 Kin
+    description: 系統 SHALL 允許已登入使用者每台北日期「計算」一次今日瑪雅 Kin（圖騰與調性）；計算即解鎖當日 Kin 的查看，MUST NOT 扣點；解鎖後當日內 MUST 可不限次數查看；同一帳號同一日重複計算 MUST 回傳既有結果；未登入者 MUST NOT 取得內容；結果 MUST 由日期唯一決定並顯示事先寫好的固定內容（260 個 Kin 各一筆），MUST NOT 呼叫 AI。
+    priority: should
+    phase: 6
+    mvp: false
+    context: [CTX-ACTOR-001, CTX-CON-016, CTX-CON-020, CTX-ASM-015, CTX-ASM-017, CTX-EXT-006]
+    source: "user 對話（2026-10-27：今日類別瑪雅用今日 Kin）"
+    note: "需登入與每日計算一次已確認（CTX-ASM-017）；需保存當日已解鎖的紀錄，保存 3 個月，比照抽取紀錄（已確認）；2/29 的處理見 FR-049"
+  - id: FR-048
+    title: 生日瑪雅 Kin（命理系統）
+    description: 系統 SHALL 在命理系統中提供依使用者生日計算的瑪雅 Kin，作為與星座、生命靈數並列的常駐分析，顯示事先寫好的固定內容（260 個 Kin 各一筆，與今日 Kin 的內容分開撰寫）；MUST NOT 呼叫 AI。
+    priority: should
+    phase: 6
+    mvp: false
+    context: [CTX-ACTOR-001, CTX-CON-020, CTX-CON-007, CTX-ASM-015, CTX-ASM-006]
+    source: "user 對話（2026-10-27：命理系統常駐可新增一個瑪雅 kin 用生日）"
+    note: "是否免費、訪客可否取得，比照單項免費結果（FR-040）為推導，需確認；不屬多維度分析報告的組合；今日 Kin 與生日 Kin 內容分開撰寫已確認（CTX-ASM-015）"
+  - id: FR-049
+    title: 瑪雅 Kin 計算一致性
+    description: 系統 SHALL 以 Dreamspell 曆法（跳過 2/29）與同一套演算法計算今日 Kin 與生日 Kin；同一日期在任何入口 MUST 得到相同的 Kin；生日或查詢日期為 2/29 時，MUST 沿用 2/28 的 Kin。
+    priority: must
+    phase: 6
+    mvp: false
+    context: [CTX-CON-020, CTX-ASM-015]
+    source: "user 對話（2026-10-27）；探索階段指出 Dreamspell 與傳統 Tzolkin 結果不同"
+    note: "曆法與 2/29 沿用 2/28 已確認（CTX-ASM-015）；今日 Kin 在 2/29 當天同樣沿用 2/28 的 Kin（已確認）"
+  - id: FR-050
+    title: 行運盤計算
+    description: 系統 SHALL 在伺服器端以固定演算法計算台北當日 00:00（UTC+8）時日、月、水、金、火、木、土、天王、海王、冥王十顆天體的黃經位置（行運盤），以及行運盤對本命盤的相位關係；同一台北日期的行運盤 MUST 唯一；此計算 MUST NOT 呼叫 AI，結果僅供即時星象報告作為輸入。
+    priority: must
+    phase: 6
+    mvp: false
+    context: [CTX-EXT-008, CTX-CON-007, CTX-ASM-014]
+    source: "user 對話（2026-10-27：將今日星盤與使用者本人的星盤合併分析）；既有 server/astrology/natalChart.ts"
+    note: "計算時刻與天體範圍已確認（CTX-ASM-013、CTX-ASM-014）；相位計算為目前不存在的新模組；本命盤同步加入三顆外行星見 FR-055"
+  - id: FR-051
+    title: 即時星象報告生成
+    description: 系統 SHALL 在已登入使用者備齊出生日期、時間與城市、點數餘額足夠並扣點後，呼叫 AI 供應商，依本命盤與當下行運盤的合併資料生成即時星象報告；報告 MUST 區分資料依據與 AI 推測、標示計算所用時刻為當日 00:00（UTC+8），並依 CTX-CON-016 不預測具體事件。生成失敗 MUST 返還點數，沿用 FR-019 的規則。
+    priority: must
+    phase: 6
+    mvp: false
+    context: [CTX-ACTOR-002, CTX-EXT-002, CTX-CON-017, CTX-CON-016, CTX-CON-014, CTX-ASM-018]
+    source: "user 對話（2026-10-27：需串 AI 合併分析、需付費）"
+    note: "點數價格與章節結構待定；報告集合獨立於 detailedReports 已確認（user 2026-10-27），與詳細分析的集合與 API 分開"
+  - id: FR-052
+    title: 即時星象報告同日不重複扣點
+    description: 系統 SHALL 對同一帳號、同一台北日期、同一份本命資料版本的即時星象報告直接回傳已存結果，MUST NOT 再次扣點；重複點擊或並行請求 MUST NOT 造成重複扣點。
+    priority: must
+    phase: 6
+    mvp: false
+    context: [CTX-ACTOR-002, CTX-CON-014, CTX-EXT-005, CTX-ASM-013]
+    source: "探索階段建議；沿用 FR-041 的精神"
+    note: "粒度由固定 00:00 計算時刻推導（CTX-ASM-013 已確認）；本命資料變更後視為新的一份"
+  - id: FR-053
+    title: 即時星象報告保存與存取
+    description: 系統 SHALL 保存已生成的即時星象報告（含模型名稱、提示詞版本、輸入資料版本、計算所用時刻與生成時間），保存 3 個月後自動刪除；再次查看 MUST 讀取已保存內容且 MUST NOT 重新呼叫 AI；僅報告擁有者可存取，刪除帳號時 SHALL 一併移除。
+    priority: must
+    phase: 6
+    mvp: false
+    context: [CTX-ACTOR-002, CTX-CON-017, CTX-CON-012, CTX-EXT-005]
+    source: "user 對話（2026-10-27：需紀錄報告，一樣 3 個月效期）"
+    note: "與 FR-018、FR-021、FR-033 同型，但保存期限為 3 個月而非 6 個月；重複查看已由 user 確認（2026-10-27）"
+  - id: FR-054
+    title: 即時星象報告匯出 PDF
+    description: 系統 SHALL 允許報告擁有者在報告到期前將即時星象報告匯出為 PDF；匯出 MUST 讀取已保存內容，MUST NOT 重新呼叫 AI；僅報告擁有者可匯出。
+    priority: should
+    phase: 6
+    mvp: false
+    context: [CTX-ACTOR-002, CTX-CON-017, CTX-CON-014, CTX-ASM-019]
+    source: "user 對話（2026-10-27：「仍能重複查看以及匯出 pdf（此功能尚未實作）」）"
+    note: "匯出是否扣點、下載或寄送 email、是否與 FR-034 共用 PDF 產生機制待確認（CTX-ASM-019）；新增 PDF 套件前須先經 user 同意"
+
+  - id: FR-055
+    title: 本命盤加入天王、海王、冥王
+    description: 系統 SHALL 在本命盤計算結果中，於日、月、水、金、火、木、土與上升之外，加入天王、海王、冥王的星座與度數；既有的本命盤輸出與畫面 MUST 同步呈現，且既有七顆天體與上升的結果 MUST NOT 改變。
+    priority: must
+    phase: 6
+    mvp: false
+    context: [CTX-EXT-008, CTX-ASM-014, CTX-ASM-006]
+    source: "user 對話（2026-10-27：「本命盤也加三顆行星」）；既有 server/astrology/natalChart.ts、shared/constants/natal.ts"
+    note: "既有本命盤（進階星座分析）尚未登錄於 analysis，本條只登錄此次變動；本命盤為固定計算且不儲存，無資料遷移；需同步調整本命盤 API schema、星座文案與畫面"
 
 nonFunctional:
   - id: NFR-001
@@ -411,7 +521,7 @@ nonFunctional:
     category: privacy
     title: 資料最小化與保留
     description: 系統只蒐集功能所需資料，並依保留政策決定測驗答案、輸入快照的保存期限，不無限期保留不必要個資。
-    metric: "測驗結果、多維度分析報告、MBTI、人類圖保留 3 個月；詳細分析保留 6 個月；付款紀錄於帳號存續期間永久保存；刪除帳號時移除全部紀錄（贈點紀錄保留 3 個月）；訪客暫存結果 TTL 1 天"
+    metric: "測驗結果、多維度分析報告、MBTI、人類圖、每日抽取紀錄、即時星象報告保留 3 個月；詳細分析保留 6 個月；付款紀錄於帳號存續期間永久保存；刪除帳號時移除全部紀錄（贈點紀錄保留 3 個月）；訪客暫存結果 TTL 1 天"
     priority: must
     context: [CTX-CON-006, CTX-CON-012]
     source: "plan §3.1, §7.2, §13.3；user 補充"
@@ -519,3 +629,45 @@ nonFunctional:
     priority: should
     context: [CTX-ACTOR-004, CTX-EXT-002]
     source: "plan §6.4, §12"
+
+  - id: NFR-018
+    category: reliability
+    title: 每日抽取的一致性與防重複
+    description: 同一帳號同一台北日期的抽取結果 MUST 一致；並行請求、雙擊與跨裝置重試 MUST NOT 產生兩份不同的紀錄。
+    metric: "並行 N 次抽取請求，當日紀錄只有 1 份，且各次回應內容相同"
+    priority: must
+    context: [CTX-CON-018, CTX-EXT-005]
+    source: "openspec/changes/add-daily-tarot-draw/design.md"
+  - id: NFR-019
+    category: correctness
+    title: 台北日期換日的正確性
+    description: 「今日」的邊界 MUST 由伺服器以 Asia/Taipei 計算，MUST NOT 接受客戶端傳入的日期；頁面跨過午夜後 MUST 以新日期重新取得結果。
+    metric: "台北 23:59:59 與 00:00:00 兩個時刻的邊界測試，換日行為正確"
+    priority: must
+    context: [CTX-CON-016]
+    source: "openspec/changes/add-daily-tarot-draw/design.md"
+  - id: NFR-020
+    category: compliance
+    title: 「此刻／今日」內容免責與語氣
+    description: 「此刻／今日」類每個結果頁 MUST 含娛樂與自我反思免責說明；固定內容與 AI 報告 MUST 使用「可能、傾向」的語氣，不得預測具體事件，也不得給醫療、法律、財務建議。
+    metric: "100% 結果頁含免責說明；抽樣檢查 0 筆具體事件預測或專業建議"
+    priority: must
+    context: [CTX-CON-016, CTX-CON-001]
+    source: "openspec/changes/add-daily-tarot-draw/proposal.md；延伸自 NFR-007"
+  - id: NFR-021
+    category: maintainability
+    title: 新增抽取型的重用性
+    description: 第二個抽取型（盧恩）加入時，紀錄保存、到期清除與刪帳號的處理 SHOULD 重用共用機制，而非複製塔羅的實作。
+    metric: "未量化，需與相關人確認（例如共用程式碼比例或新增一種抽取型所需的改動檔案數）"
+    priority: should
+    context: [CTX-CON-019]
+    source: "user 對話（2026-10-27，「看哪個先做，後者再抽」）"
+  - id: NFR-022
+    category: accuracy
+    title: 星象計算準確度
+    description: 行運盤與本命盤的天體位置 MUST 與參考星曆一致到可接受誤差內，使相位判斷可信。
+    metric: "未量化，需與相關人確認（與參考星曆比對的容許誤差，例如黃經差距）"
+    priority: should
+    context: [CTX-EXT-008, CTX-CON-017]
+    source: "探索階段推導；既有 server/astrology/natalChart.test.ts"
+    note: "屬推導，需確認"

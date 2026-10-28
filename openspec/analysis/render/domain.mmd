@@ -212,6 +212,83 @@ classDiagram
         +counters map
       }
     }
+    class Placement {
+      <<ValueObject>>
+      +sign enum
+      +degree int
+    }
+    class NatalChart {
+      <<ValueObject>>
+      +ascendant Placement
+      +bodies map
+    }
+    class TransitChart {
+      <<ValueObject>>
+      +computedAt timestamp
+      +bodies map
+    }
+    class TransitAspect {
+      <<ValueObject>>
+      +transitBody enum
+      +natalBody enum
+      +aspectType enum
+      +orb number
+    }
+    class TransitAnalysisInput {
+      <<ValueObject>>
+      +inputVersion string
+      +natalChart NatalChart
+      +transitChart TransitChart
+      +aspects TransitAspect[]
+    }
+    class KinResult {
+      <<ValueObject>>
+      +kinNumber int
+      +solarSeal int
+      +galacticTone int
+    }
+    class DrawnSymbol {
+      <<ValueObject>>
+      +symbolIndex int
+      +orientation enum
+    }
+    namespace AGG_015_DailyDrawRecord {
+      class DailyDraw {
+        +userId string
+        +drawType enum
+        +dateKey string
+        +drawn DrawnSymbol
+        +drawVersion string
+        +drawnAt timestamp
+        +expiresAt timestamp
+      }
+    }
+    namespace AGG_016_DailyKinUnlockRecord {
+      class DailyKinUnlock {
+        +userId string
+        +dateKey string
+        +kin KinResult
+        +unlockedAt timestamp
+        +expiresAt timestamp
+      }
+    }
+    namespace AGG_017_TransitReportRecord {
+      class TransitReport {
+        +reportId string
+        +userId string
+        +transitDate string
+        +transitAt timestamp
+        +input TransitAnalysisInput
+        +status enum
+        +sections ReportSection[]
+        +modelName string
+        +promptVersion string
+        +failureReason string_or_null
+        +createdAt timestamp
+        +completedAt timestamp_or_null
+        +expiresAt timestamp_or_null
+      }
+    }
     class UserRegistered {
       <<Event>>
     }
@@ -284,6 +361,22 @@ classDiagram
       <<Event>>
     }
     DetailedReport ..> ReportDownloaded : EVT-018
+    class DailyDrawn {
+      <<Event>>
+    }
+    DailyDraw ..> DailyDrawn : EVT-019
+    class DailyKinUnlocked {
+      <<Event>>
+    }
+    DailyKinUnlock ..> DailyKinUnlocked : EVT-020
+    class TransitReportGenerated {
+      <<Event>>
+    }
+    TransitReport ..> TransitReportGenerated : EVT-021
+    class TransitReportFailed {
+      <<Event>>
+    }
+    TransitReport ..> TransitReportFailed : EVT-022
     User o-- BirthData
     User o-- BloodType
     User o-- MbtiType
@@ -327,3 +420,20 @@ classDiagram
     note for HumanDesignChart "RULE-028 已登入會員計算出的人類圖結果須儲存；訪客僅暫存於 session（TTL 1 天）"
     note for WelcomeGrantRecord "RULE-031 同一 Google 帳號於上次領取贈點後 3 個月內刪除帳號再註冊，不再發放贈點；贈點紀錄 3 個月後到期，且僅用於避免重複贈點、不作他用"
     note for DailyMetric "RULE-034 每日指標只存計數，不含任何個人資料"
+    DailyDraw o-- DrawnSymbol
+    DailyKinUnlock o-- KinResult
+    TransitReport o-- TransitAnalysisInput
+    TransitReport o-- ReportSection
+    TransitAnalysisInput o-- NatalChart
+    TransitAnalysisInput o-- TransitChart
+    TransitAnalysisInput o-- TransitAspect
+    NatalChart o-- Placement
+    TransitChart o-- Placement
+    DailyDraw --> User : userId
+    DailyKinUnlock --> User : userId
+    TransitReport --> User : userId
+    FixedContent ..> DailyDraw : 提供塔羅與盧恩內容
+    FixedContent ..> DailyKinUnlock : 提供今日 Kin 內容
+    note for DailyDraw "RULE-035 同帳號、同台北日期、同類抽取只有一筆，結果決定性，已存在則回傳既有紀錄<br/>RULE-037 9 枚對稱盧恩只有正位，15 枚可逆<br/>RULE-038 以 Asia/Taipei 換日，由伺服器計算<br/>RULE-047 保存 3 個月，刪帳號時移除<br/>RULE-036 免費、不呼叫 AI，內容未發佈時不寫入"
+    note for DailyKinUnlock "RULE-039 每會員每日計算一次，計算即解鎖、不扣點，解鎖後查看不限<br/>RULE-040 Dreamspell，2/29 沿用 2/28<br/>RULE-041 今日 Kin 與生日 Kin 內容分開各 260 筆"
+    note for TransitReport "RULE-042 行運盤固定取台北當日 00:00<br/>RULE-043 十顆天體，既有七顆與上升結果不變<br/>RULE-044 須備齊出生日期、時間、城市<br/>RULE-045 同帳號同日同本命資料版本只扣一次<br/>RULE-046 失敗返還點數<br/>RULE-047 保存 3 個月<br/>RULE-048 僅擁有者可存取，重複查看與匯出不呼叫 AI<br/>RULE-049 免責說明且不預測具體事件<br/>RULE-050 訪客不可使用"

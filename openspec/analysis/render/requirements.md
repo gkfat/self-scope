@@ -1,10 +1,10 @@
 # Requirements（AI 多維度人格探索 App）
 
-> 來源：`ai_personality_app_plan.md` + user 補充（Nuxt / Vue / Vuetify / Vite、Vercel、Firestore、Google 登入、點數制、人類圖）
+> 來源：`ai_personality_app_plan.md` + `openspec/changes/add-daily-tarot-draw` + user 補充（Nuxt / Vue / Vuetify / Vite、Vercel、Firestore、Google 登入、點數制、人類圖）
 > 真相檔：`openspec/analysis/requirements.yaml`、`context.yaml`（本檔由 yaml 產生）
-> 更新：2026-10-25
+> 更新：2026-10-27（新增「此刻／今日」類：FR-044 至 FR-055、NFR-018 至 NFR-022）
 
-MVP = 計畫書 §15 第一版範圍（含 user 補充）。Phase 對應 §11 Phase 1-5。
+MVP = 計畫書 §15 第一版範圍（含 user 補充）。Phase 對應 §11 Phase 1-5；Phase 6 為 2026-10-27 新增的「此刻／今日」類（不屬原計畫書範圍）。
 
 ## Functional Requirements
 
@@ -42,7 +42,7 @@ MVP = 計畫書 §15 第一版範圍（含 user 補充）。Phase 對應 §11 Ph
 | FR-030 | 歷史結果比較 | 系統 SHALL 讓付費使用者比較不同時間的測驗結果與報告。 | could | 5 | ✘ | CTX-ACTOR-002, CTX-CON-008 |
 | FR-031 | AI 對話式人格探索 | 系統 MAY 提供 AI 對話式人格探索作為會員功能（是否推出待評估）。 | could | 5 | ✘ | CTX-ACTOR-002, CTX-EXT-002, CTX-CON-008 |
 | FR-032 | 訪客使用與登入後儲存 | 系統 SHALL 允許未登入訪客完成測驗並查看結果；訪客當次結果 SHALL 以 session id 暫存於 Firestore，TTL 為 1 天，且 MUST NOT 與任何帳號關聯或永久保存；訪客當次選擇登入時，SHALL 依 session id 將暫存結果存入其帳號；app 內 MUST 明確提示「未登入將不保留結果」並引導 Google 登入。已登入使用者的結果 SHALL 保留。使用點數（取得 summary 或詳細分析）前 MUST 已登入。 | must | 1 | ✔ | CTX-ACTOR-001, CTX-EXT-006, CTX-EXT-005, CTX-ASM-004, CTX-ASM-008 |
-| FR-033 | 資料到期刪除 | 系統 SHALL 在會員的測驗作答與結果、多維度分析報告、MBTI 欄位與人類圖結果滿 3 個月後、詳細分析滿 6 個月後（各以產生時間點起算）自動刪除；付款紀錄 MUST NOT 因保留期限被刪除。 | must | 2 | ✔ | CTX-CON-012, CTX-CON-006, CTX-EXT-005, CTX-ACTOR-001, CTX-ACTOR-002 |
+| FR-033 | 資料到期刪除 | 系統 SHALL 在會員的測驗作答與結果、多維度分析報告、MBTI 欄位、人類圖結果、每日抽取紀錄與即時星象報告滿 3 個月後、詳細分析滿 6 個月後（各以產生時間點起算）自動刪除；付款紀錄 MUST NOT 因保留期限被刪除。 | must | 2 | ✔ | CTX-CON-012, CTX-CON-006, CTX-EXT-005, CTX-ACTOR-001, CTX-ACTOR-002, CTX-CON-017, CTX-CON-018 |
 | FR-034 | 詳細分析報告書下載（寄送 email） | 系統 SHALL 讓使用者在報告到期前消耗 1 點，將詳細分析報告書以 PDF 寄送至其 email；若該報告已下載過，系統 MUST 提醒並經使用者確認後才重複扣點與寄送。 | should | 4 | ✘ | CTX-ACTOR-002, CTX-CON-012, CTX-CON-014, CTX-EXT-007 |
 | FR-035 | 資料到期前通知 | 系統 SHALL 以 email 在會員的測驗結果、多維度分析報告、人類圖與詳細分析到期前 14 天與 3 天各通知一次；同一使用者同時有多筆到期時合併為一封。 | should | 5 | ✘ | CTX-ACTOR-001, CTX-CON-012, CTX-EXT-007 |
 | FR-036 | 人類圖計算 | 系統 SHALL 在使用者提供出生時間與出生地點時計算人類圖（固定結果，MUST NOT 呼叫 AI），結果包含 5 種能量類型之一、9 大能量中心、12 種人生角色組合之一、內在權威、策略、定義與通道、64 個閘門；未提供出生時間與地點時 MUST NOT 產生人類圖；已登入使用者計算出的人類圖結果 SHALL 儲存於其帳號（訪客僅暫存於 session，TTL 1 天），且 SHALL 可單獨檢視且不扣點，不需先生成詳細分析。人類圖納入詳細分析的輸入，不屬多維度分析報告 的組合。 | must | 3 | ✔ | CTX-ACTOR-001, CTX-ASM-006, CTX-CON-007 |
@@ -53,6 +53,18 @@ MVP = 計畫書 §15 第一版範圍（含 user 補充）。Phase 對應 §11 Ph
 | FR-041 | 避免重複扣點 | 系統 SHALL 對同一會員已生成過的多維度分析報告 組合直接回傳已存結果且 MUST NOT 再次扣點；重複點擊或並行請求 MUST NOT 造成重複扣點。 | must | 3 | ✔ | CTX-ACTOR-002, CTX-CON-014, CTX-EXT-005 |
 | FR-042 | 點數有效期 | 系統 SHALL 為點數設定有效期：購買的點數為無限期，贈點有效期 90 天；過期點數 MUST NOT 可用於扣抵；扣抵順序為先到期先扣、無限期批次最後。 | must | 3 | ✔ | CTX-ACTOR-001, CTX-ACTOR-002, CTX-CON-014 |
 | FR-043 | 付款紀錄保存 | 系統 SHALL 在帳號存續期間永久保存付款紀錄，不受測驗結果保留期限影響；使用者刪除帳號時 SHALL 一併移除付款紀錄。 | must | 4 | ✔ | CTX-CON-012, CTX-EXT-001, CTX-ACTOR-004 |
+| FR-044 | 「此刻／今日」類入口 | 系統 SHALL 在首頁提供與維度卡分開的「此刻／今日」區塊，收納每日塔羅、今日盧恩、今日瑪雅 Kin 與即時星象；區塊內各項 MUST 標示其結果隨時間變動，且依各項規則呈現未登入、可抽取／已抽取、需付費與資料不足等狀態；未登入時 MUST NOT 載入任何抽取結果內容。 | should | 6 | ✘ | CTX-ACTOR-001, CTX-ACTOR-002, CTX-CON-016, CTX-ASM-004 |
+| FR-045 | 每日塔羅抽牌 | 系統 SHALL 允許已登入使用者每台北日期翻一張大阿爾克那（22 張，含正逆位）；同一帳號同一日 MUST 得到同一結果（跨裝置、重試、並行皆同），第一次翻牌 SHALL 寫入當日紀錄；結果為事先寫好的固定內容（共 44 筆），MUST NOT 呼叫 AI 且不扣點；內容未發佈時 MUST NOT 寫入紀錄。 | must | 6 | ✘ | CTX-ACTOR-001, CTX-CON-016, CTX-CON-018, CTX-CON-007, CTX-EXT-005, CTX-EXT-006 |
+| FR-046 | 每日盧恩抽符 | 系統 SHALL 允許已登入使用者每台北日期抽一枚 Elder Futhark 盧恩符文（24 枚）；15 枚方向可辨識的符文 SHALL 可抽到正位或逆位，9 枚上下旋轉 180° 後外觀不變的符文（Gebo、Hagalaz、Nauthiz、Isa、Jera、Eihwaz、Sowilo、Ingwaz、Dagaz）MUST 僅有正位；同一帳號同一日 MUST 得到同一結果，第一次抽取 SHALL 寫入當日紀錄；結果為事先寫好的固定內容，MUST NOT 呼叫 AI 且不扣點。 | should | 6 | ✘ | CTX-ACTOR-001, CTX-CON-016, CTX-CON-018, CTX-CON-019, CTX-ASM-016 |
+| FR-047 | 今日瑪雅 Kin | 系統 SHALL 允許已登入使用者每台北日期「計算」一次今日瑪雅 Kin（圖騰與調性）；計算即解鎖當日 Kin 的查看，MUST NOT 扣點；解鎖後當日內 MUST 可不限次數查看；同一帳號同一日重複計算 MUST 回傳既有結果；未登入者 MUST NOT 取得內容；結果 MUST 由日期唯一決定並顯示事先寫好的固定內容（260 個 Kin 各一筆），MUST NOT 呼叫 AI。 | should | 6 | ✘ | CTX-ACTOR-001, CTX-CON-016, CTX-CON-020, CTX-ASM-015, CTX-ASM-017, CTX-EXT-006 |
+| FR-048 | 生日瑪雅 Kin（命理系統） | 系統 SHALL 在命理系統中提供依使用者生日計算的瑪雅 Kin，作為與星座、生命靈數並列的常駐分析，顯示事先寫好的固定內容（260 個 Kin 各一筆，與今日 Kin 的內容分開撰寫）；MUST NOT 呼叫 AI。 | should | 6 | ✘ | CTX-ACTOR-001, CTX-CON-020, CTX-CON-007, CTX-ASM-015, CTX-ASM-006 |
+| FR-049 | 瑪雅 Kin 計算一致性 | 系統 SHALL 以 Dreamspell 曆法（跳過 2/29）與同一套演算法計算今日 Kin 與生日 Kin；同一日期在任何入口 MUST 得到相同的 Kin；生日或查詢日期為 2/29 時，MUST 沿用 2/28 的 Kin。 | must | 6 | ✘ | CTX-CON-020, CTX-ASM-015 |
+| FR-050 | 行運盤計算 | 系統 SHALL 在伺服器端以固定演算法計算台北當日 00:00（UTC+8）時日、月、水、金、火、木、土、天王、海王、冥王十顆天體的黃經位置（行運盤），以及行運盤對本命盤的相位關係；同一台北日期的行運盤 MUST 唯一；此計算 MUST NOT 呼叫 AI，結果僅供即時星象報告作為輸入。 | must | 6 | ✘ | CTX-EXT-008, CTX-CON-007, CTX-ASM-014 |
+| FR-051 | 即時星象報告生成 | 系統 SHALL 在已登入使用者備齊出生日期、時間與城市、點數餘額足夠並扣點後，呼叫 AI 供應商，依本命盤與當下行運盤的合併資料生成即時星象報告；報告 MUST 區分資料依據與 AI 推測、標示計算所用時刻為當日 00:00（UTC+8），並依 CTX-CON-016 不預測具體事件。生成失敗 MUST 返還點數，沿用 FR-019 的規則。 | must | 6 | ✘ | CTX-ACTOR-002, CTX-EXT-002, CTX-CON-017, CTX-CON-016, CTX-CON-014, CTX-ASM-018 |
+| FR-052 | 即時星象報告同日不重複扣點 | 系統 SHALL 對同一帳號、同一台北日期、同一份本命資料版本的即時星象報告直接回傳已存結果，MUST NOT 再次扣點；重複點擊或並行請求 MUST NOT 造成重複扣點。 | must | 6 | ✘ | CTX-ACTOR-002, CTX-CON-014, CTX-EXT-005, CTX-ASM-013 |
+| FR-053 | 即時星象報告保存與存取 | 系統 SHALL 保存已生成的即時星象報告（含模型名稱、提示詞版本、輸入資料版本、計算所用時刻與生成時間），保存 3 個月後自動刪除；再次查看 MUST 讀取已保存內容且 MUST NOT 重新呼叫 AI；僅報告擁有者可存取，刪除帳號時 SHALL 一併移除。 | must | 6 | ✘ | CTX-ACTOR-002, CTX-CON-017, CTX-CON-012, CTX-EXT-005 |
+| FR-054 | 即時星象報告匯出 PDF | 系統 SHALL 允許報告擁有者在報告到期前將即時星象報告匯出為 PDF；匯出 MUST 讀取已保存內容，MUST NOT 重新呼叫 AI；僅報告擁有者可匯出。 | should | 6 | ✘ | CTX-ACTOR-002, CTX-CON-017, CTX-CON-014, CTX-ASM-019 |
+| FR-055 | 本命盤加入天王、海王、冥王 | 系統 SHALL 在本命盤計算結果中，於日、月、水、金、火、木、土與上升之外，加入天王、海王、冥王的星座與度數；既有的本命盤輸出與畫面 MUST 同步呈現，且既有七顆天體與上升的結果 MUST NOT 改變。 | must | 6 | ✘ | CTX-EXT-008, CTX-ASM-014, CTX-ASM-006 |
 
 ## Non-Functional Requirements
 
@@ -62,7 +74,7 @@ MVP = 計畫書 §15 第一版範圍（含 user 補充）。Phase 對應 §11 Ph
 | NFR-002 | security | 秘密與金鑰保護 | 前端 bundle 中 0 個秘密金鑰 | must | CTX-CON-003, CTX-EXT-001, CTX-EXT-002 |
 | NFR-003 | security | 授權與存取控制 | 未授權存取一律被拒絕（需以測試驗證） | must | CTX-CON-003, CTX-ACTOR-002, CTX-EXT-005, CTX-EXT-006 |
 | NFR-004 | security | Webhook 可靠性 | 同一事件重送 N 次，最終狀態與送一次相同 | must | CTX-EXT-001 |
-| NFR-005 | privacy | 資料最小化與保留 | 測驗結果、多維度分析報告、MBTI、人類圖保留 3 個月；詳細分析保留 6 個月；付款紀錄於帳號存續期間永久保存；刪除帳號時移除全部紀錄（贈點紀錄保留 3 個月）；訪客暫存結果 TTL 1 天 | must | CTX-CON-006, CTX-CON-012 |
+| NFR-005 | privacy | 資料最小化與保留 | 測驗結果、多維度分析報告、MBTI、人類圖、每日抽取紀錄、即時星象報告保留 3 個月；詳細分析保留 6 個月；付款紀錄於帳號存續期間永久保存；刪除帳號時移除全部紀錄（贈點紀錄保留 3 個月）；訪客暫存結果 TTL 1 天 | must | CTX-CON-006, CTX-CON-012 |
 | NFR-006 | privacy | 日誌敏感資料 | 日誌抽樣檢查 0 筆完整答案/報告內容 | must | CTX-CON-006 |
 | NFR-007 | compliance | 結果免責與內容合規 | 100% 結果頁含免責說明；固定測試案例中 0 筆診斷式輸出 | must | CTX-CON-001, CTX-CON-002 |
 | NFR-008 | cost | AI 成本控管 | 未量化，需與相關人確認（單份報告成本上限、Token 上限） | must | CTX-CON-007, CTX-ACTOR-004 |
@@ -75,6 +87,11 @@ MVP = 計畫書 §15 第一版範圍（含 user 補充）。Phase 對應 §11 Ph
 | NFR-015 | observability | 指標與可追蹤性 | 每份 AI 報告 100% 記錄上述三項欄位 | should | CTX-ACTOR-004, CTX-EXT-002 |
 | ~~NFR-016~~ | security | 已廢止：前端計算結果不可信 | user 更正為後端計算固定結果，前端計算結果不可信的前提不再成立 | — | — |
 | NFR-017 | reliability | 點數一致性與防重複 | 並行 N 次扣點請求，餘額變動與成功次數一致；贈點每帳號 1 次 | must | CTX-CON-014, CTX-EXT-005, CTX-EXT-001 |
+| NFR-018 | reliability | 每日抽取的一致性與防重複 | 並行 N 次抽取請求，當日紀錄只有 1 份，且各次回應內容相同 | must | CTX-CON-018, CTX-EXT-005 |
+| NFR-019 | correctness | 台北日期換日的正確性 | 台北 23:59:59 與 00:00:00 兩個時刻的邊界測試，換日行為正確 | must | CTX-CON-016 |
+| NFR-020 | compliance | 「此刻／今日」內容免責與語氣 | 100% 結果頁含免責說明；抽樣檢查 0 筆具體事件預測或專業建議 | must | CTX-CON-016, CTX-CON-001 |
+| NFR-021 | maintainability | 新增抽取型的重用性 | 未量化，需與相關人確認（例如共用程式碼比例或新增一種抽取型所需的改動檔案數） | should | CTX-CON-019 |
+| NFR-022 | accuracy | 星象計算準確度 | 未量化，需與相關人確認（與參考星曆比對的容許誤差，例如黃經差距） | should | CTX-EXT-008, CTX-CON-017 |
 
 ## 待確認（已採納建議，以下為尚待落實或需外部確認）
 
@@ -87,3 +104,10 @@ MVP = 計畫書 §15 第一版範圍（含 user 補充）。Phase 對應 §11 Ph
 - AI 生成 p95 等待時間：上線後量測（NFR-009）
 - 到期通知（Phase 5）、後台 API 與事件檢視（MVP 後）
 - 計畫書 §7 資料表設計已改寫為 Firestore 資料模型（data-model.yaml）
+
+## 「此刻／今日」類待確認（2026-10-27）
+
+已確認：行運盤固定於台北當日 00:00、十顆天體（本命盤同步加入三顆外行星）、Dreamspell、今日 Kin 與生日 Kin 內容分開各 260 筆（共 520）、2/29 沿用 2/28、Elder Futhark（9 枚僅正位、15 枚可逆，不含空白符文）、今日 Kin 需登入且每日計算一次（不扣點、查看不限、解鎖紀錄 3 個月）、報告獨立集合且可重複查看。
+
+- 即時星象報告 PDF：是否扣點、下載或寄 email、是否共用 FR-034 的機制（CTX-ASM-019、FR-054）
+- 即時星象點數價格：需量測單份 AI 成本後決定（CTX-CON-017）
