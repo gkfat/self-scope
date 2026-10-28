@@ -7,7 +7,16 @@ import {
 import {
     loadOntology, ONTOLOGY_VERSION, 
 } from '../shared/ontology/ontology.ts';
-import { MAPPING_SYSTEMS } from '../shared/ontology/schema.ts';
+import {
+    COVERAGE_TARGETS, FRAGMENT_TABLE,
+} from '../shared/ontology/fragments/index.ts';
+import {
+    computeFragmentCoverage, findFragmentCoverageIssues, findFragmentIssues, findTimeTemplateIssues,
+    FRAGMENT_VERSION, MIN_DOMAIN_FRAGMENTS_PER_END, MIN_OBJECT_FRAGMENTS_PER_END,
+} from '../shared/ontology/fragments/fragments.ts';
+import {
+    MAPPING_SYSTEMS, TRAIT_GROUPS, TRAIT_GROUP_LABELS,
+} from '../shared/ontology/schema.ts';
 
 /**
  * The trait ontology and its mapping, checked and reported: the data files are sound, how much of each system's
@@ -65,6 +74,28 @@ const bySources = Object.entries(report.endSources).sort(([a, x], [b, y]) => x -
 
 for (const [id, count] of bySources.slice(0, 16)) {
     console.log(`  ${id.padEnd(5)} ${count}${ACKNOWLEDGED_UNSOURCED_ENDS.includes(id) ? '  (acknowledged: no source)' : ''}`);
+}
+
+const fragmentContext = {
+    endIds: ontology.endIds,
+    contextKinds: new Map(ontology.context.map((value) => [value.id, value.kind] as const)),
+};
+const fragmentCoverage = computeFragmentCoverage(FRAGMENT_TABLE);
+
+issues.push(
+    ...findFragmentIssues(FRAGMENT_TABLE, fragmentContext),
+    ...findTimeTemplateIssues(),
+    ...findFragmentCoverageIssues(fragmentCoverage, COVERAGE_TARGETS),
+);
+
+console.log(`\nContext fragments ${FRAGMENT_VERSION} (an end needs at least ${MIN_OBJECT_FRAGMENTS_PER_END} object and ${MIN_DOMAIN_FRAGMENTS_PER_END} domain sentences once its group is reached):`);
+
+for (const group of TRAIT_GROUPS) {
+    const ends = ontology.axes.filter((axis) => axis.group === group).flatMap((axis) => [`${axis.id}.A`, `${axis.id}.B`]);
+    const sum = (key: 'object' | 'domain') => ends.reduce((total, id) => total + (fragmentCoverage[id]?.[key] ?? 0), 0);
+    const reached = (phase: 'object' | 'domain') => (COVERAGE_TARGETS[phase].includes(group) ? 'enforced' : 'not yet');
+
+    console.log(`  ${TRAIT_GROUP_LABELS[group].padEnd(8)} object ${String(sum('object')).padStart(3)}/${ends.length * 10} (${reached('object')})  domain ${String(sum('domain')).padStart(3)}/${ends.length * 10} (${reached('domain')})`);
 }
 
 if (issues.length > 0) {
