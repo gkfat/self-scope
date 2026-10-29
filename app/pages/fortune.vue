@@ -2,17 +2,12 @@
     <div class="report-page">
         <ReportBanner
             title="今日運勢"
+            :headline="drawDate"
             tone="amber"
         />
 
-        <!-- The way in: where today stands, then one card for each -->
+        <!-- The way in: one card for each -->
         <template v-if="!selected">
-            <p class="overview text-body-2 text-medium-emphasis">
-                <span class="overview__date">{{ todayKey }}</span>
-                <span aria-hidden="true">·</span>
-                <span>今天已揭曉 {{ revealedCount }}／{{ rituals.length }}</span>
-            </p>
-
             <v-row class="entries">
                 <v-col
                     v-for="(entry, position) in entries"
@@ -70,15 +65,28 @@
                             </header>
 
                             <!-- The stage: each part's own mark, the same size on every card -->
-                            <div class="entry__stage">
+                            <div
+                                class="entry__stage"
+                                :class="{ 'entry__stage--stone': entry.result?.stone, 'entry__stage--card': entry.result?.cardIndex !== undefined }"
+                            >
                                 <template v-if="entry.result">
                                     <span
                                         v-if="entry.result.eyebrow"
                                         class="entry__eyebrow"
                                     >{{ entry.result.eyebrow }}</span>
+                                    <!-- A card is shown as its picture, turned round when it was drawn reversed -->
                                     <span
+                                        v-if="entry.result.cardIndex !== undefined"
+                                        class="entry__card"
+                                        :class="{ 'entry__card--reversed': entry.result.reversed }"
+                                        role="img"
+                                        :aria-label="entry.result.main"
+                                        :style="cardStyle(entry.result.cardIndex)"
+                                    />
+                                    <span
+                                        v-else
                                         class="entry__mark"
-                                        :class="{ 'entry__mark--reversed': entry.result.reversed }"
+                                        :class="{ 'entry__mark--reversed': entry.result.reversed, 'entry__mark--stone': entry.result.stone }"
                                     >{{ entry.result.mark }}</span>
                                 </template>
                                 <v-icon
@@ -151,7 +159,21 @@ import {
     kinName, sealName, toneName,
 } from '../../shared/utils/mayaKin';
 import { ZODIAC_LABELS } from '../../shared/constants/zodiacLabels';
+import {
+    TAROT_SPRITE, tarotSpriteCell,
+} from '../../shared/constants/tarotSprite';
 import { taipeiDateKey } from '../../shared/utils/time';
+
+/** Shows one cell of the sheet of tarot pictures on the element it is set on */
+function cardStyle(cell: number) {
+    const {
+        size, position,
+    } = tarotSpriteCell(cell);
+
+    return {
+        backgroundImage: `url(${TAROT_SPRITE.url})`, backgroundSize: size, backgroundPosition: position,
+    };
+}
 
 definePageMeta({ middleware: 'member' });
 useHead({ title: '今日運勢' });
@@ -178,6 +200,10 @@ type EntryResult = {
     eyebrow?: string;
     /** A reversed rune's character is turned around */
     reversed?: boolean;
+    /** The mark is laid on the picture of the stone, as the rune is on its page */
+    stone?: boolean;
+    /** The cell of the tarot sheet that holds the picture of the card */
+    cardIndex?: number;
 };
 
 const tarotResult = computed<EntryResult | null>(() => {
@@ -188,6 +214,8 @@ const tarotResult = computed<EntryResult | null>(() => {
             main: `${drawn.card.name}（${TAROT_ORIENTATION_LABELS[drawn.card.orientation]}）`,
             sub: drawn.card.englishName,
             mark: drawn.card.roman,
+            reversed: drawn.card.orientation === 'reversed',
+            cardIndex: drawn.card.index,
         }
         : null;
 });
@@ -214,6 +242,7 @@ const runeResult = computed<EntryResult | null>(() => {
             sub: drawn.rune.meaning,
             mark: drawn.rune.glyph,
             reversed: drawn.rune.orientation === 'reversed',
+            stone: true,
         }
         : null;
 });
@@ -241,7 +270,7 @@ const entries = computed(() => [
         : []),
     ...(KIN_ENTRY_ENABLED
         ? [{
-            value: 'kin' as const, label: '瑪雅 Kin', icon: 'mdi-calendar-star', kind: 'ritual' as const, hint: '每天算一次今日 Kin', action: '去計算', result: kinResult.value,
+            value: 'kin' as const, label: '瑪雅 Kin', icon: 'mdi-calendar-star', kind: 'ritual' as const, hint: '每天揭曉一次今日 Kin', action: '去揭曉', result: kinResult.value,
         }]
         : []),
     ...(RUNE_ENTRY_ENABLED
@@ -263,10 +292,7 @@ const entries = computed(() => [
         : []),
 ]);
 
-/** How many of today's parts have been revealed, and the Taipei date they belong to */
-/** The parts that are drawn or worked out once a day; the sign horoscope is read, so it is not counted. */
-const rituals = computed(() => entries.value.filter((entry) => entry.kind === 'ritual'));
-const revealedCount = computed(() => rituals.value.filter((entry) => entry.result).length);
+/** The Taipei date that today's parts belong to */
 const todayKey = taipeiDateKey(new Date());
 
 // Ask what has been revealed today, so the cards can show it. Nothing is written by asking.
@@ -285,6 +311,17 @@ const selected = computed<FortuneView | null>(() => {
     return entries.value.find((entry) => entry.value === wanted)?.value ?? null;
 });
 
+/** The date under the title of the page: today on the way in, the date of the part that is open once it has been revealed */
+const drawDate = computed(() => {
+    if (!selected.value) return todayKey;
+    if (selected.value === 'tarot' && tarotToday.value?.drawn) return tarotToday.value.date;
+    if (selected.value === 'rune' && runeToday.value?.drawn) return runeToday.value.date;
+    if (selected.value === 'kin' && kinToday.value?.unlocked) return kinToday.value.date;
+    if (selected.value === 'horoscope') return horoscopeToday.value?.date;
+
+    return undefined;
+});
+
 const selectedLabel = computed(() => entries.value.find((entry) => entry.value === selected.value)?.label ?? '');
 
 function open(view: FortuneView) {
@@ -299,19 +336,6 @@ function back() {
 </script>
 
 <style scoped>
-.overview {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 6px 10px;
-    margin: 0 0 20px;
-}
-
-.overview__date {
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.04em;
-}
-
 /* Every card has the same four parts, so the three line up whatever each one holds. */
 .entry {
     cursor: pointer;
@@ -354,10 +378,33 @@ function back() {
     align-items: center;
     justify-content: center;
     gap: 2px;
-    height: 136px;
+    --stage-h: 136px;
+
+    height: var(--stage-h);
     margin: 14px 0 12px;
     border-radius: 10px;
     background: rgba(var(--v-theme-primary), 0.06);
+}
+
+/* The rune is on its stone, the picture of the rune page: no tint behind it */
+.entry__stage--stone {
+    background: url('/rune/stone-front.png') center / auto 100% no-repeat;
+}
+
+/* The card keeps its own 7:12 and the height of the stage; no tint behind it */
+.entry__stage--card {
+    background: transparent;
+}
+
+.entry__card {
+    height: 100%;
+    aspect-ratio: 7 / 12;
+    background-repeat: no-repeat;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
+}
+
+.entry__card--reversed {
+    transform: rotate(180deg);
 }
 
 .entry:not(.entry--done) .entry__stage {
@@ -386,6 +433,17 @@ function back() {
 }
 
 .entry__mark--reversed {
+    transform: rotate(180deg);
+}
+
+/* Sized to the stone (4:5 of the stage), and set in the middle of it as on the rune page */
+.entry__mark--stone {
+    font-size: calc(var(--stage-h) * 0.68);
+    line-height: 1;
+    color: #d4af60;
+}
+
+.entry__mark--stone.entry__mark--reversed {
     transform: rotate(180deg);
 }
 
@@ -452,8 +510,10 @@ function back() {
     }
 
     .entry__stage {
+        --stage-h: 104px;
+
         grid-area: stage;
-        height: 104px;
+        height: var(--stage-h);
         margin: 12px 0 0;
     }
 
@@ -469,7 +529,7 @@ function back() {
         justify-content: flex-end;
     }
 
-    .entry__mark {
+    .entry__mark:not(.entry__mark--stone) {
         font-size: 2.5rem;
     }
 }

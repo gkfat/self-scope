@@ -104,7 +104,7 @@ const entries = computed(() => [
             counted: true,
             text: kinUnlocked.value
                 ? `${kinName(kinUnlocked.value.kin)}（Kin ${kinUnlocked.value.kin.kinNumber}）`
-                : '還沒計算，每天可以計算一次',
+                : '還沒揭曉，每天可以揭曉一次',
         }]
         : []),
     ...(RUNE_ENTRY_ENABLED
