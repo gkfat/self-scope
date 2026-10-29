@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { analysisBasisSchema } from '../analysisBasis.schema';
 import {
-    SNAPSHOT_KINDS, snapshotAiSchema, snapshotBlockSchema, snapshotSystemSchema, snapshotVersionsSchema,
+    SNAPSHOT_KINDS, snapshotAiJobSchema, snapshotAiSchema, snapshotBlockSchema, snapshotSystemSchema, snapshotVersionsSchema,
 } from '../firestore/reportSnapshot.schema';
 
 /** One row of the member's list of reports. */
@@ -23,6 +23,8 @@ export const reportSnapshotDetailSchema = reportSnapshotItemSchema.extend({
     basis: z.array(analysisBasisSchema),
     /** The AI analysis, beside the report and never in place of it; null until it has been asked for */
     ai: snapshotAiSchema.nullable(),
+    /** The latest request for the AI analysis (running, done or failed and refunded); null when none was made */
+    aiJob: snapshotAiJobSchema.nullable(),
 });
 
 export type ReportSnapshotItem = z.infer<typeof reportSnapshotItemSchema>;

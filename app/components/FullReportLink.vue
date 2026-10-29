@@ -13,7 +13,7 @@
 
 <script lang="ts" setup>
 defineProps<{
-    /** zodiac, blood, numerology or mbti */
+    /** The slug of the report page, e.g. zodiac or bazi */
     slug: string;
 }>();
 </script>

@@ -51,6 +51,7 @@
         </v-alert>
 
         <template v-if="today">
+            <FullReportLink slug="horoscope" />
             <v-card
                 variant="outlined"
                 class="mb-4"

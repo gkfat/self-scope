@@ -27,3 +27,6 @@ export const REPORT_LIMIT_PER_DAY = 10;
 export const REPORT_RETENTION_MONTHS = 6;
 
 export const REPORT_DISCLAIMER = '本報告為娛樂與自我探索用途，由 AI 依你提供的資料產生，不代表心理評估、診斷或專業建議，也不應作為重要決策的唯一依據。';
+
+/** Points for the AI analysis of one system's report (the base report is free). */
+export const SINGLE_ANALYSIS_COST = 1;

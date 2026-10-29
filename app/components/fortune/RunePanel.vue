@@ -54,6 +54,7 @@
         </template>
 
         <template v-if="drawn">
+            <FullReportLink slug="rune" />
             <div class="d-flex flex-wrap justify-center ga-2 mb-4">
                 <v-chip
                     size="small"

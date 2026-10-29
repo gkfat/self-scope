@@ -46,7 +46,7 @@ export class ReportSnapshotService extends BaseService {
 
         const now = this.clock();
         const doc: ReportSnapshotDoc = {
-            ...parsed.data, ai: null, generatedAt: now, expiresAt: addMonths(now, SNAPSHOT_RETENTION_MONTHS),
+            ...parsed.data, ai: null, aiJob: null, generatedAt: now, expiresAt: addMonths(now, SNAPSHOT_RETENTION_MONTHS),
         };
         const repo = this.repository;
         const existing = await repo.snapshotsRef(uid).orderBy('generatedAt', 'asc').get();
@@ -119,7 +119,7 @@ export class ReportSnapshotService extends BaseService {
         }
 
         return {
-            ...this.toItem(snapshotId, doc), blocks: doc.blocks, versions: doc.versions, basis: doc.basis, ai: doc.ai,
+            ...this.toItem(snapshotId, doc), blocks: doc.blocks, versions: doc.versions, basis: doc.basis, ai: doc.ai, aiJob: doc.aiJob,
         };
     }
 

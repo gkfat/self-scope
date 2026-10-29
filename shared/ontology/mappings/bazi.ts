@@ -26,7 +26,10 @@ export const BAZI_TERMS: readonly string[] = [
  * The terms of one chart, picked the same way the fixed readings are picked: an element or a group only counts when it is
  * clearly the largest (at least 3, and not tied), and a missing element is one that does not appear at all.
  */
-export function baziTermsOf(analysis: ChartAnalysis, strength: StrengthResult): string[] {
+export function baziTermsOf(
+    analysis: Pick<ChartAnalysis, 'dayMaster' | 'elementCounts' | 'groupCounts'>,
+    strength: { level: StrengthResult['level']; pattern: { key: string } },
+): string[] {
     const strongElement = dominantElement(analysis.elementCounts);
     const group = dominantGroup(analysis.groupCounts);
 

@@ -4,6 +4,12 @@ export const SINGLE_REPORT_SYSTEMS = [
     'BLOOD',
     'NUMEROLOGY',
     'MBTI',
+    'MAYA_KIN',
+    'BAZI',
+    'HUMAN_DESIGN',
+    'TAROT',
+    'RUNE',
+    'HOROSCOPE',
 ] as const;
 
 export type SingleReportSystem = typeof SINGLE_REPORT_SYSTEMS[number];

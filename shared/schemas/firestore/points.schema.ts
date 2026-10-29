@@ -31,6 +31,7 @@ export const POINT_TRANSACTION_REASONS = [
     'SUMMARY',
     'DETAILED_REPORT',
     'REGENERATE',
+    'SINGLE_AI_ANALYSIS',
     'DOWNLOAD',
     'PURCHASE',
 ] as const;

@@ -1,6 +1,9 @@
 import type {
     AiReportOutput, AnalysisInput,
 } from '../../shared/schemas/firestore/detailedReport.schema';
+import type {
+    SingleAnalysisInput, SingleAnalysisOutput,
+} from '../../shared/schemas/firestore/singleAnalysis.schema';
 
 /**
  * What the app needs from an AI service. Only the OpenAI implementation exists;
@@ -22,6 +25,13 @@ export type GenerateOptions = {
 
 export type AiReportProvider = {
     generate(input: AnalysisInput, options: GenerateOptions): Promise<AiGeneration>;
+};
+
+export type AiSingleGeneration = Omit<AiGeneration, 'output'> & { output: SingleAnalysisOutput };
+
+/** The AI analysis of one system's report (see `SingleAnalysisService`). */
+export type AiSingleAnalysisProvider = {
+    generateSingle(input: SingleAnalysisInput, options: GenerateOptions): Promise<AiSingleGeneration>;
 };
 
 /**

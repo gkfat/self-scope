@@ -1,4 +1,7 @@
 import {
+    SINGLE_ANALYSIS_SECTIONS, singleAnalysisOutputSchema, type SingleAnalysisOutput,
+} from '../../shared/schemas/firestore/singleAnalysis.schema';
+import {
     REPORT_SECTIONS, aiReportOutputSchema,
     type AiReportOutput,
 } from '../../shared/schemas/firestore/detailedReport.schema';
@@ -20,10 +23,10 @@ export type QualityReport = {
 };
 
 /** Wording that reads as a diagnosis or medical claim. A heuristic net, not a guarantee. */
-const DIAGNOSTIC_PATTERN = /(診斷|確診|罹患|患有|病症|疾病|精神疾|人格障礙|憂鬱症|躁鬱|焦慮症|強迫症|過動症|自閉症|思覺失調|創傷後壓力|醫師建議|服用藥|藥物治療|心理治療)/;
+export const DIAGNOSTIC_PATTERN = /(診斷|確診|罹患|患有|病症|疾病|精神疾|人格障礙|憂鬱症|躁鬱|焦慮症|強迫症|過動症|自閉症|思覺失調|創傷後壓力|醫師建議|服用藥|藥物治療|心理治療)/;
 
 /** Absolute wording that contradicts "this is only a reading of the data". */
-const OVERCONFIDENT_PATTERN = /(一定會|絕對(會|是|不)|必然|百分之百|肯定(會|是)|毫無疑問|永遠不會)/;
+export const OVERCONFIDENT_PATTERN = /(一定會|絕對(會|是|不)|必然|百分之百|肯定(會|是)|毫無疑問|永遠不會)/;
 
 const MIN_CONTENT_LENGTH = 30;
 const MIN_EVIDENCE_LENGTH = 4;
@@ -111,6 +114,61 @@ export function assessReport(output: AiReportOutput): QualityReport {
 /** Parse untrusted model output into the report shape; null when it does not fit. */
 export function parseReportOutput(value: unknown): AiReportOutput | null {
     const parsed = aiReportOutputSchema.safeParse(value);
+
+    return parsed.success ? parsed.data : null;
+}
+
+/** The same checks for the AI analysis of one system: the four sections in order, each long enough and with its evidence. */
+export function assessSingleAnalysis(output: SingleAnalysisOutput): QualityReport {
+    const fatal: QualityFinding[] = [];
+    const warnings: QualityFinding[] = [];
+    const expected = SINGLE_ANALYSIS_SECTIONS.map((section) => section.key as string);
+    const actual = output.sections.map((section) => section.key as string);
+
+    if (actual.length !== expected.length || expected.some((key, index) => actual[index] !== key)) {
+        fatal.push({
+            code: 'STRUCTURE', detail: `sections must be exactly ${expected.join(', ')} in order`,
+        });
+
+        return {
+            fatal, warnings,
+        };
+    }
+
+    for (const section of output.sections) {
+        if ([...section.content].length < MIN_CONTENT_LENGTH) {
+            fatal.push({
+                code: 'TOO_SHORT', section: section.key, detail: 'content is too short to be a real analysis',
+            });
+        }
+
+        if ([...section.evidence.trim()].length < MIN_EVIDENCE_LENGTH) {
+            fatal.push({
+                code: 'NO_EVIDENCE', section: section.key, detail: 'a section must say what it rests on',
+            });
+        }
+
+        if (DIAGNOSTIC_PATTERN.test(`${section.content}\n${section.evidence}`)) {
+            fatal.push({
+                code: 'DIAGNOSTIC', section: section.key, detail: 'contains diagnosis or medical wording',
+            });
+        }
+
+        if (OVERCONFIDENT_PATTERN.test(section.content)) {
+            warnings.push({
+                code: 'OVERCONFIDENT', section: section.key, detail: 'absolute wording',
+            });
+        }
+    }
+
+    return {
+        fatal, warnings,
+    };
+}
+
+/** Parse untrusted model output into the analysis shape; null when it does not fit. */
+export function parseSingleAnalysisOutput(value: unknown): SingleAnalysisOutput | null {
+    const parsed = singleAnalysisOutputSchema.safeParse(value);
 
     return parsed.success ? parsed.data : null;
 }

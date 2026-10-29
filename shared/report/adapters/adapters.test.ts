@@ -2,12 +2,20 @@ import {
     describe, expect, it,
 } from 'vitest';
 import { computeNatalChart } from '../../../server/astrology/natalChart';
+import { BaziService } from '../../../server/services/bazi.service';
 import { NatalChartService } from '../../../server/services/natalChart.service';
 import { reportSnapshotContentSchema } from '../../schemas/firestore/reportSnapshot.schema';
 import { fixedContentBodySchema } from '../../schemas/firestore/fixedContent.schema';
 import { personalYearNumber } from '../../utils/numerology';
 import { assembleSingleReport } from '../assembleSingleReport';
 import { bloodReportInput } from './blood';
+import {
+    horoscopeReportInput, runeReportInput, tarotReportInput,
+} from './state';
+import { baziReportInput } from './bazi';
+import { calculateHumanDesign } from '../../../server/humanDesign/calculate';
+import { humanDesignReportInput } from './humanDesign';
+import { mayaKinReportInput } from './mayaKin';
 import {
     mbtiReportInput, mbtiStrengthWord, 
 } from './mbti';
@@ -206,5 +214,170 @@ describe('mbtiReportInput', () => {
         })).blocks.find((b) => b.key === 'limits');
 
         expect(limits?.segments[0]?.text).toContain('自製');
+    });
+});
+
+describe('mayaKinReportInput', () => {
+    const input = mayaKinReportInput({
+        birthDate: '2012-12-21', body: body('Kin 207'),
+    });
+
+    it('names the Kin, its seal and its tone, with the keywords of the Dreamspell table', () => {
+        expect(input.position).toBe('Kin 207・水晶的藍手');
+        expect(input.facts.find((fact) => fact.label === '圖騰')).toMatchObject({
+            value: '藍手', term: 'kin:seal:7',
+        });
+        expect(input.facts.find((fact) => fact.label === '調性')).toMatchObject({
+            value: '水晶', term: 'kin:tone:12',
+        });
+        expect(input.facts.find((fact) => fact.label === '圖騰的關鍵字')?.value).toBe('實踐、療癒');
+        expect(input.traits).toEqual(['kin:seal:7', 'kin:tone:12']);
+    });
+
+    it('says that this is the Dreamspell, not an old Maya calendar, in the facts and in the limits', () => {
+        expect(input.facts.find((fact) => fact.label === '曆法')?.value).toContain('不是古瑪雅原有的曆法');
+
+        const limits = assembleSingleReport(input).blocks.find((b) => b.key === 'limits')?.segments[0]?.text;
+
+        expect(limits).toContain('不是古瑪雅原有的曆法');
+    });
+
+    it('records what it was calculated from and gives a report the snapshot schema accepts', () => {
+        expect(input.basis).toMatchObject([
+            {
+                system: 'MAYA_KIN', ruleVersion: 'dreamspell-v1', inputs: { birthDate: '2012-12-21' },
+            },
+        ]);
+        expect(accepted(input)).toBe(true);
+    });
+});
+
+describe('baziReportInput', () => {
+    const NOW = Date.parse('2026-10-27T12:00:00+08:00');
+    const run = async (params: { birthTime: string | null; gender: 'MALE' | null }) => {
+        const service = new BaziService({
+            clock: () => NOW,
+            content: {
+                getPublished: async (type: string, key: string) => ({
+                    ...body(key), contentType: type, key, contentVersion: '1',
+                }), 
+            } as never,
+        });
+        const chart = await service.calculate({
+            birthDate: '1989-10-27', birthTime: params.birthTime, birthPlace: 'tw-taipei', gender: params.gender,
+        });
+
+        return baziReportInput({
+            chart, birthDate: '1989-10-27', birthTime: params.birthTime, birthPlace: 'tw-taipei', gender: params.gender, today: '2026-10-27',
+        });
+    };
+
+    it('names the pillars and the day master, with the time facts dated', async () => {
+        const input = await run({
+            birthTime: '06:00', gender: 'MALE', 
+        });
+
+        expect(input.facts.find((fact) => fact.label === '四柱')?.value).toContain('時柱');
+        expect(input.facts.find((fact) => fact.label === '日主')?.term).toMatch(/^bazi:daymaster:/);
+        expect(input.timeFacts.length).toBeGreaterThan(0);
+        expect(input.timeFacts.every((fact) => fact.asOf === '2026-10-27')).toBe(true);
+        expect(accepted(input)).toBe(true);
+    });
+
+    it('says what is missing without a birth time or a gender', async () => {
+        const input = await run({
+            birthTime: null, gender: null, 
+        });
+
+        expect(input.facts.find((fact) => fact.label === '四柱')?.value).toContain('時柱 未知');
+        expect(input.notes.join('')).toContain('沒有出生時間');
+        expect(input.notes.join('')).toContain('性別');
+        expect(accepted(input)).toBe(true);
+    });
+});
+
+describe('humanDesignReportInput', () => {
+    const chart = calculateHumanDesign('1989-10-27', '06:00', 'Asia/Taipei');
+    const input = humanDesignReportInput({
+        chart, birthDate: '1989-10-27', birthTime: '06:00', birthPlace: 'tw-taipei',
+    });
+
+    it('names the type, authority and each defined center and channel as facts with terms', () => {
+        expect(input.facts.find((fact) => fact.label === '類型')?.term).toBe(`hd:type:${chart.type}`);
+        expect(input.facts.find((fact) => fact.label === '內在權威')?.term).toBe(`hd:authority:${chart.authority}`);
+        expect(input.facts.filter((fact) => fact.label === '有定義的能量中心')).toHaveLength(chart.definedCenters.length);
+        expect(input.facts.filter((fact) => fact.label === '完整的通道')).toHaveLength(chart.channels.length);
+        expect(input.traits.length).toBeGreaterThan(2);
+    });
+
+    it('keeps the profile, definition and cross out of the terms', () => {
+        expect(input.facts.find((fact) => fact.label === '人生角色')?.term).toBeUndefined();
+        expect(input.facts.find((fact) => fact.label === '定義')?.term).toBeUndefined();
+    });
+
+    it('records the birth data it was worked out from and gives a report the snapshot schema accepts', () => {
+        expect(input.basis).toMatchObject([
+            {
+                system: 'HUMAN_DESIGN', inputs: {
+                    birthDate: '1989-10-27', birthTime: '06:00', birthPlace: 'tw-taipei',
+                },
+            },
+        ]);
+        expect(accepted(input)).toBe(true);
+    });
+});
+
+describe('the reports of today', () => {
+    const content = {
+        ...body('今日'), contentType: 'TAROT' as const, key: 'k', contentVersion: '1',
+    };
+
+    it('gives a tarot card a report the snapshot schema accepts, dated, and with the advice of the reading', () => {
+        const input = tarotReportInput({
+            date: '2026-10-28',
+            card: {
+                index: 1, roman: 'I', name: '魔術師', englishName: 'The Magician', orientation: 'upright', illustration: null,
+            },
+            content,
+            drawVersion: 'tarot-v1',
+        });
+
+        expect(input.timeFacts?.[0]).toMatchObject({ asOf: '2026-10-28' });
+        expect(input.advice).toContain('給自己一點時間。');
+        expect(accepted(input)).toBe(true);
+    });
+
+    it('gives a rune a report the snapshot schema accepts', () => {
+        const input = runeReportInput({
+            date: '2026-10-28',
+            rune: {
+                index: 0, name: 'Fehu', glyph: 'ᚠ', meaning: '財富', orientation: 'upright', illustration: null,
+            },
+            content,
+            drawVersion: 'rune-v1',
+        });
+
+        expect(input.position).toContain('Fehu');
+        expect(accepted(input)).toBe(true);
+    });
+
+    it('gives the horoscope a fact for each body, read in the houses of the sign', () => {
+        const input = horoscopeReportInput({
+            horoscope: {
+                date: '2026-10-28',
+                sign: 'scorpio',
+                bodies: [
+                    {
+                        body: 'MOON', name: '月亮', area: '今日心情與節奏', transitSign: 'leo', house: 3, content,
+                    }, {
+                        body: 'SUN', name: '太陽', area: '這段時間的主題', transitSign: 'scorpio', house: 1, content,
+                    },
+                ] as never,
+            },
+        });
+
+        expect(input.facts).toHaveLength(2);
+        expect(input.position).toContain('天蠍座');
+        expect(accepted(input)).toBe(true);
     });
 });

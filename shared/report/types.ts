@@ -22,6 +22,8 @@ export type ReportTimeFact = {
     /** YYYY-MM-DD the sentence was made for */
     asOf: string;
     term?: string;
+    /** A reading the tradition gives of the time (not a calculated fact) */
+    reading?: boolean;
 };
 
 /**

@@ -73,6 +73,23 @@ export const snapshotAiSchema = z.object({
     generatedAt: epochMsSchema,
 });
 
+/**
+ * The progress of the AI analysis of a report: the id is the client's Idempotency-Key, and a failure says why
+ * (the points were given back). Kept on the report so that nothing else has to be stored or cleaned up.
+ */
+export const SNAPSHOT_AI_JOB_STATUSES = [
+    'GENERATING',
+    'COMPLETED',
+    'FAILED',
+] as const;
+
+export const snapshotAiJobSchema = z.object({
+    id: z.string().min(1),
+    status: z.enum(SNAPSHOT_AI_JOB_STATUSES),
+    failureReason: z.string().nullable(),
+    createdAt: epochMsSchema,
+});
+
 const contentShape = {
     kind: z.enum(SNAPSHOT_KINDS),
     systems: z.array(snapshotSystemSchema).min(1),
@@ -102,7 +119,9 @@ export const reportSnapshotContentSchema = z.object(contentShape).superRefine(ch
 export const reportSnapshotDocSchema = z.object({
     ...contentShape,
     /** The AI analysis, once the member has asked for it; null until then */
-    ai: snapshotAiSchema.nullable(),
+    ai: snapshotAiSchema.nullable().default(null),
+    /** The latest request for that analysis; null when none was made */
+    aiJob: snapshotAiJobSchema.nullable().default(null),
     generatedAt: epochMsSchema,
     /** generatedAt + 6 months; removed by the daily expiry job (no TTL) */
     expiresAt: epochMsSchema,
@@ -112,6 +131,7 @@ export type SnapshotSegmentKind = typeof SNAPSHOT_SEGMENT_KINDS[number];
 export type SnapshotSegment = z.infer<typeof snapshotSegmentSchema>;
 export type SnapshotBlock = z.infer<typeof snapshotBlockSchema>;
 export type SnapshotVersions = z.infer<typeof snapshotVersionsSchema>;
+export type SnapshotAiJob = z.infer<typeof snapshotAiJobSchema>;
 export type SnapshotAi = z.infer<typeof snapshotAiSchema>;
 export type ReportSnapshotContent = z.infer<typeof reportSnapshotContentSchema>;
 export type ReportSnapshotDoc = z.infer<typeof reportSnapshotDocSchema>;

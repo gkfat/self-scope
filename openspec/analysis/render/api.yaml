@@ -1133,7 +1133,7 @@ paths:
               properties:
                 system:
                   type: string
-                  enum: [ZODIAC, BLOOD, NUMEROLOGY, MBTI]
+                  enum: [ZODIAC, BLOOD, NUMEROLOGY, MBTI, MAYA_KIN, BAZI, HUMAN_DESIGN, TAROT, RUNE, HOROSCOPE]
               required: [system]
       responses:
         "200":
@@ -1154,6 +1154,54 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/ErrorResponse"
+  "/single-reports/analysis":
+    post:
+      operationId: createSingleReportAnalysis
+      summary: "取得單維度報告的 AI 進階分析"
+      description: "對自己已保存的一份單維度報告取得 AI 進階分析：扣 1 點後非同步生成（逾時 120 秒視為失敗），回傳 202，再以 POST /single-reports 輪詢報告的 aiJob 與 ai。結果寫入報告獨立的 ai 欄位，不改動基本內容；再次分析只替換 ai。輸入只含該報告的事實與規則找出的面向；失敗退點。需 Idempotency-Key（即 aiJob 的 id）。"
+      tags: [ReportSnapshots]
+      parameters:
+        - "$ref": "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                snapshotId:
+                  type: string
+              required: [snapshotId]
+      responses:
+        "202":
+          description: "已受理（同一個 Idempotency-Key 重複請求只回報目前狀態，不重複扣點）"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [GENERATING, COMPLETED, FAILED]
+                  pointsDeducted:
+                    type: integer
+                required: [status, pointsDeducted]
+        "400":
+          "$ref": "#/components/responses/ValidationError"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "402":
+          "$ref": "#/components/responses/InsufficientPoints"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+        "409":
+          description: "這份報告的分析正在生成中"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "429":
+          "$ref": "#/components/responses/RateLimited"
   "/rune/daily":
     get:
       operationId: getDailyRune
@@ -2607,7 +2655,11 @@ components:
               type: object
               nullable: true
               description: "AI 進階分析：與規則產生的 blocks 分開存放、並存，不取代基本內容；尚未要求時為 null。含 blocks、modelName、promptVersion、generatedAt"
-          required: [blocks, versions, basis, ai]
+            aiJob:
+              type: object
+              nullable: true
+              description: "最近一次 AI 進階分析的進度（id、status：GENERATING／COMPLETED／FAILED、failureReason、createdAt）；失敗已退點。從未要求時為 null"
+          required: [blocks, versions, basis, ai, aiJob]
     SingleReport:
       allOf:
         - "$ref": "#/components/schemas/ReportSnapshotDetail"

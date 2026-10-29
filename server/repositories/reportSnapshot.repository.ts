@@ -1,4 +1,6 @@
-import type { Firestore } from 'firebase-admin/firestore';
+import type {
+    Firestore, Transaction,
+} from 'firebase-admin/firestore';
 import { getAdminFirestore } from '../utils/firebaseAdmin';
 
 /** users/{uid}/reportSnapshots/{snapshotId}: always under the member's own user document, so nobody else's id resolves. */
@@ -19,5 +21,14 @@ export class ReportSnapshotRepository {
 
     batch() {
         return this.db.batch();
+    }
+
+    runTransaction<T>(fn: (tx: Transaction) => Promise<T>): Promise<T> {
+        return this.db.runTransaction(fn);
+    }
+
+    /** aiUsageRecords/{id}: cost bookkeeping that outlives the report */
+    usageRef() {
+        return this.db.collection('aiUsageRecords').doc();
     }
 }

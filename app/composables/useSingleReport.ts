@@ -4,7 +4,7 @@ import {
 import type { SingleReportSystem } from '../../shared/report/systems';
 
 /** What is missing for a report, as the server says it (422), or that the reading is not published yet (404). */
-export type SingleReportNeed = 'PROFILE_REQUIRED' | 'BLOOD_REQUIRED' | 'MBTI_REQUIRED' | 'NOT_PUBLISHED';
+export type SingleReportNeed = 'PROFILE_REQUIRED' | 'BLOOD_REQUIRED' | 'MBTI_REQUIRED' | 'BIRTH_TIME_REQUIRED' | 'BIRTH_PLACE_REQUIRED' | 'LOGIN_REQUIRED' | 'NOT_DRAWN' | 'NOT_PUBLISHED';
 
 type Failure = {
     statusCode?: number;
@@ -15,6 +15,10 @@ const NEEDS: readonly string[] = [
     'PROFILE_REQUIRED',
     'BLOOD_REQUIRED',
     'MBTI_REQUIRED',
+    'BIRTH_TIME_REQUIRED',
+    'BIRTH_PLACE_REQUIRED',
+    'LOGIN_REQUIRED',
+    'NOT_DRAWN',
 ];
 
 /**
@@ -31,16 +35,24 @@ export function useSingleReport(system: SingleReportSystem | null) {
     const status = ref<'loading' | 'ready' | 'needs' | 'failed'>(system ? 'loading' : 'failed');
     const need = ref<SingleReportNeed | null>(null);
 
-    async function load() {
+    /** `silent` fetches again without swapping the report for a loading state (while an analysis is being made) */
+    async function load(silent = false) {
         if (!system) return;
 
-        status.value = 'loading';
+        if (!silent) status.value = 'loading';
+
         restore();
 
         try {
             report.value = singleReportResponseSchema.parse(await post<unknown>('/api/single-reports', { system }, {}, 'optional'));
             status.value = 'ready';
         } catch (error) {
+            if (silent) {
+                console.error('[single-report] refresh failed:', error);
+
+                return;
+            }
+
             const failure = error as Failure;
             const code = failure.data?.code;
 
@@ -73,6 +85,6 @@ export function useSingleReport(system: SingleReportSystem | null) {
     }, { immediate: true });
 
     return {
-        report, status, need, reload: load,
+        report, status, need, reload: load, refresh: () => load(true),
     };
 }

@@ -110,7 +110,7 @@ export function assembleSingleReport(input: SystemReportInput, options: Assemble
         ])),
     ]);
 
-    const timeFacts = block('time', '依系統算出的時間', (input.timeFacts ?? []).map((fact) => segment(fact.text, 'FACT', [
+    const timeFacts = block('time', '依系統算出的時間', (input.timeFacts ?? []).map((fact) => segment(fact.text, fact.reading ? 'SYSTEM_INTERPRETATION' : 'FACT', [
         fact.term ? {
             system: input.system, term: fact.term,
         } : systemSource,

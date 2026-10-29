@@ -5,12 +5,15 @@ import definition from '../../content/tests/personality16-v1.json';
 import { FakeFirestore } from '../test-utils/fakeFirestore';
 import { GuestSessionService } from './guestSession.service';
 import { SingleReportService } from './singleReport.service';
+import { singleReportResponseSchema } from '../../shared/schemas/api/singleReport.schema';
 import { reportSnapshotDetailSchema } from '../../shared/schemas/api/reportSnapshot.schema';
 import { testDefinitionFileSchema } from '../../shared/schemas/firestore/test.schema';
 import { MBTI_TYPES } from '../../shared/schemas/common';
 import {
     NotFoundError, UnprocessableError, 
 } from '../../shared/types/errors';
+import { baziContentKeys } from '../../shared/utils/fixedContentKeys';
+import { kinOf } from '../../shared/utils/mayaKin';
 import { addMonths } from '../../shared/utils/time';
 
 const holder = vi.hoisted(() => ({ db: undefined as unknown }));
@@ -71,8 +74,15 @@ describe('SingleReportService', () => {
         await publish(db, 'BLOOD', 'O', 'O 型');
         await publish(db, 'ZODIAC', 'scorpio', '天蠍座');
         await publish(db, 'NUMEROLOGY', '1', '生命靈數 1');
+        await publish(db, 'KIN_BIRTH', String(kinOf('1989-10-27').kinNumber), '瑪雅 Kin');
 
         for (const type of MBTI_TYPES) await publish(db, 'MBTI', type, type);
+    });
+
+    it('hands back a report that the response schema accepts, for a member', async () => {
+        const report = await service.generate({ uid: 'u1' }, 'BLOOD');
+
+        expect(singleReportResponseSchema.safeParse(report).success).toBe(true);
     });
 
     describe('the blood type report', () => {
@@ -185,6 +195,115 @@ describe('SingleReportService', () => {
             const next = await service.generate({ uid: 'u1' }, 'NUMEROLOGY');
 
             expect(next.id).not.toBe(first.id);
+        });
+    });
+
+    describe('the Maya Kin report', () => {
+        it('names the Kin of the birth date, kept once for the member and not at all for a guest', async () => {
+            const kin = kinOf('1989-10-27');
+            const first = await service.generate({ uid: 'u1' }, 'MAYA_KIN');
+            const again = await service.generate({ uid: 'u1' }, 'MAYA_KIN');
+
+            expect(first.position).toContain(`Kin ${kin.kinNumber}`);
+            expect(first.basis).toMatchObject([{ system: 'MAYA_KIN' }]);
+            expect(again.id).toBe(first.id);
+            expect(snapshotPaths()).toHaveLength(1);
+        });
+
+        it('asks for the birth date when there is none, and turns away content that is not published', async () => {
+            await db.doc('users/u1').set(user({ birthData: null }));
+            await expect(service.generate({ uid: 'u1' }, 'MAYA_KIN')).rejects.toMatchObject({ code: 'PROFILE_REQUIRED' });
+
+            await db.doc('users/u1').set(user());
+            await db.doc(`fixedContents/KIN_BIRTH_${kinOf('1989-10-27').kinNumber}`).update({ status: 'DRAFT' });
+            await expect(service.generate({ uid: 'u1' }, 'MAYA_KIN')).rejects.toBeInstanceOf(NotFoundError);
+        });
+    });
+
+    describe('the BaZi report', () => {
+        const publishBazi = async () => {
+            for (const key of baziContentKeys()) await publish(db, 'BAZI', key, key);
+        };
+
+        it('needs the birth date, and says what a missing birth time or gender leaves out', async () => {
+            await publishBazi();
+            const report = await service.generate({ uid: 'u1' }, 'BAZI');
+
+            expect(report.basis).toMatchObject([{ system: 'BAZI' }]);
+            expect(report.blocks.find((b) => b.key === 'limits')?.segments.map((segment) => segment.text).join('')).toContain('沒有出生時間');
+
+            await db.doc('users/u1').set(user({ birthData: null }));
+            await expect(service.generate({ uid: 'u1' }, 'BAZI')).rejects.toMatchObject({ code: 'PROFILE_REQUIRED' });
+        });
+
+        it('turns away a chart whose readings are not published', async () => {
+            await publishBazi();
+            for (const key of baziContentKeys()) await db.doc(`fixedContents/BAZI_${key}`).update({ status: 'DRAFT' });
+
+            await expect(service.generate({ uid: 'u1' }, 'BAZI')).rejects.toBeInstanceOf(NotFoundError);
+        });
+    });
+
+    describe('the Human Design report', () => {
+        const withBirth = (extra: Record<string, unknown>) => user({
+            birthData: {
+                birthDate: '1989-10-27', zodiac: 'scorpio', birthTime: '06:00', birthPlace: 'tw-taipei', ...extra,
+            },
+        });
+
+        it('is worked out from the date, time and place, and kept once for a member', async () => {
+            await db.doc('users/u1').set(withBirth({}));
+            const first = await service.generate({ uid: 'u1' }, 'HUMAN_DESIGN');
+            const again = await service.generate({ uid: 'u1' }, 'HUMAN_DESIGN');
+
+            expect(first.basis).toMatchObject([{ system: 'HUMAN_DESIGN' }]);
+            expect(again.id).toBe(first.id);
+        });
+
+        it('asks for the birth time and the birth place when they are missing', async () => {
+            await expect(service.generate({ uid: 'u1' }, 'HUMAN_DESIGN')).rejects.toMatchObject({ code: 'BIRTH_TIME_REQUIRED' });
+
+            await db.doc('users/u1').set(withBirth({ birthPlace: null }));
+            await expect(service.generate({ uid: 'u1' }, 'HUMAN_DESIGN')).rejects.toMatchObject({ code: 'BIRTH_PLACE_REQUIRED' });
+        });
+    });
+
+    describe('the report of today (tarot)', () => {
+        const drawn = {
+            date: '2026-10-28',
+            drawn: true,
+            card: {
+                index: 0, roman: '0', name: '愚者', englishName: 'The Fool', orientation: 'upright', illustration: null,
+            },
+            content: {
+                ...body('愚者'), contentType: 'TAROT', key: '0_upright', contentVersion: '1',
+            },
+        };
+        const withToday = (today: unknown) => new SingleReportService({
+            clock: () => clock.now, tarot: { getToday: async () => today } as never,
+        });
+
+        it('is a short report that has no summary and no map of effects, and is not kept', async () => {
+            const report = await withToday(drawn).generate({ uid: 'u1' }, 'TAROT');
+            const keys = report.blocks.map((b) => b.key);
+
+            expect(report.position).toContain('愚者');
+            expect(keys).toEqual(expect.arrayContaining([
+                'position',
+                'facts',
+                'advice',
+                'limits',
+            ]));
+            expect(keys.some((key) => key === 'summary' || key.startsWith('impact:'))).toBe(false);
+            expect(report.persisted).toBe(false);
+            expect(snapshotPaths()).toHaveLength(0);
+        });
+
+        it('asks for a draw when there is none today, and for a sign-in from a guest', async () => {
+            await expect(withToday({
+                date: '2026-10-28', drawn: false,
+            }).generate({ uid: 'u1' }, 'TAROT')).rejects.toMatchObject({ code: 'NOT_DRAWN' });
+            await expect(withToday(drawn).generate({ guestSessionId: null }, 'TAROT')).rejects.toMatchObject({ code: 'LOGIN_REQUIRED' });
         });
     });
 

@@ -109,6 +109,7 @@ const reasonLabel = {
     SUMMARY: '取得多維度分析報告',
     DETAILED_REPORT: '詳細分析',
     REGENERATE: '重新生成詳細分析',
+    SINGLE_AI_ANALYSIS: 'AI 進階分析',
     DOWNLOAD: '下載報告書',
     PURCHASE: '購買點數',
 } as const;

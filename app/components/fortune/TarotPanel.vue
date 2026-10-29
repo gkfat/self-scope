@@ -54,6 +54,7 @@
         </template>
 
         <template v-if="drawn">
+            <FullReportLink slug="tarot" />
             <!-- 1. Card name and orientation: the identity of what was drawn -->
             <div class="d-flex flex-wrap justify-center ga-2 mb-4">
                 <v-chip

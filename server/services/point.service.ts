@@ -17,7 +17,7 @@ type PointServiceOptions = {
     clock?: () => number;
 };
 
-export type DeductReason = 'SUMMARY' | 'DETAILED_REPORT' | 'REGENERATE' | 'DOWNLOAD';
+export type DeductReason = 'SUMMARY' | 'DETAILED_REPORT' | 'REGENERATE' | 'SINGLE_AI_ANALYSIS' | 'DOWNLOAD';
 
 export type DeductParams = {
     uid: string;
