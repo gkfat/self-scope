@@ -237,6 +237,24 @@ onMounted(() => {
     }
 }
 
+/* Phones: the title keeps its whole name (a smaller size instead of "多維度自…") and the buttons take what is left. */
+@media (max-width: 480px) {
+    .brand {
+        font-size: 1.0625rem;
+        letter-spacing: 0;
+        white-space: nowrap;
+    }
+
+    :deep(.v-toolbar-title) {
+        flex: 0 0 auto;
+    }
+
+    :deep(.v-toolbar-title__placeholder) {
+        overflow: visible;
+        text-overflow: clip;
+    }
+}
+
 .page {
     max-width: 960px;
 }
