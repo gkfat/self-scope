@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 export const DELETE_DATA_SCOPES = [
     'RESULTS',
-    'SUMMARIES',
     'REPORTS',
     'HUMAN_DESIGN',
 ] as const;

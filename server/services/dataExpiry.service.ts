@@ -18,12 +18,6 @@ const EXPIRING_GROUPS = [
         group: 'testAttempts', key: 'deletedAttempts',
     },
     {
-        group: 'summaries', key: 'deletedSummaries',
-    },
-    {
-        group: 'detailedReports', key: 'deletedReports',
-    },
-    {
         group: 'humanDesign', key: 'deletedHumanDesigns',
     },
     {
@@ -61,8 +55,6 @@ export class DataExpiryService extends BaseService {
         const now = this.clock();
         const result: DataExpiryResult = {
             deletedAttempts: 0,
-            deletedSummaries: 0,
-            deletedReports: 0,
             deletedHumanDesigns: 0,
             deletedTarotDraws: 0,
             deletedKinUnlocks: 0,

@@ -2,7 +2,6 @@ import { analysisBasisSchema } from '../schemas/analysisBasis.schema';
 import type {
     AnalysisBasis, AnalysisSystem, BasisInputs,
 } from '../schemas/analysisBasis.schema';
-import type { ReportDimension } from '../schemas/firestore/detailedReport.schema';
 import { RUNE_DRAW_VERSION } from './rune';
 import { TAROT_DRAW_VERSION } from './tarot';
 
@@ -57,63 +56,4 @@ export function buildMbtiBasis(testVersion: string, inputs: BasisInputs = {}): A
         ruleVersion: testVersion,
         inputs,
     });
-}
-
-type ReportBasisParams = {
-    dimensions: readonly ReportDimension[];
-    birth: {
-        birthDate: string;
-        birthTime?: string | null;
-        birthPlace?: string | null;
-    } | null;
-    /** Version of the member's latest saved test, when the report used it. */
-    testVersion: string | null;
-};
-
-const BIRTH_DATE_ONLY: Readonly<Partial<Record<ReportDimension, VersionedSystem>>> = {
-    ZODIAC: 'ZODIAC',
-    NUMEROLOGY: 'NUMEROLOGY',
-    MAYA_KIN: 'MAYA_KIN',
-};
-
-const BIRTH_MOMENT: Readonly<Partial<Record<ReportDimension, VersionedSystem>>> = {
-    BAZI: 'BAZI',
-    HUMAN_DESIGN: 'HUMAN_DESIGN',
-};
-
-/**
- * The basis of every chosen dimension that was calculated, in the order the dimensions are listed.
- * Blood type is a stated fact and has none; MBTI has one only when the latest test was used.
- */
-export function buildReportBasis(params: ReportBasisParams): AnalysisBasis[] {
-    const basis: AnalysisBasis[] = [];
-
-    for (const dimension of params.dimensions) {
-        const dateOnly = BIRTH_DATE_ONLY[dimension];
-        const moment = BIRTH_MOMENT[dimension];
-
-        if (dateOnly || moment) {
-            if (!params.birth) {
-                throw new Error(`birth data is required for the ${dimension} basis`);
-            }
-
-            basis.push(buildBasis(
-                (dateOnly ?? moment) as VersionedSystem,
-                dateOnly
-                    ? { birthDate: params.birth.birthDate }
-                    : {
-                        birthDate: params.birth.birthDate,
-                        birthTime: params.birth.birthTime ?? null,
-                        birthPlace: params.birth.birthPlace ?? null,
-                    },
-            ));
-            continue;
-        }
-
-        if (dimension === 'MBTI' && params.testVersion) {
-            basis.push(buildMbtiBasis(params.testVersion));
-        }
-    }
-
-    return basis;
 }

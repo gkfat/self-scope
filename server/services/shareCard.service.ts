@@ -1,7 +1,6 @@
 import { BaseService } from './base.service';
 import { FixedContentService } from './fixedContent.service';
 import { HumanDesignService } from './humanDesign.service';
-import { SummaryService } from './summary.service';
 import type {
     ShareCard, ShareCardRequest,
 } from '../../shared/schemas/api/shareCard.schema';
@@ -20,7 +19,6 @@ const SINGLE_REFERENCE = /^(ZODIAC|BLOOD|MBTI):(.+)$/;
 
 type ShareCardServiceOptions = {
     fixedContent?: FixedContentService;
-    summaries?: SummaryService;
     humanDesign?: HumanDesignService;
 };
 
@@ -37,13 +35,11 @@ export class ShareCardService extends BaseService {
     protected serviceName = 'share-card';
 
     private readonly fixedContent: FixedContentService;
-    private readonly summaries: SummaryService;
     private readonly humanDesign: HumanDesignService;
 
     constructor(options: ShareCardServiceOptions = {}) {
         super();
         this.fixedContent = options.fixedContent ?? new FixedContentService();
-        this.summaries = options.summaries ?? new SummaryService();
         this.humanDesign = options.humanDesign ?? new HumanDesignService();
     }
 
@@ -62,14 +58,6 @@ export class ShareCardService extends BaseService {
             }
 
             return this.fromContent(await this.fixedContent.getPublished(type, key));
-        }
-
-        if (request.source === 'SUMMARY') {
-            if (!uid) {
-                throw new AuthError('Sign in to share a summary');
-            }
-
-            return this.fromContent((await this.summaries.get(uid, request.referenceId)).content);
         }
 
         if (!uid) {

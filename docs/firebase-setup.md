@@ -29,7 +29,7 @@ gcloud firestore fields ttls update expiresAt --collection-group=rateLimits --en
 
 TTL 清除會延遲（通常 24 小時內），程式判斷一律以時間比較為準，不依賴文件是否已被刪除。
 
-注意：`testAttempts`、`summaries`、`detailedReports`、`humanDesign`、`reportSnapshots` 的 `expiresAt` 是數字（epoch 毫秒），
+注意：`testAttempts`、`humanDesign`、`reportSnapshots` 的 `expiresAt` 是數字（epoch 毫秒），
 **不要**對它們啟用 TTL；它們由每日排程 `/api/cron/data-expiry` 清除。
 
 ## 3. Vercel

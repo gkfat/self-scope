@@ -14,8 +14,6 @@ async function seed(db: FakeFirestore) {
         email: 'a@example.com', mbti: 'INTJ', mbtiExpiresAt: 1, gender: 'MALE', updatedAt: 0,
     });
     await db.doc('users/u1/testAttempts/a1').set({ result: 'INTJ' });
-    await db.doc('users/u1/summaries/s1').set({ x: 1 });
-    await db.doc('users/u1/detailedReports/r1').set({ x: 1 });
     await db.doc('users/u1/humanDesign/main').set({ x: 1 });
     await db.doc('users/u1/tarotDraws/2026-10-27').set({ cardIndex: 3 });
     await db.doc('users/u1/tarotDraws/2026-10-28').set({ cardIndex: 5 });
@@ -29,7 +27,7 @@ async function seed(db: FakeFirestore) {
     await db.doc('users/u1/pointBatches/b1').set({ remaining: 3 });
     await db.doc('users/u1/payments/p1').set({ x: 1 });
     await db.doc('users/u2').set({ email: 'b@example.com' });
-    await db.doc('users/u2/summaries/s9').set({ x: 1 });
+    await db.doc('users/u2/testAttempts/a9').set({ result: 'ENFP' });
     await db.doc('users/u2/tarotDraws/2026-10-27').set({ cardIndex: 9 });
     await db.doc('users/u2/kinUnlocks/2026-10-27').set({ kin: { kinNumber: 3 } });
     await db.doc('users/u2/runeDraws/2026-10-27').set({ symbolIndex: 9 });
@@ -57,8 +55,7 @@ describe('DeletionService.deleteData', () => {
     it('deletes only the named scope', async () => {
         await service.deleteData('u1', ['REPORTS']);
 
-        expect(db.paths()).not.toContain('users/u1/detailedReports/r1');
-        expect(db.paths()).toContain('users/u1/summaries/s1');
+        expect(db.paths().filter((p) => p.startsWith('users/u1/reportSnapshots'))).toEqual([]);
         expect(db.paths()).toContain('users/u1/testAttempts/a1');
         expect(db.paths()).toContain('users/u1/payments/p1');
     });
@@ -70,7 +67,7 @@ describe('DeletionService.deleteData', () => {
     });
 
     it('leaves the report snapshots alone when other data is deleted', async () => {
-        await service.deleteData('u1', ['RESULTS', 'SUMMARIES']);
+        await service.deleteData('u1', ['RESULTS']);
 
         expect(db.paths()).toContain('users/u1/reportSnapshots/s1');
         expect(db.paths()).toContain('users/u1/reportSnapshots/s2');
@@ -86,7 +83,6 @@ describe('DeletionService.deleteData', () => {
     it('never touches points or payments', async () => {
         await service.deleteData('u1', [
             'RESULTS',
-            'SUMMARIES',
             'REPORTS',
             'HUMAN_DESIGN',
         ]);
@@ -97,9 +93,9 @@ describe('DeletionService.deleteData', () => {
     });
 
     it('does not touch other users', async () => {
-        await service.deleteData('u1', ['SUMMARIES']);
+        await service.deleteData('u1', ['RESULTS']);
 
-        expect(db.paths()).toContain('users/u2/summaries/s9');
+        expect(db.paths()).toContain('users/u2/testAttempts/a9');
     });
 });
 
@@ -155,7 +151,7 @@ describe('DeletionService.deleteAccount', () => {
 
         expect(db.paths()).toContain('welcomeGrants/hash1');
         expect(db.paths()).toContain('users/u2');
-        expect(db.paths()).toContain('users/u2/summaries/s9');
+        expect(db.paths()).toContain('users/u2/testAttempts/a9');
     });
 
     it('keeps AI usage for cost accounting but clears the userId', async () => {

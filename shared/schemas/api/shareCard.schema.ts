@@ -1,16 +1,11 @@
 import { z } from 'zod';
 
-export const SHARE_SOURCES = [
-    'SINGLE_RESULT',
-    'SUMMARY',
-    'HUMAN_DESIGN',
-] as const;
+export const SHARE_SOURCES = ['SINGLE_RESULT', 'HUMAN_DESIGN'] as const;
 
 export const shareCardRequestSchema = z.object({
     source: z.enum(SHARE_SOURCES),
     /**
      * SINGLE_RESULT: `ZODIAC:aries`, `BLOOD:A` or `MBTI:INTJ`
-     * SUMMARY: the summaryId (needs sign-in and ownership)
      * HUMAN_DESIGN: `main`
      */
     referenceId: z.string().min(1),

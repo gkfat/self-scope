@@ -2,8 +2,6 @@ import { z } from 'zod';
 
 export const dataExpiryResultSchema = z.object({
     deletedAttempts: z.number().int().nonnegative(),
-    deletedSummaries: z.number().int().nonnegative(),
-    deletedReports: z.number().int().nonnegative(),
     deletedHumanDesigns: z.number().int().nonnegative(),
     deletedTarotDraws: z.number().int().nonnegative(),
     deletedKinUnlocks: z.number().int().nonnegative(),

@@ -19,8 +19,8 @@ const body = {
 };
 
 const row = (overrides: Partial<ImportRow> = {}): ImportRow => ({
-    contentType: 'SUMMARY',
-    key: 'aries_INTJ',
+    contentType: 'ZODIAC',
+    key: 'aries',
     body,
     status: 'DRAFT',
     ...overrides,
@@ -37,16 +37,13 @@ describe('applyFixedContent', () => {
     it('creates the document with a deterministic id and version 1', async () => {
         const outcome = await applyFixedContent(asFirestore(), [row()], 1000);
 
-        expect(outcome.created).toEqual(['SUMMARY_aries_INTJ']);
+        expect(outcome.created).toEqual(['ZODIAC_aries']);
 
-        const stored = (await db.doc('fixedContents/SUMMARY_aries_INTJ').get()).data();
+        const stored = (await db.doc('fixedContents/ZODIAC_aries').get()).data();
         expect(stored).toMatchObject({
             contentVersion: '1',
             status: 'DRAFT',
             publishedAt: null,
-            combinationKey: {
-                zodiac: 'aries', mbti: 'INTJ', bloodType: null,
-            },
         });
     });
 
@@ -54,9 +51,9 @@ describe('applyFixedContent', () => {
         await applyFixedContent(asFirestore(), [row()], 1000);
         const second = await applyFixedContent(asFirestore(), [row()], 2000);
 
-        expect(second.unchanged).toEqual(['SUMMARY_aries_INTJ']);
+        expect(second.unchanged).toEqual(['ZODIAC_aries']);
         expect(db.paths()).toHaveLength(1);
-        expect((await db.doc('fixedContents/SUMMARY_aries_INTJ').get()).data()?.contentVersion).toBe('1');
+        expect((await db.doc('fixedContents/ZODIAC_aries').get()).data()?.contentVersion).toBe('1');
     });
 
     it('bumps the version when the body changes', async () => {
@@ -69,13 +66,13 @@ describe('applyFixedContent', () => {
             }),
         ], 2000);
 
-        expect(outcome.updated).toEqual(['SUMMARY_aries_INTJ']);
-        expect((await db.doc('fixedContents/SUMMARY_aries_INTJ').get()).data()?.contentVersion).toBe('2');
+        expect(outcome.updated).toEqual(['ZODIAC_aries']);
+        expect((await db.doc('fixedContents/ZODIAC_aries').get()).data()?.contentVersion).toBe('2');
     });
 
     it('sets publishedAt on publication and keeps the first publication time', async () => {
         await applyFixedContent(asFirestore(), [row({ status: 'PUBLISHED' })], 1000);
-        expect((await db.doc('fixedContents/SUMMARY_aries_INTJ').get()).data()?.publishedAt).toBe(1000);
+        expect((await db.doc('fixedContents/ZODIAC_aries').get()).data()?.publishedAt).toBe(1000);
 
         await applyFixedContent(asFirestore(), [
             row({
@@ -85,13 +82,13 @@ describe('applyFixedContent', () => {
                 },
             }),
         ], 2000);
-        expect((await db.doc('fixedContents/SUMMARY_aries_INTJ').get()).data()?.publishedAt).toBe(1000);
+        expect((await db.doc('fixedContents/ZODIAC_aries').get()).data()?.publishedAt).toBe(1000);
     });
 
     it('clears publishedAt when content goes back to draft', async () => {
         await applyFixedContent(asFirestore(), [row({ status: 'PUBLISHED' })], 1000);
         await applyFixedContent(asFirestore(), [row({ status: 'DRAFT' })], 2000);
 
-        expect((await db.doc('fixedContents/SUMMARY_aries_INTJ').get()).data()?.publishedAt).toBeNull();
+        expect((await db.doc('fixedContents/ZODIAC_aries').get()).data()?.publishedAt).toBeNull();
     });
 });

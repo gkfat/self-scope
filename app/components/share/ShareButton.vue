@@ -20,7 +20,7 @@
 import type { ShareCard } from '../../../shared/schemas/api/shareCard.schema';
 
 const props = defineProps<{
-    source: 'SINGLE_RESULT' | 'SUMMARY' | 'HUMAN_DESIGN';
+    source: 'SINGLE_RESULT' | 'HUMAN_DESIGN';
     referenceId: string;
 }>();
 

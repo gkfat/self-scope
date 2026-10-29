@@ -32,10 +32,6 @@ describe('DataExpiryService', () => {
         await db.doc('users/u1/testAttempts/old').set({ expiresAt: PAST });
         await db.doc('users/u1/testAttempts/new').set({ expiresAt: FUTURE });
         await db.doc('users/u2/testAttempts/old').set({ expiresAt: PAST });
-        await db.doc('users/u1/summaries/old').set({ expiresAt: PAST });
-        await db.doc('users/u1/summaries/new').set({ expiresAt: FUTURE });
-        await db.doc('users/u1/detailedReports/old').set({ expiresAt: PAST });
-        await db.doc('users/u1/detailedReports/new').set({ expiresAt: FUTURE });
         await db.doc('users/u1/humanDesign/main').set({ expiresAt: PAST });
         await db.doc('users/u2/humanDesign/main').set({ expiresAt: FUTURE });
         await db.doc('users/u1/tarotDraws/2026-03-01').set({ expiresAt: PAST });
@@ -62,8 +58,6 @@ describe('DataExpiryService', () => {
 
         expect(result).toEqual({
             deletedAttempts: 2,
-            deletedSummaries: 1,
-            deletedReports: 1,
             deletedHumanDesigns: 1,
             deletedTarotDraws: 2,
             deletedKinUnlocks: 2,
@@ -77,8 +71,6 @@ describe('DataExpiryService', () => {
         expect(paths).not.toContain('users/u1/testAttempts/old');
         expect(paths).not.toContain('users/u2/testAttempts/old');
         expect(paths).toContain('users/u1/testAttempts/new');
-        expect(paths).toContain('users/u1/summaries/new');
-        expect(paths).toContain('users/u1/detailedReports/new');
         expect(paths).toContain('users/u2/humanDesign/main');
         expect(paths).not.toContain('users/u1/tarotDraws/2026-03-01');
         expect(paths).not.toContain('users/u2/tarotDraws/2026-03-01');
@@ -116,8 +108,6 @@ describe('DataExpiryService', () => {
 
         expect(second).toMatchObject({
             deletedAttempts: 0,
-            deletedSummaries: 0,
-            deletedReports: 0,
             deletedHumanDesigns: 0,
             deletedTarotDraws: 0,
             deletedKinUnlocks: 0,
@@ -132,7 +122,7 @@ describe('DataExpiryService', () => {
         const original = repository.expiredIn.bind(repository);
 
         repository.expiredIn = (group, now, limit) => {
-            if (group === 'summaries') throw new Error('index missing');
+            if (group === 'humanDesign') throw new Error('index missing');
             return original(group, now, limit);
         };
 
@@ -140,14 +130,14 @@ describe('DataExpiryService', () => {
             repository, clock: () => NOW,
         }).run();
 
-        expect(result.failed).toEqual(['summaries']);
+        expect(result.failed).toEqual(['humanDesign']);
         expect(result.deletedAttempts).toBe(2);
-        expect(result.deletedReports).toBe(1);
-        expect(db.paths()).toContain('users/u1/summaries/old');
+        expect(result.deletedReportSnapshots).toBe(2);
+        expect(db.paths()).toContain('users/u1/humanDesign/main');
 
         // The next run retries the failed step.
         const retry = await service.run();
-        expect(retry.deletedSummaries).toBe(1);
+        expect(retry.deletedHumanDesigns).toBe(1);
     });
 
     it('works through more documents than one batch', async () => {

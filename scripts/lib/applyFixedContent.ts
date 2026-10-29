@@ -1,7 +1,6 @@
 import type { Firestore } from 'firebase-admin/firestore';
 import type { ImportRow } from '../../shared/utils/fixedContentImport.ts';
 import { fixedContentId } from '../../shared/utils/fixedContentKeys.ts';
-import { summaryKeyToCombination } from './combination.ts';
 
 export type ApplyOutcome = {
     created: string[];
@@ -49,7 +48,6 @@ export async function applyFixedContent(
             tx.set(ref, {
                 contentType: row.contentType,
                 key: row.key,
-                ...(row.contentType === 'SUMMARY' ? { combinationKey: summaryKeyToCombination(row.key) } : {}),
                 body: row.body,
                 contentVersion: String(current ? Number(current.contentVersion) + 1 : 1),
                 status: row.status,

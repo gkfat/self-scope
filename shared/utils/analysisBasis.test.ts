@@ -5,7 +5,7 @@ import {
     ANALYSIS_SYSTEMS, analysisBasisSchema,
 } from '../schemas/analysisBasis.schema';
 import {
-    RULE_VERSIONS, buildBasis, buildMbtiBasis, buildReportBasis,
+    RULE_VERSIONS, buildBasis, buildMbtiBasis,
 } from './analysisBasis';
 import { RUNE_DRAW_VERSION } from './rune';
 import { TAROT_DRAW_VERSION } from './tarot';
@@ -69,68 +69,5 @@ describe('buildBasis', () => {
 describe('buildMbtiBasis', () => {
     it('uses the test version as the rule version', () => {
         expect(buildMbtiBasis('v3').ruleVersion).toBe('v3');
-    });
-});
-
-describe('buildReportBasis', () => {
-    const birth = {
-        birthDate: '1990-05-17',
-        birthTime: '08:30',
-        birthPlace: 'TPE',
-    };
-
-    it('covers only the chosen dimensions that were calculated', () => {
-        const basis = buildReportBasis({
-            dimensions: [
-                'ZODIAC',
-                'BLOOD',
-                'BAZI',
-                'MAYA_KIN',
-            ],
-            birth,
-            testVersion: null,
-        });
-
-        expect(basis.map((b) => b.system)).toEqual([
-            'ZODIAC',
-            'BAZI',
-            'MAYA_KIN',
-        ]);
-    });
-
-    it('keeps the birth moment for the BaZi and the date alone for the Kin', () => {
-        const basis = buildReportBasis({
-            dimensions: ['BAZI', 'MAYA_KIN'],
-            birth,
-            testVersion: null,
-        });
-
-        expect(basis[0]?.inputs).toEqual({
-            birthDate: '1990-05-17', birthTime: '08:30', birthPlace: 'TPE',
-        });
-        expect(basis[1]?.inputs).toEqual({ birthDate: '1990-05-17' });
-    });
-
-    it('adds MBTI only when a test version is given', () => {
-        const without = buildReportBasis({
-            dimensions: ['MBTI', 'ZODIAC'],
-            birth,
-            testVersion: null,
-        });
-        const withTest = buildReportBasis({
-            dimensions: ['MBTI', 'ZODIAC'],
-            birth,
-            testVersion: 'v2',
-        });
-
-        expect(without.map((b) => b.system)).toEqual(['ZODIAC']);
-        expect(withTest.map((b) => b.system)).toEqual(['MBTI', 'ZODIAC']);
-        expect(withTest[0]?.ruleVersion).toBe('v2');
-    });
-
-    it('fails loudly when a birth-based dimension has no birth data', () => {
-        expect(() => buildReportBasis({
-            dimensions: ['ZODIAC'], birth: null, testVersion: null,
-        })).toThrow('birth data is required');
     });
 });

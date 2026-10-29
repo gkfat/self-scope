@@ -206,7 +206,7 @@ describe('computeCoverage', () => {
         })));
 
         expect(report).toMatchObject({
-            expected: 15150, published: 15150, complete: true,
+            expected: 830, published: 830, complete: true,
         });
     });
 
@@ -218,7 +218,7 @@ describe('computeCoverage', () => {
             id: docs[0]?.id as string, status: 'DRAFT',
         };
         docs.push({
-            id: 'SUMMARY_aries_XXXX', status: 'PUBLISHED',
+            id: 'ZODIAC_aries_XXXX', status: 'PUBLISHED',
         });
 
         const report = computeCoverage(docs);
@@ -226,7 +226,7 @@ describe('computeCoverage', () => {
         expect(report.complete).toBe(false);
         expect(report.missing).toEqual(all.slice(0, 2));
         expect(report.unpublished).toHaveLength(1);
-        expect(report.unexpected).toEqual(['SUMMARY_aries_XXXX']);
-        expect(report.published).toBe(15150 - 2 - 1);
+        expect(report.unexpected).toEqual(['ZODIAC_aries_XXXX']);
+        expect(report.published).toBe(830 - 2 - 1);
     });
 });

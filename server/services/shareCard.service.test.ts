@@ -6,7 +6,6 @@ import {
     ShareCardService, excerpt,
 } from './shareCard.service';
 import { HumanDesignService } from './humanDesign.service';
-import { SummaryService } from './summary.service';
 import { calculateHumanDesign } from '../humanDesign/calculate';
 import {
     AuthError, NotFoundError,
@@ -58,13 +57,9 @@ describe('ShareCardService', () => {
     beforeEach(async () => {
         db = new FakeFirestore();
         holder.db = db;
-        service = new ShareCardService({
-            summaries: new SummaryService({ clock: () => NOW }),
-            humanDesign: new HumanDesignService({ clock: () => NOW }),
-        });
+        service = new ShareCardService({ humanDesign: new HumanDesignService({ clock: () => NOW }) });
 
         await db.doc('fixedContents/ZODIAC_aries').set(content('ZODIAC', 'aries', longText));
-        await db.doc('fixedContents/SUMMARY_aries_INTJ').set(content('SUMMARY', 'aries_INTJ', '摘要'));
     });
 
     it('builds a card for a single result without needing sign-in', async () => {
@@ -91,30 +86,6 @@ describe('ShareCardService', () => {
         }
     });
 
-    it('shares a summary only for its owner', async () => {
-        await db.doc('users/u1/summaries/aries_INTJ').set({
-            combinationKey: {
-                zodiac: 'aries', mbti: 'INTJ', bloodType: null,
-            },
-            contentRef: 'SUMMARY_aries_INTJ',
-            contentVersion: '1',
-            obtainedAt: NOW,
-            expiresAt: addMonths(NOW, 3),
-        });
-
-        const card = await service.create({
-            source: 'SUMMARY', referenceId: 'aries_INTJ',
-        }, 'u1');
-        expect(card.title).toBe('aries_INTJ 的標題');
-
-        await expect(service.create({
-            source: 'SUMMARY', referenceId: 'aries_INTJ',
-        }, 'u2')).rejects.toBeInstanceOf(NotFoundError);
-        await expect(service.create({
-            source: 'SUMMARY', referenceId: 'aries_INTJ',
-        }, null)).rejects.toBeInstanceOf(AuthError);
-    });
-
     it('never puts personal data on a card', async () => {
         await db.doc('users/u1').set({
             email: 'secret@example.com',
@@ -122,18 +93,9 @@ describe('ShareCardService', () => {
                 birthDate: '1995-03-25', zodiac: 'aries', birthTime: '08:30', birthPlace: 'tw-taipei',
             },
         });
-        await db.doc('users/u1/summaries/aries_INTJ').set({
-            combinationKey: {
-                zodiac: 'aries', mbti: 'INTJ', bloodType: null,
-            },
-            contentRef: 'SUMMARY_aries_INTJ',
-            contentVersion: '1',
-            obtainedAt: NOW,
-            expiresAt: addMonths(NOW, 3),
-        });
 
         const text = JSON.stringify(await service.create({
-            source: 'SUMMARY', referenceId: 'aries_INTJ',
+            source: 'SINGLE_RESULT', referenceId: 'ZODIAC:aries',
         }, 'u1'));
 
         for (const secret of [
