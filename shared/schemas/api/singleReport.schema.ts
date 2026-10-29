@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { SINGLE_REPORT_SYSTEMS } from '../../report/systems';
 import { reportSnapshotDetailSchema } from './reportSnapshot.schema';
-import { idempotencyKeySchema } from './detailedReport.schema';
+import { idempotencyKeySchema } from './idempotency.schema';
 import { SNAPSHOT_AI_JOB_STATUSES } from '../firestore/reportSnapshot.schema';
 
 export const singleReportRequestSchema = z.object({ system: z.enum(SINGLE_REPORT_SYSTEMS) });

@@ -38,7 +38,7 @@ async function remainingOf(db: FakeFirestore, uid: string, id: string) {
 const deduct = (service: PointService, transactionId: string, amount = 1, uid = 'u1') => service.deduct({
     uid,
     amount,
-    reason: 'SUMMARY',
+    reason: 'SINGLE_AI_ANALYSIS',
     transactionId,
     reference: null,
 });
@@ -306,7 +306,7 @@ describe('PointService', () => {
                 await db.doc(`users/u1/pointTransactions/t${i}`).set({
                     type: 'DEDUCT',
                     amount: 1,
-                    reason: 'SUMMARY',
+                    reason: 'SINGLE_AI_ANALYSIS',
                     batchAllocations: [],
                     reference: null,
                     createdAt: NOW + i * 1000,

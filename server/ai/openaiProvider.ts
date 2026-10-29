@@ -1,20 +1,20 @@
 import type OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import {
-    AiOutputError, type AiGeneration, type AiReportProvider, type AiSingleAnalysisProvider, type AiSingleGeneration, type GenerateOptions,
+    AiOutputError, type AiMultiGeneration, type AiSingleAnalysisProvider, type AiSingleGeneration, type GenerateOptions,
 } from './provider';
+import {
+    MULTI_PROMPT_VERSION, buildMultiSystemPrompt, buildMultiUserPrompt,
+} from './multiPrompt';
 import {
     SINGLE_PROMPT_VERSION, buildSingleSystemPrompt, buildSingleUserPrompt,
 } from './singlePrompt';
 import {
+    multiAnalysisOutputSchema, type MultiAnalysisInput,
+} from '../../shared/schemas/firestore/multiAnalysis.schema';
+import {
     singleAnalysisOutputSchema, type SingleAnalysisInput,
 } from '../../shared/schemas/firestore/singleAnalysis.schema';
-import {
-    PROMPT_VERSION, buildSystemPrompt, buildUserPrompt,
-} from './prompt';
-import {
-    aiReportOutputSchema, type AnalysisInput,
-} from '../../shared/schemas/firestore/detailedReport.schema';
 
 type OpenAiProviderOptions = {
     client: Pick<OpenAI, 'chat'>;
@@ -26,9 +26,9 @@ type OpenAiProviderOptions = {
  * OpenAI via the official SDK. The response is constrained to the report schema
  * (structured outputs), then checked again by assessReport before anyone sees it.
  */
-export class OpenAiReportProvider implements AiReportProvider, AiSingleAnalysisProvider {
-    readonly promptVersion = PROMPT_VERSION;
+export class OpenAiReportProvider implements AiSingleAnalysisProvider {
     readonly singlePromptVersion = SINGLE_PROMPT_VERSION;
+    readonly multiPromptVersion = MULTI_PROMPT_VERSION;
 
     private readonly client: Pick<OpenAI, 'chat'>;
     private readonly model: string;
@@ -40,20 +40,19 @@ export class OpenAiReportProvider implements AiReportProvider, AiSingleAnalysisP
         this.maxOutputTokens = options.maxOutputTokens;
     }
 
-    async generate(input: AnalysisInput, options: GenerateOptions): Promise<AiGeneration> {
+    async generateSingle(input: SingleAnalysisInput, options: GenerateOptions): Promise<AiSingleGeneration> {
         const completion = await this.client.chat.completions.parse({
             model: this.model,
-            // Reasoning tokens count against this cap, so keep reasoning minimal to leave room for the report.
             max_completion_tokens: this.maxOutputTokens,
             reasoning_effort: 'minimal',
             messages: [
                 {
-                    role: 'system', content: buildSystemPrompt(),
+                    role: 'system', content: buildSingleSystemPrompt(),
                 }, {
-                    role: 'user', content: buildUserPrompt(input),
+                    role: 'user', content: buildSingleUserPrompt(input),
                 },
             ],
-            response_format: zodResponseFormat(aiReportOutputSchema, 'detailed_report'),
+            response_format: zodResponseFormat(singleAnalysisOutputSchema, 'single_analysis'),
         }, { signal: options.signal });
 
         const choice = completion.choices[0];
@@ -73,19 +72,19 @@ export class OpenAiReportProvider implements AiReportProvider, AiSingleAnalysisP
         };
     }
 
-    async generateSingle(input: SingleAnalysisInput, options: GenerateOptions): Promise<AiSingleGeneration> {
+    async generateMulti(input: MultiAnalysisInput, options: GenerateOptions): Promise<AiMultiGeneration> {
         const completion = await this.client.chat.completions.parse({
             model: this.model,
             max_completion_tokens: this.maxOutputTokens,
             reasoning_effort: 'minimal',
             messages: [
                 {
-                    role: 'system', content: buildSingleSystemPrompt(),
+                    role: 'system', content: buildMultiSystemPrompt(),
                 }, {
-                    role: 'user', content: buildSingleUserPrompt(input),
+                    role: 'user', content: buildMultiUserPrompt(input),
                 },
             ],
-            response_format: zodResponseFormat(singleAnalysisOutputSchema, 'single_analysis'),
+            response_format: zodResponseFormat(multiAnalysisOutputSchema, 'multi_analysis'),
         }, { signal: options.signal });
 
         const choice = completion.choices[0];

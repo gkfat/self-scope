@@ -1,6 +1,6 @@
 import type {
-    AiReportOutput, AnalysisInput,
-} from '../../shared/schemas/firestore/detailedReport.schema';
+    MultiAnalysisInput, MultiAnalysisOutput,
+} from '../../shared/schemas/firestore/multiAnalysis.schema';
 import type {
     SingleAnalysisInput, SingleAnalysisOutput,
 } from '../../shared/schemas/firestore/singleAnalysis.schema';
@@ -9,8 +9,8 @@ import type {
  * What the app needs from an AI service. Only the OpenAI implementation exists;
  * nothing above this file depends on which model answers.
  */
-export type AiGeneration = {
-    output: AiReportOutput;
+export type AiGeneration<Output> = {
+    output: Output;
     usage: {
         inputTokens: number;
         outputTokens: number;
@@ -23,15 +23,14 @@ export type GenerateOptions = {
     signal: AbortSignal;
 };
 
-export type AiReportProvider = {
-    generate(input: AnalysisInput, options: GenerateOptions): Promise<AiGeneration>;
-};
+export type AiSingleGeneration = AiGeneration<SingleAnalysisOutput>;
 
-export type AiSingleGeneration = Omit<AiGeneration, 'output'> & { output: SingleAnalysisOutput };
+export type AiMultiGeneration = AiGeneration<MultiAnalysisOutput>;
 
-/** The AI analysis of one system's report (see `SingleAnalysisService`). */
+/** The AI analysis of a kept report: one system's, or the rewriting of what the insight rules found across several (see `SingleAnalysisService`). */
 export type AiSingleAnalysisProvider = {
     generateSingle(input: SingleAnalysisInput, options: GenerateOptions): Promise<AiSingleGeneration>;
+    generateMulti(input: MultiAnalysisInput, options: GenerateOptions): Promise<AiMultiGeneration>;
 };
 
 /**

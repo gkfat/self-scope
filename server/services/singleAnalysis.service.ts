@@ -6,8 +6,9 @@ import { getAiProvider } from '../ai';
 import {
     AiOutputError, type AiSingleAnalysisProvider,
 } from '../ai/provider';
+import { MULTI_PROMPT_VERSION } from '../ai/multiPrompt';
 import {
-    assessSingleAnalysis, parseSingleAnalysisOutput,
+    assessMultiAnalysis, assessSingleAnalysis, parseMultiAnalysisOutput, parseSingleAnalysisOutput,
 } from '../ai/quality';
 import { SINGLE_PROMPT_VERSION } from '../ai/singlePrompt';
 import { getServerConfig } from '../../config/config';
@@ -16,15 +17,22 @@ import {
     DEFAULT_AI_PRICE_INPUT_PER_MTOK, DEFAULT_AI_PRICE_OUTPUT_PER_MTOK, REPORT_LIMIT_PER_DAY, REPORT_LIMIT_PER_HOUR, REPORT_STALE_AFTER_MS,
     REPORT_TIMEOUT_MS, SINGLE_ANALYSIS_COST,
 } from '../../shared/constants/ai';
-import type { AiUsageRecord } from '../../shared/schemas/firestore/detailedReport.schema';
+import type { AiUsageRecord } from '../../shared/schemas/firestore/aiUsage.schema';
 import {
     reportSnapshotDocSchema, type ReportSnapshotDoc, type SnapshotAiJob, type SnapshotBlock,
 } from '../../shared/schemas/firestore/reportSnapshot.schema';
 import {
+    MULTI_ANALYSIS_KIND_TITLES, type MultiAnalysisInput, type MultiAnalysisOutput,
+} from '../../shared/schemas/firestore/multiAnalysis.schema';
+import {
     SINGLE_ANALYSIS_SECTIONS, type SingleAnalysisInput, type SingleAnalysisOutput,
 } from '../../shared/schemas/firestore/singleAnalysis.schema';
 import {
-    ConflictError, NotFoundError, errorMessage,
+    MULTI_REPORT_SYSTEMS, type MultiReportSystem,
+} from '../../shared/report/systems';
+import { multiReportCost } from '../../shared/utils/multiDimensionPricing';
+import {
+    ConflictError, NotFoundError, ValidationError, errorMessage,
 } from '../../shared/types/errors';
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -55,6 +63,51 @@ const chargeTransactionId = (jobId: string) => `single_ai_${jobId}`;
 const textsOf = (doc: ReportSnapshotDoc, key: string, kind?: string): string[] => doc.blocks
     .filter((block) => block.key === key)
     .flatMap((block) => block.segments.filter((segment) => !kind || segment.kind === kind).map((segment) => segment.text));
+
+type Made = {
+    failed: true;
+} | {
+    failed: false; blocks: SnapshotBlock[]; modelName: string; promptVersion: string;
+};
+
+const aiSegment = (text: string, sources: SnapshotBlock['segments'][number]['sources']): SnapshotBlock['segments'][number] => ({
+    text, kind: 'AI_INFERENCE', sources, timeSensitive: false, asOf: null,
+});
+
+/** The sections of a single report's analysis as blocks: each part and the facts it rests on, all marked as the AI's inference. */
+function singleBlocks(output: SingleAnalysisOutput, system: SnapshotBlock['segments'][number]['sources'][number]['system']): SnapshotBlock[] {
+    const titles = new Map<string, string>(SINGLE_ANALYSIS_SECTIONS.map((section) => [section.key, section.title]));
+    const sources = system ? [{ system }] : [];
+
+    return output.sections.map((section) => ({
+        key: `ai:${section.key}`,
+        title: titles.get(section.key) ?? section.key,
+        segments: [aiSegment(section.content, sources), aiSegment(`依據：${section.evidence}`, sources)],
+    }));
+}
+
+/** The parts of a multi-dimension analysis as blocks; every segment cites the rules (candidates) it rests on. */
+function multiBlocks(output: MultiAnalysisOutput): SnapshotBlock[] {
+    return ([
+        'overview',
+        'insight',
+        'advice',
+    ] as const).flatMap((kind) => {
+        const sections = output.sections.filter((section) => section.kind === kind);
+
+        return sections.length > 0 ? [
+            {
+                key: `ai:${kind}`,
+                title: MULTI_ANALYSIS_KIND_TITLES[kind],
+                segments: sections.flatMap((section) => {
+                    const sources = section.candidateIds.map((rule) => ({ rule }));
+
+                    return [aiSegment(section.content, sources), aiSegment(`依據：${section.evidence}`, sources)];
+                }),
+            },
+        ] : [];
+    });
+}
 
 /**
  * The AI analysis of a report that is already kept: 1 point, made after the response, written into the report's own
@@ -102,6 +155,7 @@ export class SingleAnalysisService extends BaseService {
         await this.reapIfStale(uid, snapshotId);
 
         const before = await this.read(uid, snapshotId);
+        const cost = this.costOf(before);
 
         if (before.aiJob?.id === jobId) {
             return {
@@ -134,8 +188,8 @@ export class SingleAnalysisService extends BaseService {
 
             const plan = await this.points.planDeduction(tx, {
                 uid,
-                amount: SINGLE_ANALYSIS_COST,
-                reason: 'SINGLE_AI_ANALYSIS',
+                amount: cost,
+                reason: before.kind === 'SINGLE' ? 'SINGLE_AI_ANALYSIS' : 'MULTI_REPORT',
                 transactionId: chargeTransactionId(jobId),
                 reference: snapshotId,
             });
@@ -170,7 +224,7 @@ export class SingleAnalysisService extends BaseService {
         );
 
         return {
-            status: 'GENERATING', pointsDeducted: SINGLE_ANALYSIS_COST,
+            status: 'GENERATING', pointsDeducted: cost,
         };
     }
 
@@ -199,8 +253,19 @@ export class SingleAnalysisService extends BaseService {
         return doc;
     }
 
-    /** The facts and facets of the report, as its own sentences: nothing the member typed. */
-    private inputOf(doc: ReportSnapshotDoc): SingleAnalysisInput {
+    /** A single report costs one point; a multi-dimension report costs what its systems add up to. */
+    private costOf(doc: ReportSnapshotDoc): number {
+        if (doc.kind === 'SINGLE') return SINGLE_ANALYSIS_COST;
+
+        const cost = multiReportCost(doc.systems.filter((system): system is MultiReportSystem => (MULTI_REPORT_SYSTEMS as readonly string[]).includes(system)));
+
+        if (cost === null) throw new ValidationError('This choice of systems is not offered');
+
+        return cost;
+    }
+
+    /** The facts and facets of a single report, as its own sentences: nothing the member typed. */
+    private singleInputOf(doc: ReportSnapshotDoc): SingleAnalysisInput {
         const [system] = doc.systems;
 
         if (!system) throw new NotFoundError('Report snapshot');
@@ -210,6 +275,30 @@ export class SingleAnalysisService extends BaseService {
             position: doc.position,
             facts: [...textsOf(doc, 'facts', 'FACT'), ...textsOf(doc, 'time', 'FACT')],
             facets: textsOf(doc, 'summary'),
+            notes: textsOf(doc, 'limits').filter((text) => !text.startsWith('規則版本')),
+        };
+    }
+
+    /** The candidates of a multi-dimension report are the insights the rules put in it, each under the id of its rule. */
+    private multiInputOf(doc: ReportSnapshotDoc): MultiAnalysisInput {
+        const insights = doc.blocks.find((item) => item.key === 'insights')?.segments ?? [];
+
+        return {
+            systems: doc.systems,
+            positions: textsOf(doc, 'coordinates'),
+            facts: [...textsOf(doc, 'highlights', 'FACT'), ...textsOf(doc, 'now')],
+            candidates: insights.flatMap((item) => {
+                const id = item.sources.find((source) => source.rule)?.rule;
+
+                return id && item.confirmQuestion ? [
+                    {
+                        id,
+                        text: item.text,
+                        hypothesis: item.confirmQuestion,
+                        sources: item.sources.flatMap((source) => (source.term ? [source.term] : [])),
+                    },
+                ] : [];
+            }),
             notes: textsOf(doc, 'limits').filter((text) => !text.startsWith('規則版本')),
         };
     }
@@ -224,27 +313,15 @@ export class SingleAnalysisService extends BaseService {
         const timer = setTimeout(() => controller.abort(), this.timeoutMs);
 
         try {
-            const generation = await this.getProvider().generateSingle(this.inputOf(doc), { signal: controller.signal });
+            const made = doc.kind === 'SINGLE' ? await this.makeSingle(doc, controller.signal, uid, snapshotId) : await this.makeMulti(doc, controller.signal, uid, snapshotId);
 
-            await this.recordUsage(uid, snapshotId, generation.modelName, generation.usage);
-
-            const output = parseSingleAnalysisOutput(generation.output);
-            const quality = output ? assessSingleAnalysis(output) : null;
-
-            if (!output || !quality || quality.fatal.length > 0) {
-                this.logWarn('analysis rejected by quality checks', {
-                    action: 'generate',
-                    userId: uid,
-                    data: {
-                        snapshotId, codes: quality?.fatal.map((finding) => finding.code) ?? ['SCHEMA'],
-                    },
-                });
+            if (made.failed) {
                 await this.fail(uid, snapshotId, jobId, 'INVALID_OUTPUT');
 
                 return;
             }
 
-            await this.complete(uid, snapshotId, jobId, output, generation.modelName);
+            await this.complete(uid, snapshotId, jobId, made.blocks, made.modelName, made.promptVersion);
         } catch (error) {
             await this.fail(uid, snapshotId, jobId, this.reasonFor(error, controller.signal), error);
         } finally {
@@ -259,7 +336,64 @@ export class SingleAnalysisService extends BaseService {
         return 'AI_ERROR';
     }
 
-    private async complete(uid: string, snapshotId: string, jobId: string, output: SingleAnalysisOutput, modelName: string): Promise<void> {
+    /** The analysis of a single report: ask, check, and turn the sections into blocks. */
+    private async makeSingle(doc: ReportSnapshotDoc, signal: AbortSignal, uid: string, snapshotId: string): Promise<Made> {
+        const generation = await this.getProvider().generateSingle(this.singleInputOf(doc), { signal });
+
+        await this.recordUsage(uid, snapshotId, generation.modelName, generation.usage);
+
+        const output = parseSingleAnalysisOutput(generation.output);
+        const quality = output ? assessSingleAnalysis(output) : null;
+
+        if (!output || !quality || quality.fatal.length > 0) {
+            this.logRejected(uid, snapshotId, quality?.fatal.map((finding) => finding.code) ?? ['SCHEMA']);
+
+            return { failed: true };
+        }
+
+        const [system] = doc.systems;
+
+        return {
+            failed: false,
+            blocks: singleBlocks(output, system),
+            modelName: generation.modelName,
+            promptVersion: SINGLE_PROMPT_VERSION,
+        };
+    }
+
+    /** The analysis of a multi-dimension report: every part has to cite candidates the rules really found. */
+    private async makeMulti(doc: ReportSnapshotDoc, signal: AbortSignal, uid: string, snapshotId: string): Promise<Made> {
+        const input = this.multiInputOf(doc);
+        const generation = await this.getProvider().generateMulti(input, { signal });
+
+        await this.recordUsage(uid, snapshotId, generation.modelName, generation.usage);
+
+        const output = parseMultiAnalysisOutput(generation.output);
+        const quality = output ? assessMultiAnalysis(output, input.candidates.map((candidate) => candidate.id)) : null;
+
+        if (!output || !quality || quality.fatal.length > 0) {
+            this.logRejected(uid, snapshotId, quality?.fatal.map((finding) => finding.code) ?? ['SCHEMA']);
+
+            return { failed: true };
+        }
+
+        return {
+            failed: false,
+            blocks: multiBlocks(output),
+            modelName: generation.modelName,
+            promptVersion: MULTI_PROMPT_VERSION,
+        };
+    }
+
+    private logRejected(uid: string, snapshotId: string, codes: string[]): void {
+        this.logWarn('analysis rejected by quality checks', {
+            action: 'generate', userId: uid, data: {
+                snapshotId, codes,
+            },
+        });
+    }
+
+    private async complete(uid: string, snapshotId: string, jobId: string, blocks: SnapshotBlock[], modelName: string, promptVersion: string): Promise<void> {
         const ref = this.repository.snapshotRef(uid, snapshotId);
         const now = this.clock();
 
@@ -269,33 +403,13 @@ export class SingleAnalysisService extends BaseService {
             if (!snap.exists) return;
 
             const doc = reportSnapshotDocSchema.parse(snap.data());
-            const [system] = doc.systems;
 
             // It may have been failed meanwhile (stale reaper) or the report may be gone; never overwrite that
-            if (!system || doc.aiJob?.id !== jobId || doc.aiJob.status !== 'GENERATING') return;
-
-            const titles = new Map<string, string>(SINGLE_ANALYSIS_SECTIONS.map((section) => [section.key, section.title]));
-            const blocks: SnapshotBlock[] = output.sections.map((section) => {
-                const common = {
-                    kind: 'AI_INFERENCE' as const, sources: [{ system }], timeSensitive: false, asOf: null,
-                };
-
-                return {
-                    key: `ai:${section.key}`,
-                    title: titles.get(section.key) ?? section.key,
-                    segments: [
-                        {
-                            text: section.content, ...common,
-                        }, {
-                            text: `依據：${section.evidence}`, ...common,
-                        },
-                    ],
-                };
-            });
+            if (doc.aiJob?.id !== jobId || doc.aiJob.status !== 'GENERATING') return;
 
             tx.update(ref, {
                 ai: {
-                    blocks, modelName, promptVersion: SINGLE_PROMPT_VERSION, generatedAt: now,
+                    blocks, modelName, promptVersion, generatedAt: now,
                 },
                 aiJob: {
                     ...doc.aiJob, status: 'COMPLETED',

@@ -2,123 +2,145 @@ import {
     describe, expect, it,
 } from 'vitest';
 import {
-    assessReport, parseReportOutput,
+    assessMultiAnalysis, assessSingleAnalysis, parseMultiAnalysisOutput, parseSingleAnalysisOutput,
 } from './quality';
-import {
-    REPORT_SECTIONS, type AiReportOutput,
-} from '../../shared/schemas/firestore/detailedReport.schema';
+import { SINGLE_ANALYSIS_SECTIONS } from '../../shared/schemas/firestore/singleAnalysis.schema';
 
-const body = (index: number) => `這是第 ${index} 段的內容，說明你可能偏好先觀察再行動，並在熟悉的環境裡更能發揮。`;
-
-function goodReport(): AiReportOutput {
-    return {
-        sections: REPORT_SECTIONS.map((section, index) => ({
-            key: section.key,
-            content: body(index),
-            evidence: '依據你的 MBTI 結果與外向內向傾向',
-            evidenceKind: index % 2 === 0 ? 'OBSERVED' : 'INFERRED',
-        })),
-    };
-}
-
-describe('assessReport', () => {
-    it('accepts a well-formed report', () => {
-        expect(assessReport(goodReport())).toEqual({
-            fatal: [], warnings: [],
-        });
+describe('assessMultiAnalysis', () => {
+    const ids = ['convergence-order', 'tension-logic-intuition'];
+    const text = '依你的報告來看，你可能傾向把事情安排得清楚，也容易在雜亂的環境裡感到不自在。';
+    const section = (kind: 'overview' | 'insight' | 'advice', candidateIds: string[], content = text) => ({
+        kind, candidateIds, content, evidence: '依據規則找出的洞見與重點事實',
+    });
+    const good = () => ({
+        sections: [
+            section('overview', [ids[0] as string]),
+            section('insight', [ids[0] as string]),
+            section('insight', [ids[1] as string]),
+            section('advice', [ids[1] as string]),
+        ],
     });
 
-    it('rejects a report with a missing, extra or misordered section', () => {
-        const missing = goodReport();
-        missing.sections.pop();
-        expect(assessReport(missing).fatal[0]?.code).toBe('STRUCTURE');
-
-        const swapped = goodReport();
-        [swapped.sections[0], swapped.sections[1]] = [swapped.sections[1], swapped.sections[0]] as AiReportOutput['sections'];
-        expect(assessReport(swapped).fatal[0]?.code).toBe('STRUCTURE');
+    it('accepts an overview, one insight for each candidate, and advice, all citing candidates that were found', () => {
+        expect(assessMultiAnalysis(good(), ids).fatal).toEqual([]);
     });
 
-    it('rejects sections that are too short or cite nothing', () => {
-        const report = goodReport();
-        report.sections[2] = {
-            ...report.sections[2]!, content: '太短', evidence: '',
-        };
+    it('rejects a part that cites no candidate', () => {
+        const output = good();
 
-        const codes = assessReport(report).fatal.map((finding) => finding.code);
+        output.sections[3] = section('advice', []);
 
-        expect(codes).toContain('TOO_SHORT');
-        expect(codes).toContain('NO_EVIDENCE');
+        expect(assessMultiAnalysis(output, ids).fatal.map((finding) => finding.code)).toContain('NO_CITATION');
     });
 
-    it.each([
-        '這樣的人格特質可能代表憂鬱症的傾向，建議留意。',
-        '你被診斷為焦慮的機率很高，需要醫師建議。',
-        '這是一種人格障礙的表現，可能需要藥物治療。',
-    ])('rejects diagnostic wording: %s', (sentence) => {
-        const report = goodReport();
-        report.sections[1] = {
-            ...report.sections[1]!, content: `${body(1)}${sentence}`,
-        };
+    it('rejects a part that cites a candidate that does not exist', () => {
+        const output = good();
 
-        expect(assessReport(report).fatal.map((finding) => finding.code)).toContain('DIAGNOSTIC');
+        output.sections[0] = section('overview', ['made-up']);
+
+        expect(assessMultiAnalysis(output, ids).fatal.map((finding) => finding.code)).toContain('UNKNOWN_CITATION');
     });
 
-    it('also catches diagnostic wording hidden in the evidence field', () => {
-        const report = goodReport();
-        report.sections[3] = {
-            ...report.sections[3]!, evidence: '依據他可能罹患的症狀',
-        };
+    it('rejects a missing insight, a second insight for one candidate, and an insight about two', () => {
+        const missing = { sections: good().sections.slice(0, 2).concat(good().sections.slice(3)) };
+        const twice = { sections: [...good().sections, section('insight', [ids[0] as string])] };
+        const two = { sections: [section('overview', [ids[0] as string]), section('insight', ids)] };
 
-        expect(assessReport(report).fatal.map((finding) => finding.code)).toContain('DIAGNOSTIC');
+        for (const output of [
+            missing,
+            twice,
+            two,
+        ]) {
+            expect(assessMultiAnalysis(output, ids).fatal.map((finding) => finding.code)).toContain('STRUCTURE');
+        }
     });
 
-    it('only warns about overconfident wording, so a report is not thrown away for it', () => {
-        const report = goodReport();
-        report.sections[4] = {
-            ...report.sections[4]!, content: `${body(4)}你一定會在感情中遇到合適的人。`,
-        };
+    it('rejects diagnosis wording and a percentage, and only warns about absolute wording', () => {
+        const diagnosis = good();
+        const percent = good();
+        const absolute = good();
 
-        const result = assessReport(report);
+        diagnosis.sections[1] = section('insight', [ids[0] as string], '你可能罹患憂鬱症，所以比較傾向把事情安排得清楚，也容易感到不自在。');
+        percent.sections[1] = section('insight', [ids[0] as string], '你有八成的可能傾向把事情安排得清楚，信心約 80% 左右，也容易感到不自在。');
+        absolute.sections[1] = section('insight', [ids[0] as string], '你一定會把事情安排得清楚，也容易在雜亂的環境裡感到不自在，這是你的特色。');
 
-        expect(result.fatal).toEqual([]);
-        expect(result.warnings.map((finding) => finding.code)).toContain('OVERCONFIDENT');
-    });
-
-    it('warns when the same sentence is repeated in two sections', () => {
-        const report = goodReport();
-        const repeated = '你在做決定時傾向先蒐集足夠的資訊再行動。';
-        report.sections[1] = {
-            ...report.sections[1]!, content: `${body(1)}${repeated}`,
-        };
-        report.sections[5] = {
-            ...report.sections[5]!, content: `${body(5)}${repeated}`,
-        };
-
-        expect(assessReport(report).warnings.map((finding) => finding.code)).toContain('REPEATED');
-    });
-
-    it('warns when every section claims the same kind of evidence', () => {
-        const report = goodReport();
-        report.sections = report.sections.map((section) => ({
-            ...section, evidenceKind: 'INFERRED' as const,
-        }));
-
-        expect(assessReport(report).warnings.map((finding) => finding.code)).toContain('UNIFORM_EVIDENCE_KIND');
+        expect(assessMultiAnalysis(diagnosis, ids).fatal.map((finding) => finding.code)).toContain('DIAGNOSTIC');
+        expect(assessMultiAnalysis(percent, ids).fatal.map((finding) => finding.code)).toContain('PERCENT');
+        expect(assessMultiAnalysis(absolute, ids).fatal).toEqual([]);
+        expect(assessMultiAnalysis(absolute, ids).warnings.map((finding) => finding.code)).toContain('OVERCONFIDENT');
     });
 });
 
-describe('parseReportOutput', () => {
-    it('accepts the report shape and rejects anything else', () => {
-        expect(parseReportOutput(goodReport())).not.toBeNull();
-        expect(parseReportOutput({ sections: [{ key: 'overview' }] })).toBeNull();
-        expect(parseReportOutput({
+describe('assessSingleAnalysis', () => {
+    const text = '這是一段內容，說明你可能偏好先觀察再行動，並在熟悉的環境裡更能發揮所長。';
+    const good = () => ({
+        sections: SINGLE_ANALYSIS_SECTIONS.map((section) => ({
+            key: section.key, content: text, evidence: '依據報告裡的事實與面向',
+        })),
+    });
+
+    it('accepts the four sections in order, each with content and evidence', () => {
+        expect(assessSingleAnalysis(good()).fatal).toEqual([]);
+    });
+
+    it('rejects a missing, repeated or reordered section', () => {
+        const missing = { sections: good().sections.slice(1) };
+        const reordered = { sections: [...good().sections].reverse() };
+
+        for (const output of [missing, reordered]) {
+            expect(assessSingleAnalysis(output).fatal.map((finding) => finding.code)).toEqual(['STRUCTURE']);
+        }
+    });
+
+    it('rejects content that is too short, a section without evidence, and diagnosis wording', () => {
+        const output = good();
+
+        output.sections[0] = {
+            key: output.sections[0]?.key as string, content: '太短', evidence: '依據報告',
+        };
+        output.sections[1] = {
+            key: output.sections[1]?.key as string, content: text, evidence: '',
+        };
+        output.sections[2] = {
+            key: output.sections[2]?.key as string, content: '你可能罹患憂鬱症，所以比較偏好先觀察再行動，也傾向在熟悉的環境裡發揮。', evidence: '依據報告裡的事實',
+        };
+
+        expect(assessSingleAnalysis(output).fatal.map((finding) => finding.code).sort()).toEqual([
+            'DIAGNOSTIC',
+            'NO_EVIDENCE',
+            'TOO_SHORT',
+        ]);
+    });
+
+    it('only warns about absolute wording', () => {
+        const output = good();
+
+        output.sections[0] = {
+            key: output.sections[0]?.key as string, content: '你一定會先觀察再行動，也傾向在熟悉的環境裡更能發揮所長，這是你的特色。', evidence: '依據報告裡的事實',
+        };
+
+        expect(assessSingleAnalysis(output).fatal).toEqual([]);
+        expect(assessSingleAnalysis(output).warnings.map((finding) => finding.code)).toEqual(['OVERCONFIDENT']);
+    });
+});
+
+describe('parsing what the model returned', () => {
+    it('gives null for an answer that does not fit the shape, for both kinds of reading', () => {
+        expect(parseSingleAnalysisOutput({ sections: 'nope' })).toBeNull();
+        expect(parseSingleAnalysisOutput({
             sections: [
                 {
-                    key: 'not-a-section', content: 'x', evidence: 'y', evidenceKind: 'OBSERVED',
+                    key: 'unknown', content: 'x', evidence: 'y', 
                 },
             ], 
         })).toBeNull();
-        expect(parseReportOutput('text')).toBeNull();
-        expect(parseReportOutput(null)).toBeNull();
+        expect(parseMultiAnalysisOutput({})).toBeNull();
+        expect(parseMultiAnalysisOutput({
+            sections: [
+                {
+                    kind: 'insight', candidateIds: ['a'], content: 'x', evidence: 'y', 
+                },
+            ], 
+        })).not.toBeNull();
     });
 });

@@ -4,31 +4,6 @@ import {
 import {
     reportSnapshotContentSchema, snapshotSegmentSchema, snapshotSourceSchema, SNAPSHOT_SEGMENT_KINDS,
 } from '../schemas/firestore/reportSnapshot.schema';
-import {
-    REPORT_SECTIONS, evidenceKindSchema, 
-} from '../schemas/firestore/detailedReport.schema';
-import { snapshotKindOfEvidence } from './reportSnapshot';
-
-describe('snapshotKindOfEvidence', () => {
-    it('turns what the AI report calls OBSERVED into a fact, or into the system\'s interpretation', () => {
-        expect(snapshotKindOfEvidence('OBSERVED')).toBe('FACT');
-        expect(snapshotKindOfEvidence('OBSERVED', { systemInterpretation: true })).toBe('SYSTEM_INTERPRETATION');
-    });
-
-    it('turns INFERRED into the AI\'s own conclusion, whatever else is said', () => {
-        expect(snapshotKindOfEvidence('INFERRED')).toBe('AI_INFERENCE');
-        expect(snapshotKindOfEvidence('INFERRED', { systemInterpretation: true })).toBe('AI_INFERENCE');
-    });
-
-    it('covers every value the AI report has, and leaves its own schema as it was', () => {
-        for (const value of evidenceKindSchema.options) {
-            expect(SNAPSHOT_SEGMENT_KINDS).toContain(snapshotKindOfEvidence(value));
-        }
-
-        expect(evidenceKindSchema.options).toEqual(['OBSERVED', 'INFERRED']);
-        expect(REPORT_SECTIONS).toHaveLength(8);
-    });
-});
 
 describe('the segment and source schemas', () => {
     const segment = {

@@ -1,62 +1,36 @@
-import type { ReportDimension } from '../schemas/firestore/detailedReport.schema';
+import type { MultiReportSystem } from '../report/systems';
 
-/** What each dimension's own report is worth, in points; the multi-dimension price starts from their sum. */
-const DIMENSION_BASE_PRICE: Readonly<Record<ReportDimension, number>> = {
+/** What each system's own report is worth, in points: one, and more for the two that take more to work out. */
+const SYSTEM_BASE_PRICE: Readonly<Record<MultiReportSystem, number>> = {
     ZODIAC: 1,
     BLOOD: 1,
     MBTI: 1,
     NUMEROLOGY: 1,
+    MAYA_KIN: 1,
     HUMAN_DESIGN: 2,
     BAZI: 3,
-    // Like the life path number, it comes from the birth date alone
-    MAYA_KIN: 1,
 };
 
-/**
- * Weight by the number of dimensions, in halves (2 = x1, 3 = x1.5 …): more dimensions cost more, and the weight stops
- * rising at five. Halves keep the arithmetic in whole numbers, so the final rounding is exact.
- */
-const COUNT_WEIGHT_HALVES: Readonly<Record<number, number>> = {
-    2: 2,
-    3: 3,
-    4: 4,
-    5: 5,
-    6: 5,
-    7: 5,
-};
+/** The price of a combination is the sum of its systems times this, in tenths so that the rounding is exact. */
+const MULTI_REPORT_WEIGHT_TENTHS = 12;
+const TENTHS = 10;
 
-/** An analysis the model generates costs 1.5 times as much; both factors are written as halves. */
-const GENERATED_WEIGHT_HALVES = 3;
-const WRITTEN_WEIGHT_HALVES = 2;
-
-/** No multi-dimension analysis costs more than this, however many dimensions it combines. */
+/** No multi-dimension report costs more than this, however many systems it combines. */
 const MAX_COST = 30;
 
-/** Two factors in halves multiply to quarters. */
-const QUARTERS = 4;
+/** The fewest systems one report combines. */
+export const MULTI_REPORT_MIN_SYSTEMS = 2;
 
 /**
- * Whether this choice of dimensions is generated (it includes the human design, the BaZi chart or the Maya Kin) or
- * written content. The written summaries cover only zodiac, MBTI, blood type and life path number: a Kin would multiply
- * their 14320 combinations by 260.
+ * Points a multi-dimension report costs (the AI reading is included), or null when the number of systems is not offered.
+ * Price = the sum of the systems' own prices x 1.2, rounded down, never above the cap.
  */
-export function isGeneratedAnalysis(dimensions: readonly ReportDimension[]): boolean {
-    return dimensions.includes('HUMAN_DESIGN') || dimensions.includes('BAZI') || dimensions.includes('MAYA_KIN');
-}
+export function multiReportCost(systems: readonly MultiReportSystem[]): number | null {
+    const unique = [...new Set(systems)];
 
-/**
- * Points a multi-dimension analysis costs, or null when the number of dimensions is not offered.
- * Price = sum of the dimensions' own prices x weight of the dimension count x 1.5 when generated, rounded down,
- * and never above the cap.
- */
-export function multiDimensionCost(dimensions: readonly ReportDimension[]): number | null {
-    const unique = [...new Set(dimensions)];
-    const countWeight = COUNT_WEIGHT_HALVES[unique.length];
+    if (unique.length < MULTI_REPORT_MIN_SYSTEMS) return null;
 
-    if (countWeight === undefined) return null;
+    const base = unique.reduce((total, system) => total + SYSTEM_BASE_PRICE[system], 0);
 
-    const base = unique.reduce((total, dimension) => total + DIMENSION_BASE_PRICE[dimension], 0);
-    const generatedWeight = isGeneratedAnalysis(unique) ? GENERATED_WEIGHT_HALVES : WRITTEN_WEIGHT_HALVES;
-
-    return Math.min(MAX_COST, Math.floor((base * countWeight * generatedWeight) / QUARTERS));
+    return Math.min(MAX_COST, Math.floor((base * MULTI_REPORT_WEIGHT_TENTHS) / TENTHS));
 }

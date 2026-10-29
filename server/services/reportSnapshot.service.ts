@@ -146,6 +146,22 @@ export class ReportSnapshotService extends BaseService {
         });
     }
 
+    /** The report whose AI analysis was asked for with this job id (the Idempotency-Key), or null: how a retry finds its report. */
+    async findByJob(uid: string, jobId: string): Promise<{ id: string; status: NonNullable<ReportSnapshotDoc['aiJob']>['status'] } | null> {
+        const now = this.clock();
+        const recent = await this.repository.snapshotsRef(uid).orderBy('generatedAt', 'desc').limit(MAX_SNAPSHOTS_PER_USER).get();
+
+        for (const snap of recent.docs) {
+            const doc = reportSnapshotDocSchema.parse(snap.data());
+
+            if (doc.expiresAt > now && doc.aiJob?.id === jobId) return {
+                id: snap.id, status: doc.aiJob.status,
+            };
+        }
+
+        return null;
+    }
+
     /** The member's reports that have not expired, newest first. */
     async list(uid: string): Promise<ReportSnapshotItem[]> {
         const now = this.clock();
@@ -170,9 +186,38 @@ export class ReportSnapshotService extends BaseService {
             kind: doc.kind,
             systems: doc.systems,
             position: doc.position,
+            parts: this.partsOf(doc),
+            aiStatus: doc.aiJob?.status ?? null,
             aiAugmented: doc.ai !== null,
             generatedAt: doc.generatedAt,
             expiresAt: doc.expiresAt,
         };
+    }
+
+    /**
+     * Where the member stands in each system. A multi-dimension report keeps them as the sentences of its coordinates
+     * block ("傳統占星：太陽天蠍座"), one per system, which are cut at the first colon; a single report is one part.
+     */
+    private partsOf(doc: ReportSnapshotDoc): ReportSnapshotItem['parts'] {
+        const [first] = doc.systems;
+
+        if (doc.kind === 'SINGLE') return first ? [
+            {
+                system: first, position: doc.position, 
+            },
+        ] : [];
+
+        const segments = doc.blocks.find((block) => block.key === 'coordinates')?.segments ?? [];
+
+        return segments.flatMap((segment) => {
+            const system = segment.sources.find((source) => source.system)?.system;
+            const colon = segment.text.indexOf('：');
+
+            return system ? [
+                {
+                    system, position: colon < 0 ? segment.text : segment.text.slice(colon + 1),
+                },
+            ] : [];
+        });
     }
 }

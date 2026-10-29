@@ -61,6 +61,11 @@ type SingleReportServiceOptions = {
     clock?: () => number;
 };
 
+/** Where the member stands in the system of a single report: the one part. */
+const partsOf = (content: { systems: readonly SingleReportSystem[]; position: string }) => content.systems.map((system) => ({
+    system, position: content.position,
+}));
+
 /** Who asks: a signed-in member (the report is kept) or a guest with a session (it is not). */
 export type ReportAsker = { uid: string } | { guestSessionId: string | null };
 
@@ -130,7 +135,7 @@ export class SingleReportService extends BaseService {
             const now = this.clock();
 
             return {
-                ...content, id: null, generatedAt: now, expiresAt: null, persisted: false, aiAugmented: false, ai: null, aiJob: null,
+                ...content, id: null, generatedAt: now, expiresAt: null, persisted: false, aiAugmented: false, ai: null, aiJob: null, aiStatus: null, parts: partsOf(content),
             };
         }
 
@@ -142,6 +147,40 @@ export class SingleReportService extends BaseService {
         return {
             ...await this.snapshots.get(asker.uid, id), persisted: true,
         };
+    }
+
+    /**
+     * The single-dimension inputs of a member for several systems, to be put together into one report. What is missing
+     * for any of them (a birth time, a blood type, a published reading) stops the whole thing, exactly as it does for
+     * its own report, so that nothing is paid for before everything is there.
+     */
+    async memberInputs(uid: string, systems: readonly SingleReportSystem[]): Promise<SystemReportInput[]> {
+        const subject = await this.memberSubject(uid);
+        const inputs: SystemReportInput[] = [];
+
+        for (const system of systems) inputs.push(await this.inputOf(subject, system));
+
+        return inputs;
+    }
+
+    /** What the member has today (a tarot card, a rune, the horoscope), to be held up against a report; what they do not have is left out. */
+    async todayInputs(uid: string): Promise<SystemReportInput[]> {
+        const inputs: SystemReportInput[] = [];
+
+        for (const system of [
+            'TAROT',
+            'RUNE',
+            'HOROSCOPE',
+        ] as const) {
+            try {
+                inputs.push(await this.todayInput(uid, system));
+            } catch (error) {
+                // Not drawn yet, no sign, or a reading not published: a gap in the comparison, not an error of the report
+                if (!(error instanceof UnprocessableError) && !(error instanceof NotFoundError)) throw error;
+            }
+        }
+
+        return inputs;
     }
 
     /**
@@ -157,7 +196,7 @@ export class SingleReportService extends BaseService {
         const content = assembleSingleReport(await this.todayInput(asker.uid, system));
 
         return {
-            ...content, id: null, generatedAt: this.clock(), expiresAt: null, persisted: false, aiAugmented: false, ai: null, aiJob: null,
+            ...content, id: null, generatedAt: this.clock(), expiresAt: null, persisted: false, aiAugmented: false, ai: null, aiJob: null, aiStatus: null, parts: partsOf(content),
         };
     }
 

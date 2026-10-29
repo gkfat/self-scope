@@ -12,8 +12,6 @@ tags:
   - name: FixedResults
   - name: Tests
   - name: HumanDesign
-  - name: Summaries
-  - name: DetailedReports
   - name: ReportSnapshots
   - name: Points
   - name: Payments
@@ -436,180 +434,6 @@ paths:
                 "$ref": "#/components/schemas/HumanDesignResult"
         "400":
           "$ref": "#/components/responses/ValidationError"
-  "/summaries":
-    post:
-      operationId: obtainSummary
-      summary: "取得多維度分析報告"
-      description: "依我的個人資料決定組合鍵（星座+MBTI，或加血型）。首次取得扣 1 點；已取得過的組合直接回傳不再扣點。需帶 Idempotency-Key 防止重複扣點。"
-      tags: [Summaries]
-      parameters:
-        - "$ref": "#/components/parameters/IdempotencyKey"
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/SummaryRequest"
-      responses:
-        "201":
-          description: "首次取得（2 個維度扣 1 點、3 個維度扣 3 點、4 個維度扣 5 點）"
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/SummaryObtained"
-        "200":
-          description: "已取得過，不重複扣點"
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/SummaryObtained"
-        "401":
-          "$ref": "#/components/responses/Unauthorized"
-        "402":
-          "$ref": "#/components/responses/InsufficientPoints"
-        "422":
-          description: "缺少 MBTI，無法取得 summary"
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/ErrorResponse"
-    get:
-      operationId: listSummaries
-      summary: "列出我已取得的 summary"
-      description: "僅回傳未到期的紀錄，不扣點。"
-      tags: [Summaries]
-      responses:
-        "200":
-          description: "summary 清單"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/MemberSummary"
-        "401":
-          "$ref": "#/components/responses/Unauthorized"
-  "/summaries/{summaryId}":
-    get:
-      operationId: getSummary
-      summary: "查看已取得的 summary"
-      description: "讀取已保存內容，不扣點。"
-      tags: [Summaries]
-      parameters:
-        - name: summaryId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: summary
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/MemberSummary"
-        "401":
-          "$ref": "#/components/responses/Unauthorized"
-        "404":
-          "$ref": "#/components/responses/NotFound"
-  "/detailed-reports":
-    post:
-      operationId: createDetailedReport
-      summary: "生成詳細分析"
-      description: "至少需有星座與 MBTI 結果（RULE-033）；扣 5 點後非同步生成 AI 報告（逾時 120 秒視為失敗），回傳 202 與 reportId，以 GET 輪詢狀態（因函式執行時間上限）。失敗時返還點數。需 Idempotency-Key。"
-      tags: [DetailedReports]
-      parameters:
-        - "$ref": "#/components/parameters/IdempotencyKey"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/DetailedReportRequest"
-      responses:
-        "202":
-          description: "已受理，生成中"
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/ReportAccepted"
-        "400":
-          "$ref": "#/components/responses/ValidationError"
-        "401":
-          "$ref": "#/components/responses/Unauthorized"
-        "402":
-          "$ref": "#/components/responses/InsufficientPoints"
-        "422":
-          description: "缺少 MBTI 結果，無法生成"
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/ErrorResponse"
-        "429":
-          "$ref": "#/components/responses/RateLimited"
-    get:
-      operationId: listDetailedReports
-      summary: "列出我的詳細分析"
-      description: ""
-      tags: [DetailedReports]
-      responses:
-        "200":
-          description: "報告清單"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/DetailedReport"
-        "401":
-          "$ref": "#/components/responses/Unauthorized"
-  "/detailed-reports/{reportId}":
-    get:
-      operationId: getDetailedReport
-      summary: "查看詳細分析"
-      description: "僅擁有者可存取；讀取已保存內容，不呼叫 AI、不扣點。生成中時回傳狀態。"
-      tags: [DetailedReports]
-      parameters:
-        - "$ref": "#/components/parameters/ReportIdPath"
-      responses:
-        "200":
-          description: "報告"
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/DetailedReport"
-        "401":
-          "$ref": "#/components/responses/Unauthorized"
-        "403":
-          "$ref": "#/components/responses/Forbidden"
-        "404":
-          "$ref": "#/components/responses/NotFound"
-  "/detailed-reports/{reportId}/regenerations":
-    post:
-      operationId: regenerateDetailedReport
-      summary: "重新生成詳細分析"
-      description: "扣 5 點並產生新報告，舊報告保留（RULE-006）。需 Idempotency-Key。"
-      tags: [DetailedReports]
-      parameters:
-        - "$ref": "#/components/parameters/ReportIdPath"
-        - "$ref": "#/components/parameters/IdempotencyKey"
-      responses:
-        "202":
-          description: "已受理，生成中（新報告）"
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/ReportAccepted"
-        "401":
-          "$ref": "#/components/responses/Unauthorized"
-        "402":
-          "$ref": "#/components/responses/InsufficientPoints"
-        "403":
-          "$ref": "#/components/responses/Forbidden"
-        "404":
-          "$ref": "#/components/responses/NotFound"
-        "429":
-          "$ref": "#/components/responses/RateLimited"
   "/points":
     get:
       operationId: getPointBalance
@@ -1000,38 +824,6 @@ paths:
           "$ref": "#/components/responses/Unauthorized"
         "404":
           "$ref": "#/components/responses/NotFound"
-  "/detailed-reports/{reportId}/downloads":
-    post:
-      operationId: downloadDetailedReport
-      summary: "以點數取得詳細分析報告書（寄送 email）"
-      description: "僅報告擁有者且報告未到期；每次扣 1 點，產生 PDF 並寄送至使用者 email。若該報告已下載過，未帶 confirmRepeat=true 時回傳 409 提醒（不扣點），確認後才重複扣點。需 Idempotency-Key。"
-      tags: [DetailedReports]
-      parameters:
-        - "$ref": "#/components/parameters/ReportIdPath"
-        - "$ref": "#/components/parameters/IdempotencyKey"
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/ReportDownloadRequest"
-      responses:
-        "202":
-          description: "已受理並寄送"
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/ReportDelivery"
-        "401":
-          "$ref": "#/components/responses/Unauthorized"
-        "402":
-          "$ref": "#/components/responses/InsufficientPoints"
-        "403":
-          "$ref": "#/components/responses/Forbidden"
-        "404":
-          "$ref": "#/components/responses/NotFound"
-        "409":
-          "$ref": "#/components/responses/ConfirmationRequired"
   "/today":
     get:
       operationId: getTodayStatus
@@ -1196,6 +988,61 @@ paths:
           "$ref": "#/components/responses/NotFound"
         "409":
           description: "這份報告的分析正在生成中"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "429":
+          "$ref": "#/components/responses/RateLimited"
+  "/multi-reports":
+    post:
+      operationId: createMultiReport
+      summary: "取得多維度報告"
+      description: "把至少兩個穩定特質系統（星座、血型、MBTI、生命靈數、瑪雅 Kin、八字、人類圖）放在一起，由規則組裝報告並保存為快照，再由 AI 針對這個人改寫洞見。一律用點數付費、AI 解讀已含在內：價格 = 各系統基本價（人類圖 2、八字 3、其餘 1）之和 × 1.2，無條件捨去，上限 30 點。回傳 202 與快照 id，再以 GET /report-snapshots/{id} 輪詢 aiJob 與 ai；失敗退點。缺資料回 422（PROFILE_REQUIRED、BLOOD_REQUIRED、MBTI_REQUIRED、BIRTH_TIME_REQUIRED、BIRTH_PLACE_REQUIRED），規則找不到任何洞見回 422（NO_INSIGHTS），皆不扣點。需 Idempotency-Key。"
+      tags: [ReportSnapshots]
+      parameters:
+        - "$ref": "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                systems:
+                  type: array
+                  minItems: 2
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum: [ZODIAC, BLOOD, MBTI, NUMEROLOGY, MAYA_KIN, BAZI, HUMAN_DESIGN]
+              required: [systems]
+      responses:
+        "202":
+          description: "已受理（同一個 Idempotency-Key 重複請求只回報目前狀態，不重複扣點）"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  snapshotId:
+                    type: string
+                  status:
+                    type: string
+                    enum: [GENERATING, COMPLETED, FAILED]
+                  pointsDeducted:
+                    type: integer
+                required: [snapshotId, status, pointsDeducted]
+        "400":
+          "$ref": "#/components/responses/ValidationError"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "402":
+          "$ref": "#/components/responses/InsufficientPoints"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+        "422":
+          description: "缺少報告需要的資料，或規則找不到任何洞見（NO_INSIGHTS）"
           content:
             application/json:
               schema:
@@ -1834,43 +1681,6 @@ components:
           nullable: true
           description: "生命靈數（1–9、11、22、33）；未選入此組合時為 null"
       required: [zodiac, mbti]
-    SummaryRequest:
-      type: object
-      properties:
-        dimensions:
-          type: array
-          minItems: 2
-          uniqueItems: true
-          description: "固定內容分析：星座、血型、MBTI、生命靈數擇 2～4 個（含人類圖的組合走 /detailed-reports）。2 個維度 1 點、3 個維度 3 點、4 個維度 5 點。"
-          items:
-            type: string
-            enum: [ZODIAC, BLOOD, MBTI, NUMEROLOGY]
-      required: [dimensions]
-    MemberSummary:
-      type: object
-      properties:
-        summaryId:
-          type: string
-        combinationKey:
-          "$ref": "#/components/schemas/CombinationKey"
-        content:
-          "$ref": "#/components/schemas/FixedResultContent"
-        obtainedAt:
-          type: string
-          format: date-time
-        expiresAt:
-          type: string
-          format: date-time
-      required: [summaryId, combinationKey, content, obtainedAt, expiresAt]
-    SummaryObtained:
-      allOf:
-        - "$ref": "#/components/schemas/MemberSummary"
-        - type: object
-          properties:
-            pointsDeducted:
-              type: integer
-              description: "首次取得為 1，已取得過為 0"
-          required: [pointsDeducted]
     GuestProfile:
       type: object
       properties:
@@ -2178,93 +1988,6 @@ components:
           minimum: 1
           maximum: 6
       required: [body, gate, line]
-    DetailedReportRequest:
-      type: object
-      properties:
-        dimensions:
-          type: array
-          minItems: 2
-          uniqueItems: true
-          description: "含人類圖的組合（由 AI 產生）：至少 2 個維度且必須包含 HUMAN_DESIGN；2 個維度 3 點、3 個維度 5 點、4 個維度 8 點、5 個維度 13 點。各維度需已完成。"
-          items:
-            type: string
-            enum: [ZODIAC, BLOOD, MBTI, HUMAN_DESIGN, NUMEROLOGY]
-      required: [dimensions]
-    ReportSection:
-      type: object
-      properties:
-        title:
-          type: string
-        content:
-          type: string
-        evidence:
-          type: string
-        evidenceKind:
-          type: string
-          enum: [OBSERVED, INFERRED]
-      required: [title, content, evidenceKind]
-    DetailedReport:
-      type: object
-      properties:
-        reportId:
-          type: string
-        status:
-          type: string
-          enum: [GENERATING, COMPLETED, FAILED]
-        combinationKey:
-          "$ref": "#/components/schemas/CombinationKey"
-        sections:
-          type: array
-          items:
-            "$ref": "#/components/schemas/ReportSection"
-        disclaimer:
-          type: string
-        modelName:
-          type: string
-        promptVersion:
-          type: string
-        supersedesReportId:
-          type: string
-          nullable: true
-        failureReason:
-          type: string
-          nullable: true
-        createdAt:
-          type: string
-          format: date-time
-      required: [reportId, status, combinationKey, createdAt]
-    ReportDelivery:
-      type: object
-      properties:
-        pointsDeducted:
-          type: integer
-        deliveredTo:
-          type: string
-          description: "遮罩後的 email"
-        requestedAt:
-          type: string
-          format: date-time
-        downloadCount:
-          type: integer
-      required: [pointsDeducted, deliveredTo, requestedAt]
-    ReportDownloadRequest:
-      type: object
-      properties:
-        confirmRepeat:
-          type: boolean
-          default: false
-          description: "已下載過時須為 true 才會重複扣點與寄送"
-    ReportAccepted:
-      type: object
-      properties:
-        reportId:
-          type: string
-        status:
-          type: string
-          enum: [GENERATING]
-        pointsDeducted:
-          type: integer
-      required: [reportId, status, pointsDeducted]
     PointBatch:
       type: object
       properties:
@@ -2418,7 +2141,7 @@ components:
           minItems: 1
           items:
             type: string
-            enum: [RESULTS, SUMMARIES, REPORTS, HUMAN_DESIGN]
+            enum: [RESULTS, REPORTS, HUMAN_DESIGN]
       required: [scopes]
     DeleteResult:
       type: object
@@ -2460,9 +2183,9 @@ components:
       properties:
         deletedAttempts:
           type: integer
-        deletedSummaries:
+        deletedReportSnapshots:
           type: integer
-      required: [deletedAttempts, deletedSummaries]
+      required: [deletedAttempts, deletedReportSnapshots]
     TodayStatus:
       type: object
       properties:
@@ -2599,6 +2322,21 @@ components:
         position:
           type: string
           description: "位置結論，例如「太陽天蠍座」"
+        parts:
+          type: array
+          description: "報告每個系統的位置結論（太陽天蠍座、O 型…），依系統順序"
+          items:
+            type: object
+            properties:
+              system:
+                type: string
+              position:
+                type: string
+        aiStatus:
+          type: string
+          nullable: true
+          enum: [GENERATING, COMPLETED, FAILED]
+          description: "AI 解讀的進度；從未要求時為 null"
         aiAugmented:
           type: boolean
           description: "是否已有 AI 進階分析（存放在獨立欄位 ai，不在基本內容裡）"
@@ -2608,7 +2346,7 @@ components:
         expiresAt:
           type: integer
           description: "epoch 毫秒；產生後 6 個月"
-      required: [id, kind, systems, position, aiAugmented, generatedAt, expiresAt]
+      required: [id, kind, systems, position, parts, aiStatus, aiAugmented, generatedAt, expiresAt]
     ReportSnapshotDetail:
       allOf:
         - "$ref": "#/components/schemas/ReportSnapshotItem"
@@ -2796,7 +2534,7 @@ components:
         sections:
           type: array
           items:
-            "$ref": "#/components/schemas/ReportSection"
+            type: object
           description: "章節結構待定"
         disclaimer:
           type: string

@@ -10,6 +10,13 @@ export const reportSnapshotItemSchema = z.object({
     kind: z.enum(SNAPSHOT_KINDS),
     systems: z.array(snapshotSystemSchema),
     position: z.string(),
+    /** Where the member stands in each system of the report ("太陽天蠍座", "O 型"…), in the order of the systems */
+    parts: z.array(z.object({
+        system: snapshotSystemSchema,
+        position: z.string(),
+    })),
+    /** How the AI reading is going: running, done, failed (the points are given back), or null when none was asked for */
+    aiStatus: snapshotAiJobSchema.shape.status.nullable(),
     /** Whether the AI analysis has been made for this report (it is kept apart from the report itself) */
     aiAugmented: z.boolean(),
     generatedAt: z.number().int(),

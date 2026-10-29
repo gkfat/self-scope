@@ -27,7 +27,11 @@ export const snapshotSourceSchema = z.object({
     term: z.string().min(1).optional(),
     axisEnd: z.string().regex(/^[A-E][1-6]\.[AB]$/).optional(),
     fragment: z.string().min(1).optional(),
-}).strict().refine((source) => Object.values(source).some((value) => value !== undefined), 'a source names a system, a term, an axis end or a fragment');
+    /** The insight rule (its id) that found the sentence, for a multi-dimension report */
+    rule: z.string().min(1).optional(),
+    /** For a reading of a fact: the label of that fact, so the reading is shown with it */
+    fact: z.string().min(1).optional(),
+}).strict().refine((source) => Object.values(source).some((value) => value !== undefined), 'a source names a system, a term, an axis end, a fragment, an insight rule or a fact');
 
 export const snapshotSegmentSchema = z.object({
     /** The words as the member read them, in full */
@@ -60,6 +64,8 @@ export const snapshotVersionsSchema = z.object({
     mapping: z.string().min(1),
     fragments: z.string().min(1),
     templates: z.string().min(1),
+    /** The version of the insight rules, for a multi-dimension report */
+    insightRules: z.string().min(1).optional(),
 });
 
 /**

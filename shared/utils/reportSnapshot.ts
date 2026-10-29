@@ -1,26 +1,10 @@
-import type {
-    ReportSnapshotContent, SnapshotSegmentKind,
-} from '../schemas/firestore/reportSnapshot.schema';
+import type { ReportSnapshotContent } from '../schemas/firestore/reportSnapshot.schema';
 
 /** How long a report is kept, in months (the same as an AI report). */
 export const SNAPSHOT_RETENTION_MONTHS = 6;
 
 /** The most reports one member keeps; making another removes the oldest. */
 export const MAX_SNAPSHOTS_PER_USER = 20;
-
-/**
- * The kind of a sentence from the `evidenceKind` an AI report section already carries. `OBSERVED` is what comes straight
- * from the facts: a fact, or (when the sentence is the reading of a system) the system's interpretation; `INFERRED` is
- * the model's own reading of them. The existing field is not changed.
- */
-export function snapshotKindOfEvidence(
-    evidenceKind: 'OBSERVED' | 'INFERRED',
-    options: { systemInterpretation?: boolean } = {},
-): SnapshotSegmentKind {
-    if (evidenceKind === 'INFERRED') return 'AI_INFERENCE';
-
-    return options.systemInterpretation ? 'SYSTEM_INTERPRETATION' : 'FACT';
-}
 
 /**
  * What makes two reports the same report: the report itself, without the times and without the AI analysis (which is

@@ -28,11 +28,8 @@ export const pointBatchDocSchema = z.object({
 
 export const POINT_TRANSACTION_REASONS = [
     'WELCOME',
-    'SUMMARY',
-    'DETAILED_REPORT',
-    'REGENERATE',
     'SINGLE_AI_ANALYSIS',
-    'DOWNLOAD',
+    'MULTI_REPORT',
     'PURCHASE',
 ] as const;
 
