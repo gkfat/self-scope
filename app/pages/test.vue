@@ -145,10 +145,14 @@ const QUESTIONS_PER_PAGE = 8;
 
 const route = useRoute();
 const { isAuthenticated } = useAuth();
-const { ensureSession } = useGuestSession();
+const {
+    ensureSession, forget: forgetSession,
+} = useGuestSession();
 const { post } = useApi();
 
-const { load: loadExploration } = useExploration();
+const {
+    state: exploration, load: loadExploration,
+} = useExploration();
 const loading = ref(true);
 const loadError = ref<string | null>(null);
 const test = ref<PublicTest | null>(null);
@@ -219,7 +223,20 @@ function retake() {
 onMounted(async () => {
     // Arriving from a report's "retake" button starts over instead of showing the kept result
     if (route.query.retake) storeResult(null);
-    result.value = readStoredResult();
+
+    // The kept result is only this tab's copy of what the visitor really has: one left over from another account or an
+    // earlier session must not stand in for a test this visitor has not taken
+    const stored = readStoredResult();
+
+    if (stored) {
+        if (!exploration.value.loaded) await loadExploration();
+
+        if (exploration.value.mbti === stored.result) {
+            result.value = stored;
+        } else {
+            storeResult(null);
+        }
+    }
 
     try {
         const tests = await $fetch<TestSummary[]>('/api/tests');
@@ -251,10 +268,10 @@ async function submit() {
             await ensureSession();
         }
 
-        result.value = await post<SubmissionResponse>(
-            `/api/tests/${test.value.testId}/submissions`,
+        const send = () => post<SubmissionResponse>(
+            `/api/tests/${test.value?.testId}/submissions`,
             {
-                testVersion: test.value.version,
+                testVersion: test.value?.version,
                 answers: questions.value.map((q) => ({
                     questionId: q.questionId,
                     value: answers[q.questionId],
@@ -263,6 +280,16 @@ async function submit() {
             {},
             'optional',
         );
+
+        result.value = await send();
+
+        // A guest result that was not kept means the session id was a stale one (expired, or already claimed by a
+        // sign-in): the result showed, but nothing else would ever see it. Start a fresh session and score it again.
+        if (!isAuthenticated.value && !result.value.persisted) {
+            forgetSession();
+            await ensureSession();
+            result.value = await send();
+        }
         storeResult(result.value);
         // The result is now part of the member's (or guest's) profile: other screens must see it
         await loadExploration();

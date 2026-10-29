@@ -53,119 +53,39 @@
             />
         </template>
 
+        <!-- The report of today, with everything the draw page used to show, right under the draw -->
         <template v-if="drawn">
-            <FullReportLink slug="rune" />
-            <div class="d-flex flex-wrap justify-center ga-2 mb-4">
-                <v-chip
-                    size="small"
-                    variant="outlined"
-                >
-                    Elder Futhark
-                </v-chip>
-                <v-chip
-                    size="small"
-                    variant="outlined"
-                >
-                    {{ RUNE_ORIENTATION_LABELS[drawn.rune.orientation] }}
-                </v-chip>
-                <v-chip
-                    size="small"
-                    variant="outlined"
-                >
-                    {{ drawn.date }}
-                </v-chip>
-            </div>
-
+            <SingleReportView
+                v-if="report"
+                :report="report"
+            />
             <v-card
+                v-else-if="reportStatus === 'loading'"
                 variant="outlined"
                 class="mb-4"
             >
                 <v-card-text>
-                    <p class="text-subtitle-1 font-weight-medium mb-2">
-                        {{ drawn.content.title }}
-                    </p>
-                    <blockquote class="quote">
-                        <p class="quote__text">
-                            {{ drawn.content.summary }}
-                        </p>
-                    </blockquote>
-
-                    <section
-                        v-if="drawn.content.strengths.length"
-                        class="mb-4"
-                    >
-                        <div class="text-subtitle-1 font-weight-medium mb-2">
-                            關鍵字
-                        </div>
-                        <v-chip
-                            v-for="word in drawn.content.strengths"
-                            :key="word"
-                            class="mr-2 mb-2"
-                            variant="tonal"
-                            color="primary"
-                        >
-                            {{ word }}
-                        </v-chip>
-                    </section>
-
-                    <section
-                        v-if="drawn.content.blindSpots.length"
-                        class="mb-4"
-                    >
-                        <div class="text-subtitle-1 font-weight-medium mb-2">
-                            <v-icon
-                                color="warning"
-                                size="20"
-                            >
-                                mdi-eye-outline
-                            </v-icon>
-                            {{ drawn.rune.orientation === 'reversed' ? '需要留意的面向' : '可以留意的地方' }}
-                        </div>
-                        <ul class="pl-5">
-                            <li
-                                v-for="item in drawn.content.blindSpots"
-                                :key="item"
-                                class="mb-1"
-                            >
-                                {{ item }}
-                            </li>
-                        </ul>
-                    </section>
-
-                    <section v-if="drawn.content.growthAdvice.trim()">
-                        <div class="text-subtitle-1 font-weight-medium mb-2">
-                            <v-icon
-                                color="success"
-                                size="20"
-                            >
-                                mdi-check-circle-outline
-                            </v-icon>
-                            今天可以試試
-                        </div>
-                        <blockquote class="quote mb-0">
-                            <p class="quote__text">
-                                {{ drawn.content.growthAdvice }}
-                            </p>
-                        </blockquote>
-                    </section>
+                    <v-skeleton-loader type="paragraph, paragraph" />
                 </v-card-text>
             </v-card>
-
-            <p class="text-caption text-medium-emphasis mb-4">
-                {{ drawn.content.disclaimer }}
-            </p>
         </template>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { RUNE_ORIENTATION_LABELS } from '../../../shared/constants/runes';
-
 const {
     today, status, drawing, load, draw,
 } = useDailyRune();
+const {
+    report, status: reportStatus, reload: reloadReport,
+} = useSingleReport('RUNE');
 
 const drawn = computed(() => (today.value?.drawn ? today.value : null));
+
+// The report is made from today's draw, so it is asked for again as soon as there is one
+watch(() => drawn.value?.rune.index, (index) => {
+    if (index !== undefined) void reloadReport();
+});
 
 /** Whether the drawn stone is turned face up: one drawn just now turns over, one drawn earlier is shown at once. */
 const revealed = ref(false);
@@ -214,19 +134,3 @@ onMounted(() => {
 
 onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible));
 </script>
-
-<style scoped>
-.quote {
-    margin: 0 0 20px;
-    padding: 16px 20px;
-    border-left: 4px solid rgb(var(--v-theme-primary));
-    border-radius: 0 8px 8px 0;
-    background: rgba(var(--v-theme-primary), 0.06);
-}
-
-.quote__text {
-    margin: 0;
-    font-size: 1rem;
-    line-height: 1.8;
-}
-</style>

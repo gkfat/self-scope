@@ -3,6 +3,7 @@
         <ReportBanner
             :title="meta ? meta.title : '完整報告'"
             :headline="report ? report.position : undefined"
+            :tagline="tagline"
             :extended="status === 'ready'"
             :tone="meta ? meta.tone : 'green'"
         />
@@ -76,7 +77,27 @@
                     你還沒登入，這份報告不會保存。登入後再開啟這一頁，報告就會保存下來。
                 </v-alert>
 
-                <SingleReportView :report="report" />
+                <v-card
+                    v-if="chart"
+                    variant="outlined"
+                    class="mb-4"
+                >
+                    <v-card-title>人類圖</v-card-title>
+                    <v-card-text>
+                        <HumanDesignChart :chart="chart" />
+                    </v-card-text>
+                </v-card>
+
+                <BaziChartPanel
+                    v-if="baziChart"
+                    :result="baziChart"
+                />
+
+                <SingleReportView
+                    :report="report"
+                    :natal-chart="natalChart"
+                    :natal-locked="natalLocked"
+                />
 
                 <SingleReportAiPanel
                     v-if="canAnalyse"
@@ -90,7 +111,11 @@
 
 <script lang="ts" setup>
 import { isStateSystem } from '../../../shared/ontology/mapping';
+import type { NatalChartResponse } from '../../../shared/schemas/api/natalChart.schema';
+import type { BaziResponse } from '../../../shared/schemas/api/bazi.schema';
+import type { HumanDesignResponse } from '../../../shared/schemas/api/humanDesign.schema';
 import { SINGLE_REPORT_SYSTEMS, type SingleReportSystem } from '../../../shared/report/systems';
+import { splitLead } from '../../utils/overviewLead';
 import { useSingleReport, type SingleReportNeed } from '../../composables/useSingleReport';
 
 type Meta = {
@@ -136,6 +161,9 @@ const meta: Meta | null = Object.hasOwn(META, slug) && SINGLE_REPORT_SYSTEMS.inc
 
 useHead({ title: meta ? `${meta.title}完整報告` : '完整報告' });
 
+const { post } = useApi();
+const { state } = useExploration();
+
 const {
     report, status, need, refresh,
 } = useSingleReport(meta ? meta.system : null);
@@ -170,5 +198,72 @@ const NEED_MESSAGES: Readonly<Record<SingleReportNeed, { type: 'info' | 'warning
 /** The AI analysis is for the reports built from birth data and the like; today's state is not kept, so it has none */
 const canAnalyse = computed(() => Boolean(report.value) && !isStateSystem(report.value?.systems[0] ?? 'ZODIAC'));
 
+/** The verdict on the result in a few words (the first words of the overview), shown under the headline */
+const tagline = computed(() => {
+    const first = report.value?.blocks.find((block) => block.key === 'overview')?.segments[0]?.text;
+    const text = first ? (/^【.+?】(.*)$/s.exec(first)?.[1] ?? first) : '';
+    const body = text.slice(text.indexOf('：') + 1);
+
+    return text ? splitLead(body).tagline : '';
+});
+
 const needMessage = computed(() => (need.value ? NEED_MESSAGES[need.value] : null));
+
+// The human design is also drawn as a chart; it is worked out from the same birth data as the report
+const chart = ref<HumanDesignResponse | null>(null);
+
+watch(() => report.value, async (current) => {
+    if (meta?.system !== 'HUMAN_DESIGN' || !current || chart.value) return;
+
+    try {
+        chart.value = await post<HumanDesignResponse>('/api/human-design/calculations', {}, {}, 'optional');
+    } catch (error) {
+        // The report reads fine without the drawing
+        console.error('[full-report] human design chart failed:', error);
+    }
+}, { immediate: true });
+
+// The BaZi chart is drawn too; nothing is saved, it is worked out from the same birth data as the report
+const baziChart = ref<BaziResponse | null>(null);
+
+watch(() => report.value, async (current) => {
+    const birth = state.value.birthData;
+
+    if (meta?.system !== 'BAZI' || !current || baziChart.value || !birth?.birthDate || !birth.birthTime) return;
+
+    try {
+        baziChart.value = await post<BaziResponse>('/api/bazi/calculations', {
+            birthDate: birth.birthDate,
+            birthTime: birth.birthTime,
+            birthPlace: birth.birthPlace ?? null,
+            gender: state.value.gender,
+        }, {}, 'optional');
+    } catch (error) {
+        // The report reads fine without the drawing
+        console.error('[full-report] bazi chart failed:', error);
+    }
+}, { immediate: true });
+
+// The birth chart is drawn too (houses and aspects are read from it); nothing is saved, it is worked out from the same birth data
+const natalChart = ref<NatalChartResponse | null>(null);
+
+/** The sun-sign report is shown, but the chart waits for a birth time and a city */
+const natalLocked = computed(() => meta?.system === 'ZODIAC'
+    && state.value.loaded
+    && !(state.value.birthData?.birthTime && state.value.birthData.birthPlace));
+
+watch(() => report.value, async (current) => {
+    const birth = state.value.birthData;
+
+    if (meta?.system !== 'ZODIAC' || !current || natalChart.value || !birth?.birthDate || !birth.birthTime || !birth.birthPlace) return;
+
+    try {
+        natalChart.value = await post<NatalChartResponse>('/api/zodiac/natal-chart', {
+            birthDate: birth.birthDate, birthTime: birth.birthTime, birthPlace: birth.birthPlace,
+        }, {}, 'optional');
+    } catch (error) {
+        // The report reads fine without the drawing
+        console.error('[full-report] natal chart failed:', error);
+    }
+}, { immediate: true });
 </script>

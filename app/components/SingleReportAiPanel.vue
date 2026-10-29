@@ -5,7 +5,7 @@
     >
         <v-card-title>AI 進階分析</v-card-title>
         <v-card-subtitle class="text-wrap">
-            依上面這份報告的事實與歸納的面向，由 AI 再往下推論；是 AI 的推測，不是該系統的說法。
+            依上面這份報告的事實與歸納的面向，交給 AI 生成一份專屬於你的解讀。
         </v-card-subtitle>
         <v-card-text>
             <v-alert
