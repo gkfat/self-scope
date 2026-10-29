@@ -12,17 +12,9 @@
                 :aria-label="interactive ? '翻開今天的牌' : undefined"
                 :disabled="interactive && busy ? true : undefined"
                 :tabindex="flipped ? -1 : undefined"
+                :style="spriteStyle(TAROT_SPRITE.back)"
                 @click="interactive && emit('reveal')"
             >
-                <span
-                    class="tarot__sigil"
-                    aria-hidden="true"
-                >
-                    <v-icon
-                        icon="mdi-star-four-points-outline"
-                        size="44"
-                    />
-                </span>
                 <span
                     v-if="interactive && !compact"
                     class="tarot__hint"
@@ -31,7 +23,7 @@
                 </span>
             </component>
 
-            <!-- Front: the picture when there is one, otherwise the numeral and the name -->
+            <!-- Front: the picture of the card, a cell of the sheet that holds them all -->
             <div
                 class="tarot__face tarot__front"
                 :aria-hidden="!flipped"
@@ -41,17 +33,12 @@
                     class="tarot__art"
                     :class="{ 'tarot__art--reversed': card.orientation === 'reversed' }"
                 >
-                    <img
-                        v-if="card.illustration"
-                        :src="card.illustration"
-                        :alt="`${card.name}（${card.englishName}）`"
+                    <div
                         class="tarot__image"
-                    >
-                    <template v-else>
-                        <span class="tarot__roman">{{ card.roman }}</span>
-                        <span class="tarot__name">{{ card.name }}</span>
-                        <span class="tarot__english">{{ card.englishName }}</span>
-                    </template>
+                        role="img"
+                        :aria-label="`${card.name}（${card.englishName}）`"
+                        :style="spriteStyle(card.index)"
+                    />
                 </div>
             </div>
         </div>
@@ -59,6 +46,9 @@
 </template>
 
 <script lang="ts" setup>
+import {
+    TAROT_SPRITE, tarotSpriteCell,
+} from '../../../shared/constants/tarotSprite';
 import type { TarotCardResponse } from '../../../shared/schemas/api/tarot.schema';
 
 withDefaults(defineProps<{
@@ -78,6 +68,17 @@ withDefaults(defineProps<{
 });
 
 const emit = defineEmits<{ reveal: [] }>();
+
+/** Shows one cell of the sheet of pictures on the element it is set on */
+function spriteStyle(cell: number) {
+    const {
+        size, position,
+    } = tarotSpriteCell(cell);
+
+    return {
+        backgroundImage: `url(${TAROT_SPRITE.url})`, backgroundSize: size, backgroundPosition: position,
+    };
+}
 </script>
 
 <style scoped>
@@ -109,18 +110,17 @@ const emit = defineEmits<{ reveal: [] }>();
     justify-content: center;
     gap: 12px;
     padding: 0;
-    border: 2px solid rgb(var(--v-theme-primary));
-    border-radius: 14px;
+    border: 0;
+    background-color: transparent;
+    background-repeat: no-repeat;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+    /* The corners of a card are round in the picture, so the shadow follows the picture */
+    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.25));
 }
 
 .tarot__back {
-    color: #fff;
-    background:
-        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.07) 0 8px, rgba(255, 255, 255, 0) 8px 16px),
-        linear-gradient(160deg, #2f5d8a 0%, #1f3f5f 100%);
+    color: #deb978;
 }
 
 button.tarot__back {
@@ -128,30 +128,10 @@ button.tarot__back {
     font: inherit;
 }
 
-button.tarot__back:hover:not(:disabled),
+/* No frame on hover; the keyboard focus is a soft glow that follows the shape of the card */
 button.tarot__back:focus-visible {
-    outline: 3px solid rgba(var(--v-theme-primary), 0.35);
-    outline-offset: 3px;
-}
-
-.tarot__sigil {
-    display: grid;
-    place-items: center;
-    width: 84px;
-    height: 84px;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 50%;
-}
-
-.tarot--compact .tarot__sigil {
-    width: 55%;
-    height: auto;
-    aspect-ratio: 1 / 1;
-}
-
-/* The icon's size is set inline, so the scaled size has to override it */
-.tarot--compact .tarot__sigil .v-icon {
-    font-size: calc(var(--tarot-width) * 0.28) !important;
+    outline: none;
+    filter: drop-shadow(0 0 6px rgba(var(--v-theme-primary), 0.7));
 }
 
 .tarot__hint {
@@ -161,8 +141,6 @@ button.tarot__back:focus-visible {
 
 .tarot__front {
     transform: rotateY(180deg);
-    overflow: hidden;
-    background: linear-gradient(180deg, #fffdf7 0%, #f3ead7 100%);
 }
 
 /* A reversed card is the picture turned around; the text around the card stays upright. */
@@ -171,12 +149,8 @@ button.tarot__back:focus-visible {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
     width: 100%;
     height: 100%;
-    padding: 16px;
-    text-align: center;
-    color: #3b2f1c;
 }
 
 .tarot__art--reversed {
@@ -186,25 +160,7 @@ button.tarot__back:focus-visible {
 .tarot__image {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-}
-
-.tarot__roman {
-    font-size: 2rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-}
-
-.tarot__name {
-    font-size: 1.75rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-}
-
-.tarot__english {
-    font-size: 0.8125rem;
-    letter-spacing: 0.06em;
-    opacity: 0.7;
+    background-repeat: no-repeat;
 }
 
 @media (prefers-reduced-motion: reduce) {
