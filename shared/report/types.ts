@@ -14,6 +14,26 @@ export type ReportInterpretation = {
     title: string;
     text: string;
     term?: string;
+    /** Shown first, in an overview of its own, instead of among the facts it reads (the reading of the sign itself) */
+    overview?: boolean;
+    /** The label of the fact this reads ("太陽星座"): the reading is then shown inside that fact's card */
+    factLabel?: string;
+};
+
+/**
+ * What we conclude from several facts of the system at once (where the bodies gather, the mix of elements): shown among
+ * the conclusions of the report, marked as ours, always with the facts it rests on.
+ */
+export type ReportInference = {
+    /** What was found, in a few words (it cannot hold a colon: the text is told from it at the first one) */
+    title: string;
+    text: string;
+    /** The part of the report it is shown in, under a heading of its own (otherwise with the conclusions about the traits) */
+    group?: { key: string; title: string };
+    /** What kind of sentence it is: our own conclusion (the default), or the tradition's words gathered from its readings */
+    kind?: 'SYSTEM_INTERPRETATION' | 'AI_INFERENCE';
+    /** What it rests on: the labels of the facts, or a plain description of them */
+    basedOn: readonly string[];
 };
 
 /** Something that depends on the date it was made for: a luck cycle, a year number. */
@@ -37,6 +57,8 @@ export type SystemReportInput = {
     position: string;
     facts: readonly ReportFact[];
     interpretations: readonly ReportInterpretation[];
+    /** Conclusions drawn from the facts together, by rule (not by the tradition of the system) */
+    inferences?: readonly ReportInference[];
     /** Terms of the system for this member (from the `*TermsOf` functions) */
     traits: readonly string[];
     timeFacts?: readonly ReportTimeFact[];

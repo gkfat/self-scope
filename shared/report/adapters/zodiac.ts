@@ -1,6 +1,13 @@
 import {
-    HOUSE_THEMES, NATAL_GROUPS, NATAL_LABELS, ASPECT_LABELS, type NatalKey, 
+    NATAL_GROUPS, NATAL_LABELS, ASPECT_LABELS, type NatalKey,
 } from '../../constants/natalLabels';
+import {
+    aspectReading, bodyInHouseReading, 
+} from '../../constants/natalSynthesis';
+import type { AspectType } from '../../constants/natal';
+import {
+    aspectFactLabel, houseFactLabel, natalHighlights, natalInferences,
+} from './natal';
 import { NATAL_PLACEMENT_MEANINGS } from '../../constants/natalPlacementMeanings';
 import { ZODIAC_LABELS } from '../../constants/zodiacLabels';
 import { zodiacTermsOf } from '../../ontology/mappings/zodiac';
@@ -48,12 +55,12 @@ export function zodiacReportInput(params: {
                 ] : [];
             }),
             ...natal.chart.houses.map((house) => ({
-                label: `第 ${house.house} 宮（${HOUSE_THEMES[house.house - 1] ?? ''}）`,
+                label: houseFactLabel(house.house),
                 value: `${ZODIAC_LABELS[house.sign]}，宮主星${NATAL_LABELS[house.ruler].name}，${house.bodies.length > 0 ? `星體：${house.bodies.map((body) => NATAL_LABELS[body].name).join('、')}` : '沒有星體'}`,
             })),
             ...natal.chart.aspects.map((aspect) => ({
-                label: '相位',
-                value: `${NATAL_LABELS[aspect.body1].name} ${ASPECT_LABELS[aspect.type as keyof typeof ASPECT_LABELS]} ${NATAL_LABELS[aspect.body2].name}（相差 ${aspect.orb.toFixed(1)}°）`,
+                label: aspectFactLabel(NATAL_LABELS[aspect.body1].name, ASPECT_LABELS[aspect.type as keyof typeof ASPECT_LABELS], NATAL_LABELS[aspect.body2].name),
+                value: `相差 ${aspect.orb.toFixed(1)}°`,
             })),
         ]
         : [];
@@ -64,9 +71,33 @@ export function zodiacReportInput(params: {
 
             return placement ? [
                 {
-                    title: `${NATAL_LABELS[key].name}在${ZODIAC_LABELS[placement.sign]}`, text: NATAL_PLACEMENT_MEANINGS[key][placement.sign],
+                    title: `${NATAL_LABELS[key].name}在${ZODIAC_LABELS[placement.sign]}`,
+                    text: NATAL_PLACEMENT_MEANINGS[key][placement.sign],
+                    // The sun's reading goes with the sun sign card; each other body's with its own placement
+                    factLabel: key === 'SUN' ? '太陽星座' : NATAL_LABELS[key].name,
                 },
             ] : [];
+        })
+        : [];
+
+    // Where each body falls among the houses, and how each pair of bodies stands: read from the fact they belong to
+    const houseReadings: ReportInterpretation[] = natal
+        ? natal.chart.houses.flatMap((house) => house.bodies.map((body) => ({
+            title: `${NATAL_LABELS[body].name}在第 ${house.house} 宮`,
+            text: bodyInHouseReading(body, house.house),
+            factLabel: houseFactLabel(house.house),
+        })))
+        : [];
+
+    const aspectReadings: ReportInterpretation[] = natal
+        ? natal.chart.aspects.map((aspect) => {
+            const label = aspectFactLabel(NATAL_LABELS[aspect.body1].name, ASPECT_LABELS[aspect.type as keyof typeof ASPECT_LABELS], NATAL_LABELS[aspect.body2].name);
+
+            return {
+                title: `${NATAL_LABELS[aspect.body1].name}與${NATAL_LABELS[aspect.body2].name}`,
+                text: aspectReading(aspect.type as AspectType, aspect.body1, aspect.body2, aspect.orb, (body) => NATAL_LABELS[body].name),
+                factLabel: label,
+            };
         })
         : [];
 
@@ -78,7 +109,15 @@ export function zodiacReportInput(params: {
                 label: '太陽星座', value: signLabel, term,
             }, ...natalFacts,
         ],
-        interpretations: [...readingsOfBody(params.body, term), ...natalReadings],
+        interpretations: [
+            ...readingsOfBody(params.body, term).map((reading) => ({
+                ...reading, overview: true,
+            })),
+            ...natalReadings,
+            ...houseReadings,
+            ...aspectReadings,
+        ],
+        inferences: natal ? [...natalHighlights(natal.chart), ...natalInferences(natal.chart)] : [],
         traits: zodiacTermsOf(params.zodiac),
         advice: adviceOfBody(params.body),
         notes: natal ? [] : [NATAL_MISSING_NOTE],

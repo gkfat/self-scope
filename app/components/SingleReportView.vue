@@ -1,6 +1,87 @@
 <template>
     <div>
         <v-card
+            v-if="overview.length"
+            variant="outlined"
+            class="mb-4"
+        >
+            <v-card-title>{{ blockTitle('overview') }}</v-card-title>
+            <v-card-text>
+                <!-- What the tradition says of the result as a whole: a quote on a row of its own -->
+                <blockquote
+                    v-if="overviewLead"
+                    class="lead"
+                >
+                    <div class="text-subtitle-1 font-weight-medium mb-1">
+                        {{ overviewLead.title }}
+                    </div>
+                    <p class="lead__text">
+                        {{ splitLead(overviewLead.text).rest }}
+                    </p>
+                </blockquote>
+
+                <!-- The traits the facts point at, ahead of the readings -->
+                <SingleReportSummary
+                    v-if="facetCards.length"
+                    class="mb-4"
+                    :facet-cards="facetCards"
+                    :other-summary="[]"
+                />
+
+                <v-row dense>
+                    <v-col
+                        v-for="(reading, index) in overviewRest"
+                        :key="`overview-${index}`"
+                        cols="12"
+                        md="6"
+                    >
+                        <v-card
+                            variant="outlined"
+                            height="100%"
+                        >
+                            <v-card-text>
+                                <div class="text-subtitle-1 font-weight-bold mb-1">
+                                    {{ reading.title }}
+                                </div>
+                                <p class="text-body-2 mb-0">
+                                    {{ reading.text }}
+                                </p>
+                            </v-card-text>
+                        </v-card>
+                    </v-col>
+                </v-row>
+            </v-card-text>
+        </v-card>
+
+        <!-- What the chart says, as a card of its own after the overview: the key words of each placement, then the houses and the aspects -->
+        <v-card
+            v-if="overview.length && (highlightBlocks.length || otherSummary.length || inferenceGroups.length)"
+            variant="outlined"
+            class="mb-4"
+        >
+            <v-card-title>星盤歸納</v-card-title>
+            <v-card-text>
+                <SingleReportHighlights
+                    v-if="highlightBlocks.length"
+                    :blocks="highlightBlocks"
+                />
+
+                <!-- What else the facts say together (the houses, the aspects) -->
+                <div
+                    v-if="otherSummary.length || inferenceGroups.length"
+                    :class="highlightBlocks.length ? 'mt-2' : ''"
+                >
+                    <SingleReportSummary
+                        :facet-cards="[]"
+                        :other-summary="otherSummary"
+                        :groups="inferenceGroups"
+                    />
+                </div>
+            </v-card-text>
+        </v-card>
+
+        <v-card
+            v-if="showFacts"
             variant="outlined"
             class="mb-4"
         >
@@ -25,6 +106,12 @@
                                 <div class="text-body-1 font-weight-medium">
                                     {{ fact.value }}
                                 </div>
+                                <p
+                                    v-if="fact.reading"
+                                    class="text-body-2 text-medium-emphasis mt-2 mb-0"
+                                >
+                                    {{ fact.reading }}
+                                </p>
                             </v-card-text>
                         </v-card>
                     </v-col>
@@ -66,6 +153,14 @@
             </v-card-text>
         </v-card>
 
+        <NatalChartLocked v-if="natalLocked && !natalChart" />
+
+        <NatalChartPanel
+            v-if="natalChart"
+            :chart="natalChart"
+            :readings="readingsByFact"
+        />
+
         <v-card
             v-if="timeCards.length"
             variant="outlined"
@@ -85,105 +180,77 @@
         </v-card>
 
         <v-card
-            v-if="summary.length"
+            v-if="(summary.length || inferenceGroups.length) && !overview.length"
             variant="outlined"
             class="mb-4"
         >
             <v-card-title>{{ blockTitle('summary') }}</v-card-title>
-            <v-card-subtitle class="text-wrap">
-                由上面的事實歸納出的幾個面向；每一項都附了依據，是我們的歸納，不是該系統的說法。
-            </v-card-subtitle>
             <v-card-text>
-                <v-row dense>
-                    <v-col
-                        v-for="(item, index) in summary"
-                        :key="`summary-${index}`"
-                        cols="12"
-                        md="6"
-                    >
-                        <v-card
-                            variant="tonal"
-                            height="100%"
-                        >
-                            <v-card-text>
-                                <p class="text-body-2 mb-0">
-                                    {{ item }}
-                                </p>
-                            </v-card-text>
-                        </v-card>
-                    </v-col>
-                </v-row>
+                <SingleReportSummary
+                    :facet-cards="facetCards"
+                    :other-summary="otherSummary"
+                    :groups="inferenceGroups"
+                />
             </v-card-text>
         </v-card>
 
-        <template v-if="impacts.length">
-            <div class="text-h6 mb-1">
-                影響地圖
-            </div>
-            <p class="text-body-2 text-medium-emphasis mb-3">
-                這些傾向在不同的時間、對象與生活領域上可能怎麼表現。沒有寫到的格子不顯示。時間那一組是依特質作的推測，不是該系統的說法。
-            </p>
-            <v-card
-                v-for="impact in impacts"
-                :key="impact.key"
-                variant="outlined"
-                class="mb-4"
-            >
-                <v-card-title>{{ impact.title }}</v-card-title>
-                <v-tabs
-                    v-model="tabs[impact.key]"
-                    density="compact"
-                    color="primary"
+        <!-- How each trait can show in different times, toward different people and in different parts of life: all of it, one trait after another -->
+        <v-card
+            v-if="impacts.length"
+            variant="outlined"
+            class="mb-4"
+        >
+            <v-card-title>影響面向推測</v-card-title>
+            <v-card-text>
+                <div
+                    v-for="(impact, index) in impacts"
+                    :key="impact.key"
+                    :class="{ 'mt-6': index > 0 }"
                 >
-                    <v-tab
+                    <div class="text-subtitle-1 font-weight-bold mb-2">
+                        特質{{ NUMERALS[index] ?? index + 1 }}：{{ impact.trait }}
+                    </div>
+                    <div
                         v-for="group in impact.groups"
                         :key="group.kind"
-                        :value="group.kind"
+                        class="mb-3"
                     >
-                        {{ group.label }}（{{ group.cells.length }}）
-                    </v-tab>
-                </v-tabs>
-                <v-card-text>
-                    <v-window v-model="tabs[impact.key]">
-                        <v-window-item
-                            v-for="group in impact.groups"
-                            :key="group.kind"
-                            :value="group.kind"
-                        >
-                            <v-row dense>
-                                <v-col
-                                    v-for="cell in group.cells"
-                                    :key="cell.context"
-                                    cols="12"
-                                    sm="6"
-                                    md="4"
+                        <div class="text-subtitle-2 text-medium-emphasis mb-1">
+                            {{ group.label }}
+                        </div>
+                        <v-row dense>
+                            <v-col
+                                v-for="cell in group.cells"
+                                :key="cell.context"
+                                cols="12"
+                                sm="6"
+                                md="4"
+                            >
+                                <v-card
+                                    variant="outlined"
+                                    height="100%"
                                 >
-                                    <v-card
-                                        variant="outlined"
-                                        height="100%"
-                                    >
-                                        <v-card-text>
-                                            <div class="text-caption text-medium-emphasis">
-                                                {{ cell.name }}
-                                            </div>
-                                            <p class="text-body-2 mb-0">
-                                                {{ cell.text }}
-                                            </p>
-                                            <p
-                                                v-if="cell.question"
-                                                class="text-caption text-medium-emphasis mt-2 mb-0"
-                                            >
-                                                {{ cell.question }}
-                                            </p>
-                                        </v-card-text>
-                                    </v-card>
-                                </v-col>
-                            </v-row>
-                        </v-window-item>
-                    </v-window>
-                </v-card-text>
-            </v-card>
-        </template>
+                                    <v-card-text>
+                                        <div class="text-caption text-medium-emphasis">
+                                            {{ cell.name }}
+                                        </div>
+                                        <p class="text-body-2 mb-0">
+                                            {{ cell.text }}
+                                        </p>
+                                        <p
+                                            v-if="cell.question"
+                                            class="text-caption text-medium-emphasis mt-2 mb-0"
+                                        >
+                                            {{ cell.question }}
+                                        </p>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                        </v-row>
+                    </div>
+                </div>
+            </v-card-text>
+        </v-card>
 
         <v-card
             v-if="advice.length"
@@ -192,30 +259,47 @@
         >
             <v-card-title>{{ blockTitle('advice') }}</v-card-title>
             <v-card-text>
-                <p
-                    v-for="(item, index) in advice"
+                <!-- The advice, quoted, then the parts of the practice, as the pages of a reading show them -->
+                <blockquote
+                    v-for="(item, index) in adviceLines"
                     :key="`advice-${index}`"
-                    class="text-body-2"
+                    class="lead"
+                    :class="{ 'mb-4': practiceRows.length }"
                 >
-                    {{ item }}
-                </p>
-            </v-card-text>
-        </v-card>
-
-        <v-card
-            v-if="limits.length"
-            variant="outlined"
-            class="mb-4"
-        >
-            <v-card-title>{{ blockTitle('limits') }}</v-card-title>
-            <v-card-text>
-                <p
-                    v-for="(item, index) in limits"
-                    :key="`limit-${index}`"
-                    class="text-body-2 text-medium-emphasis"
+                    <p class="lead__text">
+                        {{ item }}
+                    </p>
+                </blockquote>
+                <v-row
+                    v-if="practiceRows.length"
+                    dense
                 >
-                    {{ item }}
-                </p>
+                    <v-col
+                        v-for="row in practiceRows"
+                        :key="row.label"
+                        cols="12"
+                        sm="6"
+                    >
+                        <v-card
+                            variant="outlined"
+                            height="100%"
+                        >
+                            <v-card-text>
+                                <div class="text-subtitle-2 mb-1">
+                                    <v-icon
+                                        :icon="row.icon"
+                                        size="18"
+                                        class="mr-1"
+                                    />
+                                    {{ row.label }}
+                                </div>
+                                <p class="mb-0">
+                                    {{ row.text }}
+                                </p>
+                            </v-card-text>
+                        </v-card>
+                    </v-col>
+                </v-row>
             </v-card-text>
         </v-card>
     </div>
@@ -223,9 +307,18 @@
 
 <script lang="ts" setup>
 import { CONTEXT_VALUES } from '../../shared/ontology/context';
+import type { NatalChartResponse } from '../../shared/schemas/api/natalChart.schema';
+import { NATAL_LABELS } from '../../shared/constants/natalLabels';
+import { splitLead } from '../utils/overviewLead';
 import type { SingleReportResponse } from '../../shared/schemas/api/singleReport.schema';
 
-const props = defineProps<{ report: SingleReportResponse }>();
+const props = defineProps<{
+    report: SingleReportResponse;
+    /** The birth chart, when there is one to draw: the houses and the aspects are then shown with it instead of as lines */
+    natalChart?: NatalChartResponse | null;
+    /** The chart cannot be drawn yet: it waits for a birth time and a city */
+    natalLocked?: boolean;
+}>();
 
 const CONTEXT_NAMES = new Map(CONTEXT_VALUES.map((value) => [value.id, value.name]));
 const GROUP_LABELS = {
@@ -249,23 +342,128 @@ function splitLabel(text: string): { label: string; value: string } {
         };
 }
 
-const factCards = computed(() => segmentsOf('facts').filter((segment) => segment.kind === 'FACT').map((segment) => splitLabel(segment.text)));
+/** The readings that belong to a fact, by the label of that fact: "太陽在天蠍座：…" is shown in the card of the sun sign */
+const readingsByFact = computed(() => {
+    const byFact: Record<string, string[]> = {};
 
-const readings = computed(() => segmentsOf('facts').filter((segment) => segment.kind === 'SYSTEM_INTERPRETATION').map((segment) => {
+    for (const segment of segmentsOf('facts')) {
+        if (segment.kind !== 'SYSTEM_INTERPRETATION') continue;
+
+        const text = splitLabel(/^【.+?】(.*)$/s.exec(segment.text)?.[1] ?? segment.text).value;
+
+        for (const source of segment.sources) {
+            if (source.fact) (byFact[source.fact] ??= []).push(text);
+        }
+    }
+
+    return Object.fromEntries(Object.entries(byFact).map(([label, lines]) => [label, lines.join('\n')]));
+});
+
+/** What the chart panel shows (the houses and the aspects) is not listed again among the facts */
+const PLACEMENT_LABELS = new Set(Object.values(NATAL_LABELS).map((item) => item.name));
+const isChartFact = (label: string) => props.natalChart != null && (/^第 \d+ 宮/.test(label) || label.startsWith('相位・') || PLACEMENT_LABELS.has(label));
+
+const factCards = computed(() => segmentsOf('facts').filter((segment) => segment.kind === 'FACT').filter((segment) => !isChartFact(splitLabel(segment.text).label)).map((segment) => {
+    const { label, value } = splitLabel(segment.text);
+
+    return {
+        label, value, reading: readingsByFact.value[label] ?? '',
+    };
+}));
+
+/** A reading sentence "【依傳統占星】天蠍座：…" as the tradition, the title and the text */
+const readingsOf = (key: string) => segmentsOf(key).filter((segment) => segment.kind === 'SYSTEM_INTERPRETATION' && !segment.sources.some((source) => source.fact)).map((segment) => {
     const match = /^【(.+?)】(.*)$/s.exec(segment.text);
     const { label, value } = splitLabel(match?.[2] ?? segment.text);
 
     return {
         tradition: match?.[1] ?? '', title: label, text: value,
     };
-}));
+});
+
+const readings = computed(() => readingsOf('facts'));
+const overview = computed(() => readingsOf('overview'));
+const overviewLead = computed(() => overview.value[0] ?? null);
+const overviewRest = computed(() => overview.value.slice(1));
+
+/**
+ * The facts are listed unless they add nothing to what is shown elsewhere: with an overview and the chart (or its
+ * invitation) in place, the sun sign is the only fact left and its reading is in the sun's house.
+ */
+const showFacts = computed(() => !(overview.value.length > 0 && factCards.value.length <= 1 && readings.value.length === 0 && (props.natalChart != null || props.natalLocked === true)));
 
 const timeCards = computed(() => segmentsOf('time').map((segment) => ({
     text: segment.text, asOf: segment.asOf ?? '',
 })));
 const summary = computed(() => segmentsOf('summary').map((segment) => segment.text));
-const advice = computed(() => segmentsOf('advice').map((segment) => segment.text));
-const limits = computed(() => segmentsOf('limits').map((segment) => segment.text));
+
+/** A trait the facts point at is written as "傾向「專注深耕」：選定方向長期深入。（依據：…）", then "用得太過時：視野變窄。" */
+const FACET_PATTERN = /^傾向「(.+?)」：(.*?)。?（依據：(.+)）$/s;
+const OVERUSE_PATTERN = /^用得太過時：(.*?)。?$/s;
+
+const parsedSummary = computed(() => {
+    const facets: Array<{ name: string; description: string; basis: string; overuse: string }> = [];
+    const others: string[] = [];
+
+    for (const text of summary.value) {
+        const facet = FACET_PATTERN.exec(text);
+        const overuse = OVERUSE_PATTERN.exec(text);
+        const last = facets.at(-1);
+
+        if (facet) {
+            facets.push({
+                name: facet[1] ?? '', description: facet[2] ?? '', basis: facet[3] ?? '', overuse: '',
+            });
+        } else if (overuse && last && last.overuse === '') {
+            last.overuse = overuse[1] ?? '';
+        } else {
+            others.push(text);
+        }
+    }
+
+    return {
+        facets, others,
+    };
+});
+
+const facetCards = computed(() => parsedSummary.value.facets);
+const otherSummary = computed(() => parsedSummary.value.others);
+
+/** Conclusions drawn from the facts together that have a heading of their own (the houses, the aspects) */
+const allGroups = computed(() => props.report.blocks.filter((block) => block.key.startsWith('inference:')).map((block) => ({
+    key: block.key, title: block.title, items: block.segments.map((segment) => segment.text),
+})));
+
+/** The key words of each group of planets come first, right under the overview; the other conclusions follow the traits */
+const isHighlight = (key: string) => key.startsWith('inference:planets-');
+const highlightBlocks = computed(() => props.report.blocks.filter((block) => isHighlight(block.key)));
+const inferenceGroups = computed(() => allGroups.value.filter((group) => !isHighlight(group.key)));
+/** The parts of the practice, by the label the advice gives them, with the icon each has on the pages of a reading */
+const PRACTICE_ICONS = new Map<string, string>([
+    ['一個值得觀察的習慣', 'mdi-eye-outline'],
+    ['一個可以嘗試改變的行為', 'mdi-swap-horizontal'],
+    ['一個自我反思問題', 'mdi-help-circle-outline'],
+    ['本週就能完成的小練習', 'mdi-calendar-check-outline'],
+]);
+
+const adviceParts = computed(() => segmentsOf('advice').map((segment) => {
+    const colon = segment.text.indexOf('：');
+    const label = colon < 0 ? '' : segment.text.slice(0, colon);
+
+    return PRACTICE_ICONS.has(label)
+        ? {
+            label, icon: PRACTICE_ICONS.get(label) as string, text: segment.text.slice(colon + 1),
+        }
+        : {
+            label: '', icon: '', text: segment.text,
+        };
+}));
+
+/** The advice itself, and the parts of the practice that go with it */
+const adviceLines = computed(() => adviceParts.value.filter((part) => !part.label).map((part) => part.text));
+const practiceRows = computed(() => adviceParts.value.filter((part) => part.label));
+const advice = computed(() => segmentsOf('advice'));
+
 
 /** One card per facet: its cells sorted into time, object and domain, in the order the list of values has them. */
 const impacts = computed(() => props.report.blocks.filter((block) => block.key.startsWith('impact:')).map((block) => {
@@ -283,17 +481,30 @@ const impacts = computed(() => props.report.blocks.filter((block) => block.key.s
 
     return {
         key: block.key,
-        title: block.title,
+        // "影響面向推測：專注深耕" (and "影響地圖：專注深耕" in a report kept before): the trait is what follows the colon
+        trait: block.title.slice(block.title.indexOf('：') + 1),
         groups: GROUP_ORDER.map((kind) => ({
             kind, label: GROUP_LABELS[kind], cells: cells.filter((cell) => cell.kind === kind),
         })).filter((group) => group.cells.length > 0),
     };
 }));
 
-/** Which tab each facet shows; the first group (time) to begin with. */
-const tabs = reactive<Record<string, string>>({});
-
-watch(impacts, (list) => {
-    for (const impact of list) tabs[impact.key] ??= impact.groups[0]?.kind ?? 'time';
-}, { immediate: true });
+/** One, two, three… for the traits, in the order they come */
+const NUMERALS = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
 </script>
+
+<style scoped>
+.lead {
+    margin: 0 0 16px;
+    padding: 16px 20px;
+    border-left: 4px solid rgb(var(--v-theme-primary));
+    border-radius: 0 8px 8px 0;
+    background: rgba(var(--v-theme-primary), 0.06);
+}
+
+.lead__text {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.8;
+}
+</style>

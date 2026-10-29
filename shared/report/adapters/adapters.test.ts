@@ -67,6 +67,36 @@ describe('bloodReportInput', () => {
     });
 });
 
+describe('the advice of a reading', () => {
+    it('is the advice itself, then the four parts of the practice, each under its label', () => {
+        const withPractice = fixedContentBodySchema.parse({
+            ...body('天蠍座'),
+            growthPractice: {
+                habitToObserve: '留意自己什麼時候開始想太多。',
+                behaviorToTry: '把一個顧慮直接說出來。',
+                reflectionQuestion: '我現在的判斷，有多少是推測？',
+                weeklyPractice: '本週選一次場合，說出一個需求。',
+            },
+        });
+
+        expect(bloodReportInput({
+            bloodType: 'O', body: withPractice,
+        }).advice).toEqual([
+            '給自己一點時間。',
+            '一個值得觀察的習慣：留意自己什麼時候開始想太多。',
+            '一個可以嘗試改變的行為：把一個顧慮直接說出來。',
+            '一個自我反思問題：我現在的判斷，有多少是推測？',
+            '本週就能完成的小練習：本週選一次場合，說出一個需求。',
+        ]);
+    });
+
+    it('is only the advice when the reading has no practice', () => {
+        expect(bloodReportInput({
+            bloodType: 'O', body: body('O 型'),
+        }).advice).toEqual(['給自己一點時間。']);
+    });
+});
+
 describe('numerologyReportInput', () => {
     const input = numerologyReportInput({
         birthDate: '1989-10-27', today: '2026-10-28', body: body('生命靈數 1'),
@@ -117,7 +147,7 @@ describe('zodiacReportInput', () => {
         expect(input.position).toBe('太陽天蠍座');
         expect(labels).toContain('上升');
         expect(labels.filter((label) => label.startsWith('第 ')).length).toBe(12);
-        expect(labels).toContain('相位');
+        expect(labels.some((label) => label.startsWith('相位・'))).toBe(true);
         expect(input.facts.find((fact) => fact.label === '第 1 宮（自我與開始）')?.value).toContain('宮主星');
         expect(input.notes).toEqual([]);
         expect(input.basis.map((b) => b.system)).toEqual(['ZODIAC', 'NATAL_CHART']);
@@ -151,6 +181,98 @@ describe('zodiacReportInput', () => {
 
     it('does not depend on what the chart function returns beyond its own shape', () => {
         expect(computeNatalChart(new Date(Date.UTC(1989, 9, 26, 22, 10)), 25.033, 121.5654).ascendant.sign).toBe(chart.ascendant.sign);
+    });
+});
+
+describe('the birth chart beyond the signs: houses, aspects and what they say together', () => {
+    const chart = new NatalChartService().calculate({
+        birthDate: '1989-10-27', birthTime: '06:10', birthPlace: 'tw-taipei',
+    });
+    const input = zodiacReportInput({
+        zodiac: 'scorpio', birthDate: '1989-10-27', body: body('天蠍座'), natal: {
+            chart, birthTime: '06:10', birthPlace: 'tw-taipei',
+        },
+    });
+    const labels = new Set(input.facts.map((fact) => fact.label));
+
+    it('gives every aspect a label of its own, so that its reading can sit with it', () => {
+        const aspectLabels = input.facts.map((fact) => fact.label).filter((label) => label.startsWith('相位・'));
+
+        expect(aspectLabels.length).toBe(chart.aspects.length);
+        expect(new Set(aspectLabels).size).toBe(aspectLabels.length);
+    });
+
+    it('reads each body in its house, and each aspect, as part of the fact it belongs to', () => {
+        const inHouse = input.interpretations.filter((reading) => reading.factLabel?.startsWith('第 '));
+        const ofAspect = input.interpretations.filter((reading) => reading.factLabel?.startsWith('相位・'));
+
+        expect(inHouse).toHaveLength(chart.houses.reduce((total, house) => total + house.bodies.length, 0));
+        expect(ofAspect).toHaveLength(chart.aspects.length);
+
+        for (const reading of [...inHouse, ...ofAspect]) {
+            expect(labels.has(reading.factLabel as string), reading.title).toBe(true);
+        }
+    });
+
+    it('draws conclusions from the facts together, each with what it rests on', () => {
+        const conclusions = (input.inferences ?? []).filter((inference) => inference.kind !== 'SYSTEM_INTERPRETATION');
+
+        expect(conclusions.length).toBeGreaterThan(0);
+
+        for (const inference of conclusions) {
+            expect(inference.basedOn.length).toBeGreaterThan(0);
+            expect(inference.title).not.toBe('');
+            expect(inference.title).not.toContain('：');
+            expect(inference.text).toMatch(/可能|容易|傾向|需要/);
+        }
+    });
+
+    it('sorts the conclusions into the houses and the aspects', () => {
+        const conclusions = (input.inferences ?? []).filter((inference) => inference.kind !== 'SYSTEM_INTERPRETATION');
+        const groups = new Set(conclusions.map((inference) => inference.group?.title));
+
+        expect(groups).toEqual(new Set(['十二宮位歸納', '相位歸納']));
+        expect((input.inferences ?? []).filter((inference) => inference.group?.key === 'aspects').every((inference) => inference.title.includes('相位'))).toBe(true);
+    });
+
+    it('gives the key words of each placement its own card, in the order of the groups, from the reading of that placement', () => {
+        const highlights = (input.inferences ?? []).filter((inference) => inference.kind === 'SYSTEM_INTERPRETATION');
+
+        expect(highlights).toHaveLength(11);
+        const names = [
+            '太陽',
+            '月亮',
+            '上升',
+            '水星',
+            '金星',
+            '火星',
+            '木星',
+            '土星',
+            '天王星',
+            '海王星',
+            '冥王星',
+        ];
+
+        highlights.forEach((item, index) => expect(item.title.startsWith(names[index] as string), item.title).toBe(true));
+        expect(new Set(highlights.map((item) => item.group?.title))).toEqual(new Set([
+            '個人行星',
+            '社會行星',
+            '世代行星',
+        ]));
+        expect(highlights.filter((item) => item.group?.title === '個人行星')).toHaveLength(6);
+
+        for (const item of highlights) {
+            expect(item.text).not.toBe('');
+            expect(item.text).not.toContain('；');
+
+            for (const label of item.basedOn) expect(labels.has(label), label).toBe(true);
+        }
+    });
+
+    it('has no such conclusions without a chart', () => {
+        expect(zodiacReportInput({
+            zodiac: 'scorpio', birthDate: '1989-10-27', body: body('天蠍座'), natal: null,
+        }).inferences).toEqual([]);
     });
 });
 
@@ -343,8 +465,43 @@ describe('the reports of today', () => {
         });
 
         expect(input.timeFacts?.[0]).toMatchObject({ asOf: '2026-10-28' });
-        expect(input.advice).toContain('給自己一點時間。');
+        expect(input.advice).toContain('今天可以試試：給自己一點時間。');
         expect(accepted(input)).toBe(true);
+    });
+
+    it('carries everything the daily tarot page used to show: the longer reading, the picture and the questions', () => {
+        const input = tarotReportInput({
+            date: '2026-10-28',
+            card: {
+                index: 1, roman: 'I', name: '魔術師', englishName: 'The Magician', orientation: 'reversed', illustration: null,
+            },
+            content,
+            drawVersion: 'tarot-v1',
+        });
+        const titles = input.interpretations.map((reading) => reading.title);
+
+        for (const title of [
+            '今日主題',
+            '關鍵字',
+            '可以留意的地方',
+            '自我',
+            '人際',
+            '正位核心',
+            '逆位核心',
+            '光明面：資源與優勢',
+            '陰影面：過度的傾向',
+            '內在衝突',
+            '成長課題',
+            '傳統牌義',
+            '現代詮釋',
+            '牌面：人物',
+            '牌面：構圖',
+        ]) {
+            expect(titles, title).toContain(title);
+        }
+
+        expect(input.facts.find((fact) => fact.label === '核心主題')?.value).not.toBe('');
+        expect(input.advice.filter((line) => line.startsWith('想一想：'))).toHaveLength(3);
     });
 
     it('gives a rune a report the snapshot schema accepts', () => {
@@ -358,6 +515,8 @@ describe('the reports of today', () => {
         });
 
         expect(input.position).toContain('Fehu');
+        expect(input.interpretations.map((reading) => reading.title)).toEqual(expect.arrayContaining(['關鍵字', '可以留意的地方']));
+        expect(input.advice).toEqual(['今天可以試試：給自己一點時間。']);
         expect(accepted(input)).toBe(true);
     });
 

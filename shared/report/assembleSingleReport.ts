@@ -18,17 +18,17 @@ import { SYSTEM_NATURE } from './natureLabels';
 import type { SystemReportInput } from './types';
 
 /** Raise whenever the way a report is put together changes (the order of blocks, the wording of fixed lines). */
-export const SINGLE_REPORT_TEMPLATE_VERSION = 'single-report-v1';
+export const SINGLE_REPORT_TEMPLATE_VERSION = 'single-report-v2';
 
 /** How many reflection questions the advice block takes from the guesses about the past. */
-const MAX_REFLECTION_QUESTIONS = 3;
+export const MAX_REFLECTION_QUESTIONS = 3;
 
 type AssembleOptions = {
     fragments?: FragmentTable;
     mappings?: readonly MappingEntry[];
 };
 
-const segment = (text: string, kind: SnapshotSegment['kind'], sources: SnapshotSegment['sources'], extra: Partial<SnapshotSegment> = {}): SnapshotSegment => ({
+export const segment = (text: string, kind: SnapshotSegment['kind'], sources: SnapshotSegment['sources'], extra: Partial<SnapshotSegment> = {}): SnapshotSegment => ({
     text,
     kind,
     sources,
@@ -37,7 +37,7 @@ const segment = (text: string, kind: SnapshotSegment['kind'], sources: SnapshotS
     ...extra,
 });
 
-const block = (key: string, title: string, segments: SnapshotSegment[]): SnapshotBlock[] => (segments.length > 0
+export const block = (key: string, title: string, segments: SnapshotSegment[]): SnapshotBlock[] => (segments.length > 0
     ? [
         {
             key, title, segments,
@@ -46,7 +46,7 @@ const block = (key: string, title: string, segments: SnapshotSegment[]): Snapsho
     : []);
 
 /** The impact map of one facet: the time, object and domain values that have a sentence, in the order of the list. */
-function impactBlock(facet: Facet, system: SystemReportInput['system'], fragments: FragmentTable): { block: SnapshotBlock[]; questions: Array<{ question: string; endId: string }> } {
+export function impactBlock(facet: Facet, systems: ReadonlyArray<SystemReportInput['system']>, fragments: FragmentTable): { block: SnapshotBlock[]; questions: Array<{ question: string; endId: string }> } {
     const questions: Array<{ question: string; endId: string }> = [];
     const segments = CONTEXT_VALUES.flatMap((context) => {
         const fragment = lookupFragment(fragments, facet.end.id, context.id);
@@ -64,9 +64,9 @@ function impactBlock(facet: Facet, system: SystemReportInput['system'], fragment
                 fragment.text,
                 'AI_INFERENCE',
                 [
-                    {
+                    ...systems.map((system) => ({
                         system, axisEnd: facet.end.id,
-                    }, { fragment: `${facet.end.id}|${context.id}` },
+                    })), { fragment: `${facet.end.id}|${context.id}` },
                 ],
                 fragment.confirmQuestion ? { confirmQuestion: fragment.confirmQuestion } : {},
             ),
@@ -74,7 +74,7 @@ function impactBlock(facet: Facet, system: SystemReportInput['system'], fragment
     });
 
     return {
-        block: block(`impact:${facet.end.id}`, `影響地圖：${facet.end.name}`, segments), questions,
+        block: block(`impact:${facet.end.id}`, `影響面向推測：${facet.end.name}`, segments), questions,
     };
 }
 
@@ -98,16 +98,23 @@ export function assembleSingleReport(input: SystemReportInput, options: Assemble
 
     const position = block('position', '位置結論', [segment(input.position, 'FACT', [systemSource])]);
 
+    const readingSegment = (reading: SystemReportInput['interpretations'][number]) => segment(`【依${nature.tradition}】${reading.title}：${reading.text}`, 'SYSTEM_INTERPRETATION', [
+        {
+            system: input.system,
+            ...(reading.term ? { term: reading.term } : {}),
+            ...(reading.factLabel ? { fact: reading.factLabel } : {}),
+        },
+    ]);
+
+    // What the tradition says of the member's result itself comes first, as an overview of its own
+    const overview = block('overview', '概覽', input.interpretations.filter((reading) => reading.overview).map(readingSegment));
+
     const factsAndReadings = block('facts', '系統的事實與解讀', [
         ...input.facts.map((fact) => segment(`${fact.label}：${fact.value}`, 'FACT', [
             fact.term ? {
                 system: input.system, term: fact.term,
             } : systemSource,
-        ])), ...input.interpretations.map((reading) => segment(`【依${nature.tradition}】${reading.title}：${reading.text}`, 'SYSTEM_INTERPRETATION', [
-            reading.term ? {
-                system: input.system, term: reading.term,
-            } : systemSource,
-        ])),
+        ])), ...input.interpretations.filter((reading) => !reading.overview).map(readingSegment),
     ]);
 
     const timeFacts = block('time', '依系統算出的時間', (input.timeFacts ?? []).map((fact) => segment(fact.text, fact.reading ? 'SYSTEM_INTERPRETATION' : 'FACT', [
@@ -118,7 +125,24 @@ export function assembleSingleReport(input: SystemReportInput, options: Assemble
         timeSensitive: true, asOf: fact.asOf,
     })));
 
+    const factLabels = new Set(input.facts.map((fact) => fact.label));
+    const inferenceSegment = (inference: NonNullable<SystemReportInput['inferences']>[number]) => segment(
+        `${inference.title}：${inference.text}（依據：${inference.basedOn.join('、')}）`,
+        inference.kind ?? 'AI_INFERENCE',
+        [
+            systemSource, ...inference.basedOn.filter((label) => factLabels.has(label)).map((label) => ({
+                system: input.system, fact: label,
+            })),
+        ],
+    );
+    const inferences = input.inferences ?? [];
+    // Conclusions with a group of their own (the houses, the aspects) each get a block, in the order they first come
+    const groups = [...new Map(inferences.flatMap((inference) => (inference.group ? [[inference.group.key, inference.group.title] as const] : []))).entries()];
+    const inferenceBlocks = groups.flatMap(([key, title]) => block(`inference:${key}`, title, inferences.filter((inference) => inference.group?.key === key).map(inferenceSegment)));
+    const inferenceSegments = inferences.filter((inference) => !inference.group).map(inferenceSegment);
+
     const summary = block('summary', '本系統的歸納', [
+        ...inferenceSegments,
         ...facets.flatMap((facet) => {
             const sources = [
                 ...facet.supports.map((term) => ({
@@ -128,31 +152,24 @@ export function assembleSingleReport(input: SystemReportInput, options: Assemble
             const basisText = facet.supports.map((term) => factOfTerm.get(term)).filter(Boolean).join('、');
 
             return [segment(`傾向「${facet.end.name}」：${facet.end.description}。（依據：${basisText}）`, 'AI_INFERENCE', sources), segment(`用得太過時：${facet.end.overuse}。`, 'AI_INFERENCE', sources)];
-        }), ...findTensions(facets).map(([first, second]) => segment(
+        }),
+        ...findTensions(facets).map(([first, second]) => segment(
             `「${first.end.name}」與「${second.end.name}」在這個系統裡同時出現：這是系統本身的兩種特徵，不是矛盾，也不用選一個；可以觀察在什麼情境下哪一邊比較明顯。`,
             'AI_INFERENCE',
             [{ axisEnd: first.end.id }, { axisEnd: second.end.id }],
         )),
     ]);
 
-    const impacts = facets.map((facet) => impactBlock(facet, input.system, fragments));
+    const impacts = facets.map((facet) => impactBlock(facet, [input.system], fragments));
 
-    const questions = impacts.flatMap((impact) => impact.questions).slice(0, MAX_REFLECTION_QUESTIONS);
-    const advice = block('advice', '建議與反思', [
-        ...input.advice.map((text) => segment(text, 'SYSTEM_INTERPRETATION', [systemSource])), ...questions.map(({
-            question, endId,
-        }) => segment(`想一想：${question}`, 'AI_INFERENCE', [
-            {
-                system: input.system, axisEnd: endId,
-            },
-        ])),
-    ]);
+    // Advice for the member, as the reading pages call it; for a report about today's draw, what to try today
+    const advice = block('advice', state ? '今天可以試試' : '給你的建議', input.advice.map((text) => segment(text, 'SYSTEM_INTERPRETATION', [systemSource])));
 
     const limits = block('limits', '依據與限制', [
         segment(`系統性質：${nature.label}。`, 'FACT', [systemSource]),
         ...(state || facets.length === 0
             ? []
-            : [segment('影響地圖裡「過去、現在、未來」的格子，是依特質作的推測，不是該系統的說法；過去只是可能的猜測，請對照自己的經驗。', 'AI_INFERENCE', [systemSource])]),
+            : [segment('影響面向推測裡「過去、現在、未來」的格子，是依特質作的推測，不是該系統的說法；過去只是可能的猜測，請對照自己的經驗。', 'AI_INFERENCE', [systemSource])]),
         ...(input.notes ?? []).map((note) => segment(note, 'FACT', [systemSource])),
         segment(`規則版本：本體 ${ONTOLOGY_VERSION}、映射 ${MAPPING_VERSION}、片段 ${FRAGMENT_VERSION}、報告模板 ${SINGLE_REPORT_TEMPLATE_VERSION}。`, 'FACT', [systemSource]),
         segment(input.disclaimer, 'FACT', [systemSource]),
@@ -164,9 +181,11 @@ export function assembleSingleReport(input: SystemReportInput, options: Assemble
         position: input.position,
         blocks: [
             ...position,
+            ...overview,
             ...factsAndReadings,
             ...timeFacts,
             ...summary,
+            ...inferenceBlocks,
             ...impacts.flatMap((impact) => impact.block),
             ...advice,
             ...limits,

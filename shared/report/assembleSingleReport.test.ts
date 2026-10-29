@@ -33,6 +33,97 @@ const zodiac = (overrides: Partial<SystemReportInput> = {}): SystemReportInput =
 const blockKeys = (input: SystemReportInput, options = {}) => assembleSingleReport(input, options).blocks.map((b) => b.key);
 
 describe('assembleSingleReport', () => {
+    it('puts what the tradition says of the result itself in an overview of its own, ahead of the facts, and the rest among the facts', () => {
+        const input = zodiac();
+        const report = assembleSingleReport({
+            ...input,
+            interpretations: [
+                {
+                    title: '天蠍座', text: '深入專注。', overview: true,
+                }, {
+                    title: '太陽在天蠍座', text: '核心是深度。',
+                },
+            ],
+        });
+        const keys = blockKeys({
+            ...input, interpretations: [
+                {
+                    title: '天蠍座', text: '深入專注。', overview: true,
+                },
+            ],
+        });
+        const textsOf = (key: string) => report.blocks.find((b) => b.key === key)?.segments.map((s) => s.text) ?? [];
+
+        expect(keys.slice(0, 3)).toEqual([
+            'position',
+            'overview',
+            'facts',
+        ]);
+        expect(textsOf('overview')).toEqual([expect.stringContaining('天蠍座：深入專注。')]);
+        expect(textsOf('facts').some((text) => text.includes('太陽在天蠍座'))).toBe(true);
+        expect(textsOf('facts').some((text) => text.includes('深入專注'))).toBe(false);
+    });
+
+    it('ties a reading to the fact it reads, so that it can be shown in that fact\'s card', () => {
+        const input = zodiac();
+        const report = assembleSingleReport({
+            ...input,
+            interpretations: [
+                {
+                    title: '太陽在天蠍座', text: '核心是深度。', factLabel: '太陽星座',
+                },
+            ],
+        });
+        const reading = report.blocks.find((b) => b.key === 'facts')?.segments.find((s) => s.kind === 'SYSTEM_INTERPRETATION');
+
+        expect(reading?.sources).toEqual([
+            {
+                system: 'ZODIAC', fact: '太陽星座',
+            },
+        ]);
+        expect(reportSnapshotContentSchema.safeParse(report).success).toBe(true);
+    });
+
+    it('puts conclusions that have a group of their own in a block for each group, apart from the conclusions about traits', () => {
+        const input = zodiac();
+        const report = assembleSingleReport({
+            ...input,
+            inferences: [
+                {
+                    title: '土星集中在第 3 宮', text: '可能是你生活的重心。', group: {
+                        key: 'houses', title: '十二宮位歸納', 
+                    }, basedOn: ['太陽星座'],
+                },
+                {
+                    title: '順暢的相位偏多', text: '你可能配合得比較自然。', group: {
+                        key: 'aspects', title: '相位歸納', 
+                    }, basedOn: ['各星體之間的相位'],
+                },
+                {
+                    title: '一個沒有分組的歸納', text: '依規則推得。', basedOn: ['太陽星座'],
+                },
+            ],
+        });
+        const block = (key: string) => report.blocks.find((b) => b.key === key);
+
+        expect(block('inference:houses')?.title).toBe('十二宮位歸納');
+        expect(block('inference:aspects')?.title).toBe('相位歸納');
+        expect(block('inference:houses')?.segments[0]?.text).toContain('土星集中在第 3 宮：');
+        expect(block('inference:houses')?.segments.every((s) => s.kind === 'AI_INFERENCE')).toBe(true);
+        expect(block('summary')?.segments.some((s) => s.text.includes('一個沒有分組的歸納'))).toBe(true);
+        expect(block('summary')?.segments.some((s) => s.text.includes('土星集中'))).toBe(false);
+        expect(report.blocks.map((b) => b.key).indexOf('inference:houses')).toBeGreaterThan(report.blocks.map((b) => b.key).indexOf('summary'));
+        expect(reportSnapshotContentSchema.safeParse(report).success).toBe(true);
+    });
+
+    it('calls the advice "給你的建議", the way the pages of a reading do', () => {
+        expect(assembleSingleReport(zodiac()).blocks.find((b) => b.key === 'advice')?.title).toBe('給你的建議');
+    });
+
+    it('has no overview when nothing is marked for it', () => {
+        expect(blockKeys(zodiac())).not.toContain('overview');
+    });
+
     it('puts the blocks in the one order: position, facts, conclusions, effects, advice, limits', () => {
         const keys = blockKeys(zodiac());
 
@@ -137,7 +228,7 @@ describe('assembleSingleReport', () => {
             expect(sources.every((id) => id.includes('|time:'))).toBe(true);
         });
 
-        it('keeps the past a guess with a question to check it against, and puts those questions in the advice', () => {
+        it('keeps the past a guess with a question to check it against, shown with the cell and not among the advice', () => {
             const report = assembleSingleReport(zodiac());
             const past = report.blocks.flatMap((b) => b.segments).filter((s) => s.sources.some((source) => source.fragment?.endsWith('|time:past')));
 
@@ -148,10 +239,7 @@ describe('assembleSingleReport', () => {
                 expect(item.confirmQuestion).toMatch(/回頭看/);
             }
 
-            const questions = report.blocks.find((b) => b.key === 'advice')?.segments.filter((s) => s.text.startsWith('想一想：')) ?? [];
-
-            expect(questions.length).toBeGreaterThan(0);
-            expect(questions.length).toBeLessThanOrEqual(3);
+            expect(report.blocks.find((b) => b.key === 'advice')?.segments.some((s) => s.text.startsWith('想一想：')) ?? false).toBe(false);
         });
 
         it('goes into at most the most-supported facets', () => {
@@ -257,6 +345,10 @@ describe('assembleSingleReport', () => {
                 },
             ],
             traits: ['tarot:9:reversed'],
+        });
+
+        it('calls the advice "今天可以試試", as it is about the draw of today', () => {
+            expect(assembleSingleReport(tarot()).blocks.find((b) => b.key === 'advice')?.title).toBe('今天可以試試');
         });
 
         it('stops after the facts and the advice: no conclusion about the trait and no map of effects', () => {

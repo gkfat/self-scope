@@ -15,6 +15,12 @@
         >
             {{ headline }}
         </p>
+        <p
+            v-if="tagline"
+            class="banner__tagline"
+        >
+            {{ tagline }}
+        </p>
     </section>
 </template>
 
@@ -23,11 +29,14 @@ const props = withDefaults(defineProps<{
     title: string;
     /** The big second line, e.g. the type or the sign */
     headline?: string;
+    /** A few words under the headline: the verdict on it, e.g. 深入專注的洞察者 */
+    tagline?: string;
     /** Run the backdrop on behind the first card below, so the card sits on its edge */
     extended?: boolean;
     tone?: 'green' | 'amber' | 'red';
 }>(), {
     headline: undefined,
+    tagline: undefined,
     extended: false,
     tone: 'green',
 });
@@ -79,6 +88,14 @@ const accent = computed(() => ACCENTS[props.tone]);
     font-weight: 500;
     letter-spacing: 0.3em;
     color: rgb(var(--v-theme-primary));
+}
+
+.banner__tagline {
+    margin: 10px 0 0;
+    font-size: clamp(1.05rem, 3vw, 1.35rem);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: rgba(var(--v-theme-on-surface), 0.72);
 }
 
 .banner__headline {

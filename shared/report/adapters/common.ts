@@ -26,7 +26,27 @@ export function readingsOfBody(body: FixedContentBody, term?: string): ReportInt
     ];
 }
 
-/** The reviewed advice of a fixed reading, and the one thing to try this week when it has one. */
+/** The four parts of the practice of a reading, as they have always been called on the pages that show a reading. */
+export const PRACTICE_LABELS = {
+    habit: '一個值得觀察的習慣',
+    behavior: '一個可以嘗試改變的行為',
+    reflection: '一個自我反思問題',
+    weekly: '本週就能完成的小練習',
+} as const;
+
+/**
+ * The reviewed advice of a fixed reading: the advice itself, then (when it has one) the four parts of its practice, each
+ * under its label.
+ */
 export function adviceOfBody(body: FixedContentBody): string[] {
-    return [...(body.growthAdvice.trim() ? [body.growthAdvice] : []), ...(body.growthPractice ? [`這週可以試試：${body.growthPractice.weeklyPractice}`] : [])];
+    const practice = body.growthPractice;
+
+    return [
+        ...(body.growthAdvice.trim() ? [body.growthAdvice] : []), ...(practice ? [
+            `${PRACTICE_LABELS.habit}：${practice.habitToObserve}`,
+            `${PRACTICE_LABELS.behavior}：${practice.behaviorToTry}`,
+            `${PRACTICE_LABELS.reflection}：${practice.reflectionQuestion}`,
+            `${PRACTICE_LABELS.weekly}：${practice.weeklyPractice}`,
+        ] : []),
+    ];
 }
