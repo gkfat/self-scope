@@ -152,7 +152,7 @@ const items = computed<ReportCard[]>(() => {
             description: '從出生時太陽所在的位置，看你天生的性格傾向與行事風格。',
             done: sign !== null,
             result: sign ? ZODIAC_LABELS[sign] : '',
-            to: sign ? `/analysis/zodiac/${sign}` : '/#fill',
+            to: sign ? '/full-report/zodiac' : '/#fill',
             action: sign ? '查看星座分析' : '填寫出生日期',
         },
         {
@@ -163,7 +163,7 @@ const items = computed<ReportCard[]>(() => {
             description: '用常見的血型性格說法，看你與人相處和面對事情的習慣。',
             done: blood !== null,
             result: blood ? BLOOD_TYPE_LABELS[blood] : '',
-            to: blood ? `/analysis/blood/${blood}` : '/#fill',
+            to: blood ? '/full-report/blood' : '/#fill',
             action: blood ? '查看血型分析' : '選擇血型',
         },
         {
@@ -174,7 +174,7 @@ const items = computed<ReportCard[]>(() => {
             description: '從回答問題的方式，看你如何獲取能量、接收資訊與做決定。',
             done: mbti !== null,
             result: mbti ?? '',
-            to: mbti ? `/analysis/mbti/${mbti}` : '/test',
+            to: mbti ? '/full-report/mbti' : '/test',
             action: mbti ? '查看 MBTI 分析' : '開始測驗',
         },
         {
@@ -185,7 +185,7 @@ const items = computed<ReportCard[]>(() => {
             description: '依出生當下的星體位置，看你的能量如何運作、怎樣做決定最順。',
             done: progress.value.done.HUMAN_DESIGN,
             result: humanDesignType.value ?? '已計算',
-            to: progress.value.done.HUMAN_DESIGN ? '/human-design' : '/#fill',
+            to: progress.value.done.HUMAN_DESIGN ? '/full-report/human-design' : '/#fill',
             action: progress.value.done.HUMAN_DESIGN ? '查看人類圖' : '填寫出生時間與地點',
         },
         ...(BAZI_ENTRY_ENABLED
@@ -197,7 +197,7 @@ const items = computed<ReportCard[]>(() => {
                 description: '由出生的年、月、日、時排出四柱，看五行的分布、日主的強弱與每十年的節奏。',
                 done: baziReady,
                 result: '可查看',
-                to: baziReady ? '/bazi' : '/#fill',
+                to: baziReady ? '/full-report/bazi' : '/#fill',
                 action: baziReady ? '查看八字命盤' : '填寫出生日期與時間',
             }]
             : []),
@@ -209,7 +209,7 @@ const items = computed<ReportCard[]>(() => {
             description: '把出生日期化成數字，看你的天賦傾向與今年的節奏。',
             done: birthDate.value !== null,
             result: birthDate.value ? `數字 ${lifePathNumber(birthDate.value)}` : '',
-            to: birthDate.value ? '/analysis/numerology' : '/#fill',
+            to: birthDate.value ? '/full-report/numerology' : '/#fill',
             action: birthDate.value ? '查看生命靈數' : '填寫出生日期',
         },
         ...(KIN_ENTRY_ENABLED
@@ -221,7 +221,7 @@ const items = computed<ReportCard[]>(() => {
                 description: '依出生日期以 Dreamspell 曆法算出你的圖騰與調性，看你的本質與象徵。',
                 done: birthDate.value !== null,
                 result: birthDate.value ? kinName(kinOf(birthDate.value)) : '',
-                to: birthDate.value ? '/analysis/maya-kin' : '/#fill',
+                to: birthDate.value ? '/full-report/maya-kin' : '/#fill',
                 action: birthDate.value ? '查看瑪雅 Kin' : '填寫出生日期',
             }]
             : []),

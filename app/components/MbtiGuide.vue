@@ -71,7 +71,6 @@
                             <v-chip
                                 v-for="item in group.types"
                                 :key="item.type"
-                                :to="`/analysis/mbti/${item.type}`"
                                 size="small"
                                 :variant="item.type === current ? 'flat' : 'tonal'"
                                 :style="{ '--chip-tone': group.tone }"

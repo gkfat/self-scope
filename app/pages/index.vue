@@ -511,7 +511,7 @@ const analyses = computed<Analysis[]>(() => {
             action: sign ? `看星座分析（${ZODIAC_LABELS[sign]}）` : '看星座分析',
             lockedHint: '先填寫出生日期',
             ready: sign !== null,
-            to: sign ? `/analysis/zodiac/${sign}` : undefined,
+            to: sign ? '/full-report/zodiac' : undefined,
         },
         {
             key: 'blood',
@@ -524,7 +524,7 @@ const analyses = computed<Analysis[]>(() => {
             action: bloodType ? `看血型分析（${BLOOD_TYPE_LABELS[bloodType]}）` : '看血型分析',
             lockedHint: '先選擇血型',
             ready: bloodType !== null,
-            to: bloodType ? `/analysis/blood/${bloodType}` : undefined,
+            to: bloodType ? '/full-report/blood' : undefined,
         },
         {
             key: 'numerology',
@@ -537,7 +537,7 @@ const analyses = computed<Analysis[]>(() => {
             action: birthDateInput.value && sign ? `看生命靈數（數字 ${lifePathNumber(birthDateInput.value)}）` : '看生命靈數',
             lockedHint: '先填寫出生日期',
             ready: sign !== null,
-            to: '/analysis/numerology',
+            to: '/full-report/numerology',
         },
         {
             key: 'humanDesign',
@@ -550,7 +550,7 @@ const analyses = computed<Analysis[]>(() => {
             action: state.value.hasHumanDesign ? `看人類圖分析（${humanDesignType.value ?? '已計算'}）` : '看人類圖分析',
             lockedHint: '先填寫出生時間與城市',
             ready: advancedUnlocked.value,
-            to: '/human-design',
+            to: '/full-report/human-design',
         },
         ...(BAZI_ENTRY_ENABLED
             ? [{
@@ -564,7 +564,7 @@ const analyses = computed<Analysis[]>(() => {
                 action: baziReady ? `看八字命盤（${baziDayMaster}）` : '看八字命盤',
                 lockedHint: '先填寫出生日期與時間',
                 ready: baziReady,
-                to: '/bazi',
+                to: '/full-report/bazi',
             }]
             : []),
         ...(KIN_ENTRY_ENABLED
@@ -579,7 +579,7 @@ const analyses = computed<Analysis[]>(() => {
                 action: birthDateInput.value && sign ? `看瑪雅 Kin（${kinName(kinOf(birthDateInput.value))}）` : '看瑪雅 Kin',
                 lockedHint: '先填寫出生日期',
                 ready: sign !== null,
-                to: '/analysis/maya-kin',
+                to: '/full-report/maya-kin',
             }]
             : []),
         {
@@ -594,7 +594,7 @@ const analyses = computed<Analysis[]>(() => {
             lockedHint: '開始測驗',
             // The test is the way in, so it is always open
             ready: true,
-            to: mbti ? `/analysis/mbti/${mbti}` : '/test',
+            to: mbti ? '/full-report/mbti' : '/test',
         },
     ];
 });
