@@ -14,11 +14,7 @@
                 :tabindex="flipped ? -1 : undefined"
                 @click="interactive && emit('reveal')"
             >
-                <!-- A neutral mark, the same on every stone: the rune is not told by the back -->
-                <span
-                    class="stone__mark"
-                    aria-hidden="true"
-                >{{ compact ? '᛭' : 'ᛟ' }}</span>
+                <!-- The back has no mark, the same on every stone: the rune is not told by the back -->
                 <span
                     v-if="interactive && !compact"
                     class="stone__hint"
@@ -43,14 +39,14 @@
                         class="stone__image"
                         :class="{ 'stone__image--reversed': rune.orientation === 'reversed' }"
                     >
-                    <!-- A reversed rune is the character turned around; the name below stays upright -->
+                    <!-- Only the rune is on the stone; a reversed rune is the character turned around -->
                     <span
                         v-else
                         class="stone__glyph"
+                        role="img"
+                        :aria-label="`${rune.name}（${rune.meaning}）`"
                         :class="{ 'stone__glyph--reversed': rune.orientation === 'reversed' }"
                     >{{ rune.glyph }}</span>
-                    <span class="stone__name">{{ rune.name }}</span>
-                    <span class="stone__meaning">{{ rune.meaning }}</span>
                 </div>
             </div>
         </div>
@@ -68,7 +64,7 @@ withDefaults(defineProps<{
     interactive?: boolean;
     /** A draw is in progress */
     busy?: boolean;
-    /** A small face-down stone, as in a scatter: no hint text, a smaller mark. Its width is `--stone-width`. */
+    /** A small face-down stone, as in a scatter: no hint text. Its width is `--stone-width`. */
     compact?: boolean;
 }>(), {
     interactive: false,
@@ -108,16 +104,19 @@ const emit = defineEmits<{ reveal: [] }>();
     justify-content: center;
     gap: 12px;
     padding: 0;
-    border-radius: 36% 36% 30% 30% / 26% 26% 22% 22%;
+    border: 0;
+    background-color: transparent;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
 
+/* The stone is drawn flat in a picture of its own; the shadow is part of it */
 .stone__back {
-    border: 2px solid #3b4252;
     color: #d8dee9;
-    background: #4c566a;
+    background-image: url('/rune/stone-back.png');
 }
 
 button.stone__back {
@@ -125,20 +124,10 @@ button.stone__back {
     font: inherit;
 }
 
-button.stone__back:hover:not(:disabled),
+/* No frame on hover; the keyboard focus is shown as a soft glow that follows the shape of the stone */
 button.stone__back:focus-visible {
-    outline: 3px solid rgba(var(--v-theme-primary), 0.35);
-    outline-offset: 3px;
-}
-
-.stone__mark {
-    font-size: 4rem;
-    line-height: 1;
-    opacity: 0.85;
-}
-
-.stone--compact .stone__mark {
-    font-size: calc(var(--stone-width) * 0.4);
+    outline: none;
+    filter: drop-shadow(0 0 6px rgba(var(--v-theme-primary), 0.6));
 }
 
 .stone__hint {
@@ -148,9 +137,7 @@ button.stone__back:focus-visible {
 
 .stone__front {
     transform: rotateY(180deg);
-    overflow: hidden;
-    border: 2px solid #8b8472;
-    background: #e9e4d6;
+    background-image: url('/rune/stone-front.png');
 }
 
 .stone__art {
@@ -161,17 +148,24 @@ button.stone__back:focus-visible {
     gap: 6px;
     width: 100%;
     height: 100%;
-    padding: 16px;
+    /* Inside the gold line of the picture */
+    padding: 0;
     text-align: center;
-    color: #2e2a22;
+    color: #deb978;
 }
 
 .stone__glyph {
-    font-size: 5rem;
+    font-size: calc(var(--stone-width, min(200px, 56vw)) * 0.85);
     line-height: 1;
+    /* The glyph sits a little high in its line box; this puts it in the middle of the stone */
+    color: #d4af60;
 }
 
-.stone__glyph--reversed,
+/* Turned around, the glyph sits as low as it sat high, so it is moved the other way */
+.stone__glyph--reversed {
+    transform: rotate(180deg);
+}
+
 .stone__image--reversed {
     transform: rotate(180deg);
 }
@@ -180,17 +174,6 @@ button.stone__back:focus-visible {
     width: 70%;
     height: 55%;
     object-fit: contain;
-}
-
-.stone__name {
-    font-size: 1.25rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-}
-
-.stone__meaning {
-    font-size: 0.8125rem;
-    opacity: 0.75;
 }
 
 @media (prefers-reduced-motion: reduce) {
