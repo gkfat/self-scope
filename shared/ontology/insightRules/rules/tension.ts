@@ -1,0 +1,110 @@
+import type { InsightRuleInput } from '../schema';
+
+/**
+ * Tensions across sources: two traditions lean to the opposite ends of one axis. Neither is picked over the other.
+ * Tensions inside one system are a different thing: the system itself says both, so they are marked as such.
+ */
+export const TENSION_RULES: readonly InsightRuleInput[] = [
+    {
+        id: 'tension-logic-intuition',
+        type: 'tension',
+        when: { all: [{ end: 'A1.A' }, { end: 'A1.B' }] },
+        requiresIndependentSources: true,
+        template: '一個來源偏向用分析與邏輯看事情，另一個來源偏向靠直覺與感受。這可能表示你在不同的事上會換不同的方式判斷，而不是哪一邊才是真的你。',
+        hypothesis: '什麼樣的事你會先算清楚，什麼樣的事你會先憑感覺？',
+    },
+    {
+        id: 'tension-persist-pivot',
+        type: 'tension',
+        when: { all: [{ end: 'B4.A' }, { end: 'B4.B' }] },
+        requiresIndependentSources: true,
+        template: '一個來源描述你會堅持到底，另一個來源描述你懂得見機轉向。你可能傾向在重要的事上堅持，在其他事上保持彈性。',
+        hypothesis: '你放不下的事和你很快就調整的事，各是什麼？',
+    },
+    {
+        id: 'tension-expressive-reserved',
+        type: 'tension',
+        when: { all: [{ end: 'C2.A' }, { end: 'C2.B' }] },
+        requiresIndependentSources: true,
+        template: '一個來源看到你外放表達的一面，另一個來源看到你內斂含蓄的一面。可能是在熟悉的人面前與陌生場合裡，你的表達方式不太一樣。',
+        hypothesis: '在哪些人面前你話比較多，在哪些場合你比較收斂？',
+    },
+    {
+        id: 'tension-feeling-reason',
+        type: 'tension',
+        when: { all: [{ end: 'D1.A' }, { end: 'D1.B' }] },
+        requiresIndependentSources: true,
+        template: '一個來源說你重視情感連結，另一個來源說你處理關係時偏理性客觀。你可能在不同關係裡切換：親近的人以感受為主，面對事情時則先講道理。',
+        hypothesis: '跟最親近的人起衝突時，你是先處理感受，還是先把事情說清楚？',
+    },
+    {
+        id: 'tension-stable-change',
+        type: 'tension',
+        when: { all: [{ end: 'E1.A' }, { end: 'E1.B' }] },
+        requiresIndependentSources: true,
+        template: '一個來源看到你追求穩定，另一個來源看到你嚮往變化。可能是你想要安穩的基礎，同時又希望生活裡不斷有新鮮的東西。',
+        hypothesis: '你現在最不想改變的是什麼？最想改變的又是什麼？',
+    },
+    {
+        id: 'tension-social-solitary',
+        type: 'tension',
+        when: { all: [{ end: 'D4.A' }, { end: 'D4.B' }] },
+        requiresIndependentSources: true,
+        template: '一個來源描述你喜歡與人往來，另一個來源描述你需要獨處。你可能傾向社交之後需要一段時間獨處充電，而不是只屬於其中一種人。',
+        hypothesis: '一場熱鬧的聚會之後，你通常會想繼續待在人群裡，還是回到自己的空間？',
+    },
+    {
+        id: 'tension-order-freedom',
+        type: 'tension',
+        when: { all: [{ end: 'B5.A' }, { end: 'B5.B' }] },
+        requiresIndependentSources: true,
+        template: '一個來源看到你重視條理，另一個來源看到你想要自由隨性。你可能在工作或責任上講求秩序，在私人時間裡則想鬆開來。',
+        hypothesis: '你的生活中，哪些部分要排得很整齊，哪些部分你想隨意一點？',
+    },
+    // Tensions inside one system: the system itself says both ends, which is its feature and not a mistake
+    {
+        id: 'tension-inside-sensitive-steady',
+        type: 'tension',
+        when: { all: [{ end: 'C1.A' }, { end: 'C1.B' }] },
+        requiresIndependentSources: false,
+        withinSystem: true,
+        template: '同一個系統同時指向情緒細膩易感與情緒穩定抽離。這是該系統自己的特徵，可能表示你在某些面向很敏感，在另一些面向卻相當穩定。',
+        hypothesis: '哪些事會立刻牽動你的心情，哪些事你能很平靜地看待？',
+    },
+    {
+        id: 'tension-inside-quick-careful',
+        type: 'tension',
+        when: { all: [{ end: 'B3.A' }, { end: 'B3.B' }] },
+        requiresIndependentSources: false,
+        withinSystem: true,
+        template: '同一個系統同時指向快速決斷與審慎斟酌。這是該系統自己的特徵，可能是你在熟悉的事上果斷，在陌生或影響大的事上會多想一想。',
+        hypothesis: '哪些決定你幾乎馬上就下了，哪些你會反覆斟酌？',
+    },
+    {
+        id: 'tension-inside-logic-intuition',
+        type: 'tension',
+        when: { all: [{ end: 'A1.A' }, { end: 'A1.B' }] },
+        requiresIndependentSources: false,
+        withinSystem: true,
+        template: '同一個系統同時指向分析邏輯與直覺感受。這是該系統自己的特徵，可能表示你會兩種方式並用，視情況由其中一種帶頭。',
+        hypothesis: '最近一次重要的判斷，是靠分析還是靠直覺先有了答案？',
+    },
+    {
+        id: 'tension-inside-independent-belonging',
+        type: 'tension',
+        when: { all: [{ end: 'E3.A' }, { end: 'E3.B' }] },
+        requiresIndependentSources: false,
+        withinSystem: true,
+        template: '同一個系統同時指向自主獨立與歸屬依存。這是該系統自己的特徵，可能是你既想自己做主，又需要被接住、被需要。',
+        hypothesis: '你什麼時候最想自己扛，什麼時候最希望有人在旁邊？',
+    },
+    {
+        id: 'tension-inside-inclusive-standards',
+        type: 'tension',
+        when: { all: [{ end: 'D6.A' }, { end: 'D6.B' }] },
+        requiresIndependentSources: false,
+        withinSystem: true,
+        template: '同一個系統同時指向包容接納與堅守標準。這是該系統自己的特徵，可能是你對人寬容，對事情或自己的底線卻有明確的要求。',
+        hypothesis: '你對別人最包容的地方，和你最不願意退讓的地方，各是什麼？',
+    },
+];
