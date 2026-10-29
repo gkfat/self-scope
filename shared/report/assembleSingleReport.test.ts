@@ -347,8 +347,48 @@ describe('assembleSingleReport', () => {
             traits: ['tarot:9:reversed'],
         });
 
-        it('calls the advice "今天可以試試", as it is about the draw of today', () => {
-            expect(assembleSingleReport(tarot()).blocks.find((b) => b.key === 'advice')?.title).toBe('今天可以試試');
+        it('puts the readings that have a group in a block for each group, in the order the groups come, and the rest among the facts', () => {
+            const report = assembleSingleReport({
+                ...tarot(),
+                interpretations: [
+                    {
+                        title: '今日主題', text: '保持彈性。', group: '今天的提醒',
+                    },
+                    {
+                        title: '感情', text: '順著變化溝通。', group: '生活面向',
+                    },
+                    {
+                        title: '關鍵字', text: '轉變、流動。', group: '今天的提醒',
+                    },
+                    {
+                        title: '沒有分組的解讀', text: '留在事實區。',
+                    },
+                ],
+            });
+            const block = (key: string) => report.blocks.find((b) => b.key === key);
+
+            expect(block('facts')?.title).toBe('概覽');
+            expect(block('readings:1')?.title).toBe('今天的提醒');
+            expect(block('readings:1')?.segments).toHaveLength(2);
+            expect(block('readings:2')?.title).toBe('生活面向');
+            expect(block('facts')?.segments.some((s) => s.text.includes('沒有分組的解讀'))).toBe(true);
+            expect(block('facts')?.segments.some((s) => s.text.includes('今日主題'))).toBe(false);
+        });
+
+        it('has no block of times: the date is in the label of the card of the draw', () => {
+            const report = assembleSingleReport({
+                ...tarot(), timeFacts: [
+                    {
+                        text: '這是 2026-10-29 抽到的牌。', asOf: '2026-10-29',
+                    },
+                ],
+            });
+
+            expect(report.blocks.map((b) => b.key)).not.toContain('time');
+        });
+
+        it('calls the advice "給你的建議" for a draw as for any other report', () => {
+            expect(assembleSingleReport(tarot()).blocks.find((b) => b.key === 'advice')?.title).toBe('給你的建議');
         });
 
         it('stops after the facts and the advice: no conclusion about the trait and no map of effects', () => {

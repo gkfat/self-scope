@@ -482,26 +482,126 @@ describe('the reports of today', () => {
 
         for (const title of [
             '今日主題',
-            '關鍵字',
-            '可以留意的地方',
+            '人物',
+            '顏色',
+            '道具',
+            '構圖',
+            '傳統',
+            '現代',
             '自我',
             '人際',
-            '正位核心',
-            '逆位核心',
             '光明面：資源與優勢',
             '陰影面：過度的傾向',
             '內在衝突',
             '成長課題',
-            '傳統牌義',
-            '現代詮釋',
-            '牌面：人物',
-            '牌面：構圖',
         ]) {
             expect(titles, title).toContain(title);
         }
 
-        expect(input.facts.find((fact) => fact.label === '核心主題')?.value).not.toBe('');
+        expect(input.facts.some((fact) => fact.label === '關鍵字')).toBe(false);
+        expect(input.interpretations.find((reading) => reading.group === '關鍵字')?.text).not.toBe('');
+        expect(input.facts.some((fact) => fact.label === '核心主題')).toBe(false);
+        // The other side of the card is not shown, and the direction is in the card of the draw
+        expect(titles).not.toContain('牌的方向');
+        expect(titles).not.toContain('逆位核心');
+        expect(titles).not.toContain('正位與逆位的差異');
         expect(input.advice.filter((line) => line.startsWith('想一想：'))).toHaveLength(3);
+    });
+
+    it('puts the theme of the day and what to watch for in one quote at the head of the overview', () => {
+        const input = tarotReportInput({
+            date: '2026-10-29',
+            card: {
+                index: 10, roman: 'X', name: '命運之輪', englishName: 'Wheel of Fortune', orientation: 'upright', illustration: null,
+            },
+            content: {
+                ...content, summary: '今天傾向感受到事情的流動與轉變，保持彈性，順勢調整會比較輕鬆。', blindSpots: ['把變化都歸給運氣時，可能少了主動調整的力氣。'],
+            },
+            drawVersion: 'tarot-v1',
+        });
+        const [lead] = input.interpretations;
+
+        expect(lead).toMatchObject({
+            lead: true,
+            text: '今天傾向感受到事情的流動與轉變，保持彈性，順勢調整會比較輕鬆。但要注意，把變化都歸給運氣時，可能少了主動調整的力氣。',
+        });
+        expect(input.interpretations.some((reading) => reading.title === '可以留意的地方')).toBe(false);
+    });
+
+    it('gives the direction a card of its own, and sorts the readings of a card into groups', () => {
+        const input = tarotReportInput({
+            date: '2026-10-29',
+            card: {
+                index: 1, roman: 'I', name: '魔術師', englishName: 'The Magician', orientation: 'upright', illustration: null,
+            },
+            content,
+            drawVersion: 'tarot-v1',
+        });
+
+        expect(input.facts[1]).toMatchObject({
+            label: '正逆位', value: '正位',
+        });
+        // The card, the side that was drawn (upright here) and its core
+        expect(input.facts.map((fact) => fact.label)).toEqual([
+            '今日的牌',
+            '正逆位',
+            '正位核心',
+        ]);
+        expect([...new Set(input.interpretations.flatMap((reading) => (reading.group ? [reading.group] : [])))]).toEqual([
+            '關鍵字',
+            '牌面解構',
+            '牌義詮釋',
+            '生活面向',
+            '光明、陰影與成長',
+        ]);
+        // Only the quote at the head has no group
+        expect(input.interpretations.filter((reading) => !reading.group).map((reading) => reading.lead)).toEqual([true]);
+    });
+
+    it('does not say "今天可以試試" twice when the advice already opens with it', () => {
+        const input = runeReportInput({
+            date: '2026-10-28',
+            rune: {
+                index: 0, name: 'Fehu', glyph: 'ᚠ', meaning: '財富', orientation: 'upright', illustration: null,
+            },
+            content: {
+                ...content, growthAdvice: '今天可以試試接受一個小小的變動，看看它帶來什麼。',
+            },
+            drawVersion: 'rune-v1',
+        });
+
+        expect(input.advice[0]).toBe('今天可以試試：接受一個小小的變動，看看它帶來什麼。');
+    });
+
+    it('gives a rune the same groups as a card, and three questions for the side that was drawn', () => {
+        const upright = runeReportInput({
+            date: '2026-10-28',
+            rune: {
+                index: 0, name: 'Fehu', glyph: 'ᚠ', meaning: '財富', orientation: 'upright', illustration: null,
+            },
+            content,
+            drawVersion: 'rune-v1',
+        });
+
+        expect([...new Set(upright.interpretations.flatMap((reading) => (reading.group ? [reading.group] : [])))]).toEqual([
+            '關鍵字',
+            '符文詮釋',
+            '生活面向',
+            '光明、陰影與成長',
+        ]);
+        expect(upright.advice.filter((line) => line.startsWith('想一想：'))).toHaveLength(3);
+
+        const reversed = runeReportInput({
+            date: '2026-10-28',
+            rune: {
+                index: 0, name: 'Fehu', glyph: 'ᚠ', meaning: '財富', orientation: 'reversed', illustration: null,
+            },
+            content,
+            drawVersion: 'rune-v1',
+        });
+
+        // The side that was drawn is the one that is read
+        expect(reversed.advice.filter((line) => line.startsWith('想一想：'))).not.toEqual(upright.advice.filter((line) => line.startsWith('想一想：')));
     });
 
     it('gives a rune a report the snapshot schema accepts', () => {
@@ -515,19 +615,22 @@ describe('the reports of today', () => {
         });
 
         expect(input.position).toContain('Fehu');
-        expect(input.interpretations.map((reading) => reading.title)).toEqual(expect.arrayContaining(['關鍵字', '可以留意的地方']));
-        expect(input.advice).toEqual(['今天可以試試：給自己一點時間。']);
+        expect(input.interpretations[0]).toMatchObject({ lead: true });
+        expect(input.interpretations.some((reading) => reading.group === '關鍵字')).toBe(true);
+        expect(input.advice[0]).toBe('今天可以試試：給自己一點時間。');
         expect(accepted(input)).toBe(true);
     });
 
-    it('gives the horoscope a fact for each body, read in the houses of the sign', () => {
+    it('reads each body of the horoscope in the houses of the sign, as a group of its own', () => {
         const input = horoscopeReportInput({
             horoscope: {
                 date: '2026-10-28',
                 sign: 'scorpio',
                 bodies: [
                     {
-                        body: 'MOON', name: '月亮', area: '今日心情與節奏', transitSign: 'leo', house: 3, content,
+                        body: 'MOON', name: '月亮', area: '今日心情與節奏', transitSign: 'leo', house: 3, content: {
+                            ...content, title: '月亮在第 3 宮：溝通與學習',
+                        },
                     }, {
                         body: 'SUN', name: '太陽', area: '這段時間的主題', transitSign: 'scorpio', house: 1, content,
                     },
@@ -535,8 +638,20 @@ describe('the reports of today', () => {
             },
         });
 
-        expect(input.facts).toHaveLength(2);
         expect(input.position).toContain('天蠍座');
+        // The overview is the quote of the Moon; each body is a group of its own, named for what it stands for
+        expect(input.facts).toEqual([]);
+        expect(input.interpretations[0]).toMatchObject({ lead: true });
+        expect([...new Set(input.interpretations.flatMap((reading) => (reading.group ? [reading.group] : [])))]).toEqual([
+            '關鍵字',
+            '心情與節奏',
+            '這段時間的主題',
+        ]);
+        // The sign the body is in comes with the house
+        expect(input.interpretations.find((reading) => reading.group === '心情與節奏' && reading.title.includes('・第'))?.title).toBe('月亮在獅子座・第 3 宮：溝通與學習');
+        // One thing to try, and three questions (the houses of the bodies, each once)
+        expect(input.advice.filter((line) => line.startsWith('今天可以試試：'))).toHaveLength(1);
+        expect(input.advice.filter((line) => line.startsWith('想一想：'))).toHaveLength(2);
         expect(accepted(input)).toBe(true);
     });
 });

@@ -87,6 +87,16 @@
         >
             <v-card-title>{{ blockTitle('facts') }}</v-card-title>
             <v-card-text>
+                <!-- The theme of the day, quoted, ahead of the facts of the draw -->
+                <blockquote
+                    v-if="leadText"
+                    class="lead"
+                >
+                    <p class="lead__text">
+                        {{ leadText }}
+                    </p>
+                </blockquote>
+
                 <v-row dense>
                     <v-col
                         v-for="(fact, index) in factCards"
@@ -96,7 +106,7 @@
                         md="4"
                     >
                         <v-card
-                            variant="tonal"
+                            variant="outlined"
                             height="100%"
                         >
                             <v-card-text>
@@ -104,7 +114,13 @@
                                     {{ fact.label }}
                                 </div>
                                 <div class="text-body-1 font-weight-medium">
-                                    {{ fact.value }}
+                                    {{ fact.title }}
+                                </div>
+                                <div
+                                    v-if="fact.subtitle"
+                                    class="text-body-2 text-medium-emphasis"
+                                >
+                                    {{ fact.subtitle }}
                                 </div>
                                 <p
                                     v-if="fact.reading"
@@ -121,9 +137,6 @@
                     v-if="readings.length"
                     class="mt-6"
                 >
-                    <div class="text-subtitle-1 font-weight-medium mb-2">
-                        傳統怎麼解讀
-                    </div>
                     <v-row dense>
                         <v-col
                             v-for="(reading, index) in readings"
@@ -136,10 +149,7 @@
                                 height="100%"
                             >
                                 <v-card-text>
-                                    <div class="text-caption text-medium-emphasis">
-                                        {{ reading.tradition }}
-                                    </div>
-                                    <div class="text-subtitle-2 mb-1">
+                                    <div class="text-subtitle-1 font-weight-bold mb-1">
                                         {{ reading.title }}
                                     </div>
                                     <p class="text-body-2 mb-0">
@@ -150,6 +160,8 @@
                         </v-col>
                     </v-row>
                 </div>
+
+                <ReportReadingGroups :groups="readingGroups" />
             </v-card-text>
         </v-card>
 
@@ -252,56 +264,10 @@
             </v-card-text>
         </v-card>
 
-        <v-card
-            v-if="advice.length"
-            variant="outlined"
-            class="mb-4"
-        >
-            <v-card-title>{{ blockTitle('advice') }}</v-card-title>
-            <v-card-text>
-                <!-- The advice, quoted, then the parts of the practice, as the pages of a reading show them -->
-                <blockquote
-                    v-for="(item, index) in adviceLines"
-                    :key="`advice-${index}`"
-                    class="lead"
-                    :class="{ 'mb-4': practiceRows.length }"
-                >
-                    <p class="lead__text">
-                        {{ item }}
-                    </p>
-                </blockquote>
-                <v-row
-                    v-if="practiceRows.length"
-                    dense
-                >
-                    <v-col
-                        v-for="row in practiceRows"
-                        :key="row.label"
-                        cols="12"
-                        sm="6"
-                    >
-                        <v-card
-                            variant="outlined"
-                            height="100%"
-                        >
-                            <v-card-text>
-                                <div class="text-subtitle-2 mb-1">
-                                    <v-icon
-                                        :icon="row.icon"
-                                        size="18"
-                                        class="mr-1"
-                                    />
-                                    {{ row.label }}
-                                </div>
-                                <p class="mb-0">
-                                    {{ row.text }}
-                                </p>
-                            </v-card-text>
-                        </v-card>
-                    </v-col>
-                </v-row>
-            </v-card-text>
-        </v-card>
+        <ReportAdviceCard
+            :title="blockTitle('advice')"
+            :advice="advice.map((segment) => segment.text)"
+        />
     </div>
 </template>
 
@@ -366,8 +332,11 @@ const isChartFact = (label: string) => props.natalChart != null && (/^第 \d+ �
 const factCards = computed(() => segmentsOf('facts').filter((segment) => segment.kind === 'FACT').filter((segment) => !isChartFact(splitLabel(segment.text).label)).map((segment) => {
     const { label, value } = splitLabel(segment.text);
 
+    // A second line in the value is the subtitle (the English name of a card)
+    const [title = '', ...subtitle] = value.split('\n');
+
     return {
-        label, value, reading: readingsByFact.value[label] ?? '',
+        label, title, subtitle: subtitle.join(' '), reading: readingsByFact.value[label] ?? '',
     };
 }));
 
@@ -382,6 +351,14 @@ const readingsOf = (key: string) => segmentsOf(key).filter((segment) => segment.
 });
 
 const readings = computed(() => readingsOf('facts'));
+
+/** The quote at the head of the overview of a draw: the words after its title */
+const leadText = computed(() => readingsOf('lead')[0]?.text ?? '');
+
+/** The readings that come in groups, one block for each group */
+const readingGroups = computed(() => props.report.blocks.filter((block) => block.key.startsWith('readings:')).map((block) => ({
+    key: block.key, title: block.title, readings: readingsOf(block.key),
+})));
 const overview = computed(() => readingsOf('overview'));
 const overviewLead = computed(() => overview.value[0] ?? null);
 const overviewRest = computed(() => overview.value.slice(1));
@@ -390,7 +367,7 @@ const overviewRest = computed(() => overview.value.slice(1));
  * The facts are listed unless they add nothing to what is shown elsewhere: with an overview and the chart (or its
  * invitation) in place, the sun sign is the only fact left and its reading is in the sun's house.
  */
-const showFacts = computed(() => !(overview.value.length > 0 && factCards.value.length <= 1 && readings.value.length === 0 && (props.natalChart != null || props.natalLocked === true)));
+const showFacts = computed(() => !(overview.value.length > 0 && factCards.value.length <= 1 && readings.value.length === 0 && readingGroups.value.length === 0 && (props.natalChart != null || props.natalLocked === true)));
 
 const timeCards = computed(() => segmentsOf('time').map((segment) => ({
     text: segment.text, asOf: segment.asOf ?? '',
@@ -438,30 +415,6 @@ const allGroups = computed(() => props.report.blocks.filter((block) => block.key
 const isHighlight = (key: string) => key.startsWith('inference:planets-');
 const highlightBlocks = computed(() => props.report.blocks.filter((block) => isHighlight(block.key)));
 const inferenceGroups = computed(() => allGroups.value.filter((group) => !isHighlight(group.key)));
-/** The parts of the practice, by the label the advice gives them, with the icon each has on the pages of a reading */
-const PRACTICE_ICONS = new Map<string, string>([
-    ['一個值得觀察的習慣', 'mdi-eye-outline'],
-    ['一個可以嘗試改變的行為', 'mdi-swap-horizontal'],
-    ['一個自我反思問題', 'mdi-help-circle-outline'],
-    ['本週就能完成的小練習', 'mdi-calendar-check-outline'],
-]);
-
-const adviceParts = computed(() => segmentsOf('advice').map((segment) => {
-    const colon = segment.text.indexOf('：');
-    const label = colon < 0 ? '' : segment.text.slice(0, colon);
-
-    return PRACTICE_ICONS.has(label)
-        ? {
-            label, icon: PRACTICE_ICONS.get(label) as string, text: segment.text.slice(colon + 1),
-        }
-        : {
-            label: '', icon: '', text: segment.text,
-        };
-}));
-
-/** The advice itself, and the parts of the practice that go with it */
-const adviceLines = computed(() => adviceParts.value.filter((part) => !part.label).map((part) => part.text));
-const practiceRows = computed(() => adviceParts.value.filter((part) => part.label));
 const advice = computed(() => segmentsOf('advice'));
 
 
@@ -494,6 +447,10 @@ const NUMERALS = ['一', '二', '三', '四', '五', '六', '七', '八', '九',
 </script>
 
 <style scoped>
+.lines {
+    white-space: pre-line;
+}
+
 .lead {
     margin: 0 0 16px;
     padding: 16px 20px;

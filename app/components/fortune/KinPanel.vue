@@ -32,107 +32,96 @@
             今天的內容還在準備中，晚一點再回來看看。
         </v-alert>
 
-        <!-- Not unlocked: one button, and nothing about today's Kin -->
+        <!-- Not unlocked: an invitation and one button, and nothing about today's Kin -->
         <v-card
             v-if="!unlocked && status !== 'loading' && status !== 'failed'"
             variant="outlined"
             class="mb-4 text-center"
         >
-            <v-card-text>
+            <v-card-text class="py-8">
+                <v-icon
+                    icon="mdi-calendar-star"
+                    size="40"
+                    color="primary"
+                    class="mb-3"
+                />
+                <p class="text-body-1 mb-1">
+                    今天的 Kin 還沒揭曉
+                </p>
+                <p class="text-body-2 text-medium-emphasis mb-5">
+                    每天可以揭曉一次，看看今天的圖騰與調性
+                </p>
                 <v-btn
                     color="primary"
                     size="large"
+                    prepend-icon="mdi-star-four-points-outline"
                     :loading="unlocking"
                     @click="unlock"
                 >
-                    計算今日 Kin
+                    揭曉今日 Kin
                 </v-btn>
             </v-card-text>
         </v-card>
 
         <template v-if="unlocked">
-            <p class="text-caption text-medium-emphasis text-center mb-2">
-                {{ unlocked.date }}
-            </p>
             <KinBadge
                 :kin="unlocked.kin"
                 class="mb-4"
             />
 
+            <!-- The same sections, in the same order, as the report of a tarot card or a rune -->
             <v-card
+                v-if="reading"
                 variant="outlined"
                 class="mb-4"
             >
+                <v-card-title>概覽</v-card-title>
                 <v-card-text>
-                    <p class="text-subtitle-1 font-weight-medium mb-2">
-                        {{ unlocked.content.title }}
-                    </p>
                     <blockquote class="quote">
                         <p class="quote__text">
-                            {{ unlocked.content.summary }}
+                            {{ reading.lead }}
                         </p>
                     </blockquote>
 
-                    <section
-                        v-if="unlocked.content.strengths.length"
-                        class="mb-4"
-                    >
-                        <div class="text-subtitle-1 font-weight-medium mb-2">
-                            今日關鍵字
-                        </div>
-                        <v-chip
-                            v-for="word in unlocked.content.strengths"
-                            :key="word"
-                            class="mr-2 mb-2"
-                            variant="tonal"
-                            color="primary"
+                    <v-row dense>
+                        <v-col
+                            v-for="fact in reading.facts"
+                            :key="fact.label"
+                            cols="12"
+                            sm="6"
+                            md="4"
                         >
-                            {{ word }}
-                        </v-chip>
-                    </section>
+                            <v-card
+                                variant="outlined"
+                                height="100%"
+                            >
+                                <v-card-text>
+                                    <div class="text-caption text-medium-emphasis">
+                                        {{ fact.label }}
+                                    </div>
+                                    <div class="text-body-1 font-weight-medium">
+                                        {{ fact.value }}
+                                    </div>
+                                    <div
+                                        v-if="fact.subtitle"
+                                        class="text-body-2 text-medium-emphasis"
+                                    >
+                                        {{ fact.subtitle }}
+                                    </div>
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+                    </v-row>
 
-                    <section
-                        v-if="unlocked.content.blindSpots.length"
-                        class="mb-4"
-                    >
-                        <div class="text-subtitle-1 font-weight-medium mb-2">
-                            <v-icon
-                                color="warning"
-                                size="20"
-                            >
-                                mdi-eye-outline
-                            </v-icon>
-                            今天可以留意的事
-                        </div>
-                        <ul class="pl-5">
-                            <li
-                                v-for="item in unlocked.content.blindSpots"
-                                :key="item"
-                                class="mb-1"
-                            >
-                                {{ item }}
-                            </li>
-                        </ul>
-                    </section>
-
-                    <section v-if="unlocked.content.growthAdvice.trim()">
-                        <div class="text-subtitle-1 font-weight-medium mb-2">
-                            <v-icon
-                                color="success"
-                                size="20"
-                            >
-                                mdi-check-circle-outline
-                            </v-icon>
-                            今天可以試試
-                        </div>
-                        <blockquote class="quote mb-0">
-                            <p class="quote__text">
-                                {{ unlocked.content.growthAdvice }}
-                            </p>
-                        </blockquote>
-                    </section>
+                    <ReportReadingGroups :groups="reading.groups" />
                 </v-card-text>
             </v-card>
+
+            <ReportAdviceCard
+                v-if="reading"
+                title="給你的建議"
+                :advice="reading.advice"
+            />
 
             <p class="text-caption text-medium-emphasis mb-4">
                 {{ unlocked.content.disclaimer }}
@@ -142,11 +131,18 @@
 </template>
 
 <script lang="ts" setup>
+import { kinTodayReading } from '../../../shared/report/adapters/kinToday';
+
 const {
     today, status, unlocking, load, unlock,
 } = useKinToday();
 
 const unlocked = computed(() => (today.value?.unlocked ? today.value : null));
+
+/** Today's Kin as the sections of a draw, the same as a card or a rune */
+const reading = computed(() => (unlocked.value ? kinTodayReading({
+    kin: unlocked.value.kin, content: unlocked.value.content,
+}) : null));
 
 // The page may stay open past Taipei midnight: asking again when it is looked at again gives the new day.
 function onVisible() {

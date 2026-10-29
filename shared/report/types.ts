@@ -16,6 +16,10 @@ export type ReportInterpretation = {
     term?: string;
     /** Shown first, in an overview of its own, instead of among the facts it reads (the reading of the sign itself) */
     overview?: boolean;
+    /** Shown first, as a quote at the head of the overview of a draw (a state system) */
+    lead?: boolean;
+    /** The heading of the group of readings it is shown in, ahead of the others (a reading with none is shown among the facts) */
+    group?: string;
     /** The label of the fact this reads ("太陽星座"): the reading is then shown inside that fact's card */
     factLabel?: string;
 };

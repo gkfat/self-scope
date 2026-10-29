@@ -52,6 +52,23 @@
 
         <!-- The report of today, with everything this page used to show -->
         <template v-if="today">
+            <!-- The sign the reading is for, ahead of the report: it is the first house of everything below -->
+            <v-card
+                variant="outlined"
+                class="mb-4"
+            >
+                <v-card-text class="text-center">
+                    <div class="text-caption text-medium-emphasis">
+                        你的星座
+                    </div>
+                    <div class="text-h5 font-weight-bold">
+                        {{ ZODIAC_LABELS[today.sign] }}
+                    </div>
+                    <div class="text-body-2 text-medium-emphasis">
+                        以{{ ZODIAC_LABELS[today.sign] }}為第 1 宮，讀今天月亮、太陽、水星、金星與火星的位置
+                    </div>
+                </v-card-text>
+            </v-card>
             <SingleReportView
                 v-if="report"
                 :report="report"
@@ -70,6 +87,8 @@
 </template>
 
 <script lang="ts" setup>
+import { ZODIAC_LABELS } from '../../../shared/constants/zodiacLabels';
+
 const {
     today, status, load,
 } = useDailyHoroscope();

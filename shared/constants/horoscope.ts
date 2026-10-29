@@ -48,3 +48,19 @@ export function horoscopeContentKeys(): string[] {
  * and imported, since the horoscope answers 404 ("準備中") without them.
  */
 export const HOROSCOPE_ENTRY_ENABLED = true;
+
+/** One question to think over for each house, indexed by house minus 1; fixed text, written once and reviewed (RULE-017). */
+export const HOUSE_REFLECTIONS: readonly string[] = [
+    '今天我想怎麼介紹自己，又想開始什麼？',
+    '什麼是我今天真正在乎、想守住的？',
+    '我今天想說清楚或學會的一件事是什麼？',
+    '什麼能讓我今天覺得安穩？',
+    '今天什麼事讓我覺得好玩、想投入？',
+    '今天有什麼日常的小習慣值得調整？',
+    '我今天可以怎麼回應身邊重要的人？',
+    '今天有什麼感受是我一直沒說出口的？',
+    '今天有什麼新的想法值得多想一想？',
+    '我今天朝哪個目標前進了一小步？',
+    '我今天想和誰分享，或一起做些什麼？',
+    '我今天需要給自己什麼樣的安靜與休息？',
+];

@@ -109,15 +109,24 @@ export function assembleSingleReport(input: SystemReportInput, options: Assemble
     // What the tradition says of the member's result itself comes first, as an overview of its own
     const overview = block('overview', '概覽', input.interpretations.filter((reading) => reading.overview).map(readingSegment));
 
-    const factsAndReadings = block('facts', '系統的事實與解讀', [
+    // The quote at the head of the overview of a draw
+    const lead = block('lead', '今日主題', input.interpretations.filter((reading) => reading.lead).map(readingSegment));
+
+    // A state system's facts and readings are its overview; the others keep the plain name
+    const factsAndReadings = block('facts', state ? '概覽' : '系統的事實與解讀', [
         ...input.facts.map((fact) => segment(`${fact.label}：${fact.value}`, 'FACT', [
             fact.term ? {
                 system: input.system, term: fact.term,
             } : systemSource,
-        ])), ...input.interpretations.filter((reading) => !reading.overview).map(readingSegment),
+        ])), ...input.interpretations.filter((reading) => !reading.overview && !reading.lead && !reading.group).map(readingSegment),
     ]);
 
-    const timeFacts = block('time', '依系統算出的時間', (input.timeFacts ?? []).map((fact) => segment(fact.text, fact.reading ? 'SYSTEM_INTERPRETATION' : 'FACT', [
+    // Readings that have a group go in a block for each group, in the order the groups first come
+    const readingGroups = [...new Set(input.interpretations.flatMap((reading) => (!reading.overview && reading.group ? [reading.group] : [])))];
+    const groupedReadings = readingGroups.flatMap((group, index) => block(`readings:${index + 1}`, group, input.interpretations.filter((reading) => !reading.overview && reading.group === group).map(readingSegment)));
+
+    // The date of a draw is in the label of the card of the draw; only the other systems have times of their own
+    const timeFacts = block('time', '依系統算出的時間', (state ? [] : input.timeFacts ?? []).map((fact) => segment(fact.text, fact.reading ? 'SYSTEM_INTERPRETATION' : 'FACT', [
         fact.term ? {
             system: input.system, term: fact.term,
         } : systemSource,
@@ -163,7 +172,7 @@ export function assembleSingleReport(input: SystemReportInput, options: Assemble
     const impacts = facets.map((facet) => impactBlock(facet, [input.system], fragments));
 
     // Advice for the member, as the reading pages call it; for a report about today's draw, what to try today
-    const advice = block('advice', state ? '今天可以試試' : '給你的建議', input.advice.map((text) => segment(text, 'SYSTEM_INTERPRETATION', [systemSource])));
+    const advice = block('advice', '給你的建議', input.advice.map((text) => segment(text, 'SYSTEM_INTERPRETATION', [systemSource])));
 
     const limits = block('limits', '依據與限制', [
         segment(`系統性質：${nature.label}。`, 'FACT', [systemSource]),
@@ -182,7 +191,9 @@ export function assembleSingleReport(input: SystemReportInput, options: Assemble
         blocks: [
             ...position,
             ...overview,
+            ...lead,
             ...factsAndReadings,
+            ...groupedReadings,
             ...timeFacts,
             ...summary,
             ...inferenceBlocks,
